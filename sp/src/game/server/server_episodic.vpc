@@ -52,6 +52,9 @@ $Project "Server (Episodic)"
 		{
 			$Folder	"Mod"
 			{
+				$File	"episodic\grenade_hopwire.cpp"
+				$File	"episodic\grenade_hopwire.h"
+				$File	"episodic\weapon_hopwire.cpp"
 				$File	"mod\weapon_custom_flaregun.cpp"
 			}
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep1.cpp"
