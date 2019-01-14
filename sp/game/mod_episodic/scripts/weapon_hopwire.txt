@@ -4,6 +4,8 @@ WeaponData
 	"printname"	"#HL2_Hopwire"
 	"viewmodel"				"models/weapons/v_grenade.mdl"
 	"playermodel"			"models/items/grenadeAmmo.mdl"
+	// The secondary model is the model of the grenade after it begins hopping
+	"secondarymodel"		"models/items/grenadeAmmo.mdl"
 	"anim_prefix"			"Grenade"
 	"bucket"				"4"
 	"bucket_position"		"2"
