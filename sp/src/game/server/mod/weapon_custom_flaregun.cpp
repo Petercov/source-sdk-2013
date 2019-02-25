@@ -33,6 +33,9 @@ ConVar	flaregun_stop_velocity("sv_flaregun_stop_velocity", "128");
 ConVar	flaregun_projectile_sticky("sv_flaregun_projectile_sticky", "0");
 ConVar	flaregun_dynamic_lights("sv_flaregun_dynamic_lights", "1");
 
+extern ConVar    sk_plr_dmg_flare_round;
+extern ConVar    sk_npc_dmg_flare_round;
+
 // Custom derived class for flare gun projectiles
 class CFlareGunProjectile : public CFlare
 {
@@ -310,8 +313,6 @@ void CFlareGunProjectile::FlareGunProjectileBurnTouch(CBaseEntity *pOther)
 {
 	if (pOther && pOther->m_takedamage && (m_flNextDamage < gpGlobals->curtime))
 	{
-		// Don't do damage - I want consistent behavior between initial collisions and after landing collisions
-		// pOther->TakeDamage(CTakeDamageInfo(this, m_pOwner, 1, (DMG_BULLET | DMG_BURN)));
 		m_flNextDamage = gpGlobals->curtime + 1.0f;
 		IgniteOtherIfAllowed(pOther);
 	}
@@ -345,6 +346,18 @@ void CFlareGunProjectile::IgniteOtherIfAllowed(CBaseEntity * pOther)
 	// If this is a breakable prop, ignite it!
 	CBreakableProp *pBreakable;
 	pBreakable = dynamic_cast<CBreakableProp*>(pOther);
-	if (pBreakable)
+	if (pBreakable) 
+	{
 		pBreakable->IgniteLifetime(flaregun_duration_seconds.GetFloat());
+		// Don't do damage to props that are on fire
+		if (pBreakable->IsOnFire())
+			return;
+	}
+
+	// Do damage
+	if (m_pOwner->IsPlayer()) 
+		pOther->TakeDamage(CTakeDamageInfo(this, m_pOwner, sk_plr_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN)));
+	else
+		pOther->TakeDamage(CTakeDamageInfo(this, m_pOwner, sk_npc_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN)));
+
 }
