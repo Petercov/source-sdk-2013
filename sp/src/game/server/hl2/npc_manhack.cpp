@@ -494,8 +494,11 @@ void CNPC_Manhack::TakeDamageFromPhyscannon( CBasePlayer *pPlayer )
 
 	// Convert velocity into damage.
 	Vector vel;
-	VPhysicsGetObject()->GetVelocity( &vel, NULL );
-	float flSpeed = vel.Length();
+	float flSpeed = 0;
+	if (VPhysicsGetObject()) {
+		VPhysicsGetObject()->GetVelocity( &vel, NULL );
+		flSpeed = vel.Length();
+	}
 
 	float flFactor = flSpeed / MANHACK_SMASH_SPEED;
 
@@ -2962,6 +2965,32 @@ bool CNPC_Manhack::HandleInteraction(int interactionType, void* data, CBaseComba
 			disposition = IRelationType(pEnemy);
 
 			AddEntityRelationship(pEnemy, disposition, priority + 1);
+		}
+
+		return false;
+	}
+#endif
+
+#ifdef EZ
+	if ( interactionType == g_interactionZombinePullGrenade )
+	{
+
+#ifdef EZ2
+		m_bNemesis = true;
+#endif
+
+		int priority;
+		Disposition_t disposition;
+		CBaseEntity * pEnemy;
+
+		// If the zombine that dispatched us has an enemy, prioritize that enemy
+		if (sourceEnt && sourceEnt->GetEnemy())
+		{
+			pEnemy = sourceEnt->GetEnemy();
+			priority = IRelationPriority( pEnemy );
+			disposition = IRelationType( pEnemy );
+
+			AddEntityRelationship( pEnemy, disposition, priority + 1 );
 		}
 
 		return false;
