@@ -2023,7 +2023,7 @@ void CBaseAnimating::SetupBones( matrix3x4_t *pBoneToWorld, int boneMask )
 	}
 	
 	CBaseAnimating *pParent = dynamic_cast< CBaseAnimating* >( GetMoveParent() );
-	if ( pParent )
+	if ( (GetEffects() & EF_BONEMERGE) && pParent )
 	{
 		// We're doing bone merging, so do special stuff here.
 		CBoneCache *pParentCache = pParent->GetBoneCache();

@@ -9858,7 +9858,14 @@ void CAI_BaseNPC::HandleAnimEvent( animevent_t *pEvent )
 			else if ( pEvent->event == AE_NPC_RAGDOLL )
 			{
 				// Convert to ragdoll immediately
-				BecomeRagdollOnClient( vec3_origin );
+				CTakeDamageInfo info(this, this, 0.f, DMG_GENERIC|DMG_PREVENT_PHYSICS_FORCE);
+				if (m_hInteractionPartner)
+				{
+					info.SetAttacker(m_hInteractionPartner);
+					info.SetInflictor(m_hInteractionPartner);
+				}
+
+				BecomeRagdoll(info, vec3_origin);
 				return;
 			}
 			else if ( pEvent->event == AE_NPC_ADDGESTURE )
