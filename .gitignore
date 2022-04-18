@@ -98,3 +98,4 @@ sp/src/vgui2/*.pdb
 sp/src/devtools/gcc9+support.o
 
 .vs
+/*/game/*/bin/*
