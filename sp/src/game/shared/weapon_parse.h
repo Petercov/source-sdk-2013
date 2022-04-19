@@ -127,7 +127,7 @@ public:
 	bool					m_bAllowFlipping;	// False to disallow flipping the model, regardless of whether
 												// it is built left or right handed.
 
-#ifdef MAPBASE
+#if defined(MAPBASE) || defined(CSS_WEAPONS_IN_HL2)
 	float					m_flViewmodelFOV;
 	float					m_flBobScale;
 	float					m_flSwayScale;
