@@ -7,7 +7,7 @@
 
 extern ConVar mapbase_load_default_manifest;
 
-
+IMPLEMENT_PRIVATE_SYMBOLTYPE(CustomWeaponSymbol);
 
 CCustomWeaponSystem::CCustomWeaponSystem() : CAutoGameSystem("CustomWeaponFactorySystem")
 {
@@ -15,7 +15,7 @@ CCustomWeaponSystem::CCustomWeaponSystem() : CAutoGameSystem("CustomWeaponFactor
 
 void CCustomWeaponSystem::LevelInitPreEntity()
 {
-	AddManifestFile(GLOBAL_WEAPONS_MANIFEST);
+	LoadCustomWeaponsManifest(GLOBAL_WEAPONS_MANIFEST);
 
 	// Check for a generic "mapname_manifest.txt" file and load it.
 	if (filesystem->FileExists(AUTOLOADED_MANIFEST_FILE, "GAME"))
@@ -155,6 +155,7 @@ void CCustomWeaponSystem::LevelShutdownPostEntity()
 	}
 
 	m_ClassFactories.Purge();
+	g_CustomWeaponSymbolSymbolTable.RemoveAll();
 }
 
 void CCustomWeaponSystem::ParseWeapon(CBaseCombatWeapon* pWeapon, const char* pClassName)
