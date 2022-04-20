@@ -1770,7 +1770,6 @@ LINK_ENTITY_TO_CLASS(player_npc_dummy, CAI_PlayerNPCDummy);
 
 CAI_PlayerNPCDummy::CAI_PlayerNPCDummy()
 {
-	AddEFlags(EFL_SERVER_ONLY); // We don't need an edict
 }
 
 //-----------------------------------------------------------------------------
