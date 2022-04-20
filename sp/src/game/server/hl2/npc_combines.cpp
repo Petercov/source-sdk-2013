@@ -33,7 +33,7 @@
 #define COMBINE_SKIN_SHOTGUNNER		1
 
 ConVar sk_combine_armor_chance("sk_combine_armor_chance", "0.25");
-ConVar sk_combine_armor_dmgscale("sk_combine_armor_damage_scale", "0.75");
+ConVar sk_combine_armor_dmgscale("sk_combine_armor_damage_scale", "0.4");
 #endif // MAPBASE
 
 ConVar	sk_combine_s_health( "sk_combine_s_health","0");
