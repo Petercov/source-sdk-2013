@@ -28,6 +28,14 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#ifdef MAPBASE
+#define COMBINE_SKIN_DEFAULT		0
+#define COMBINE_SKIN_SHOTGUNNER		1
+
+ConVar sk_combine_armor_chance("sk_combine_armor_chance", "0.25");
+ConVar sk_combine_armor_dmgscale("sk_combine_armor_damage_scale", "0.75");
+#endif // MAPBASE
+
 ConVar	sk_combine_s_health( "sk_combine_s_health","0");
 ConVar	sk_combine_s_kick( "sk_combine_s_kick","0");
 
@@ -85,6 +93,25 @@ void CNPC_CombineS::Spawn( void )
 		Msg( "Soldier %s is set to use march anim, but is not an efficient AI. The blended march anim can only be used for dead-ahead walks!\n", GetDebugName() );
 	}
 #endif
+
+#ifdef MAPBASE
+	// This was moved from CalcWeaponProficiency() so soldiers don't change skin unnaturally and uncontrollably
+	if (!IsElite() && GetActiveWeapon() && EntIsClass(GetActiveWeapon(), gm_isz_class_Shotgun) && m_nSkin == COMBINE_SKIN_DEFAULT)
+	{
+		m_nSkin = COMBINE_SKIN_SHOTGUNNER;
+	}
+
+	int iArmor = FindBodygroupByName("chestplate");
+	if (iArmor >= 0 && m_ExtraArmor != TRS_FALSE && m_ExtraArmor == TRS_TRUE || (IsElite() && FStrEq(STRING(GetModelName()), "models/combine_super_heavy.mdl")) || RandomFloat() < sk_combine_armor_chance.GetFloat())
+	{
+		SetBodygroup(iArmor, 1);
+		m_ExtraArmor = TRS_TRUE;
+	}
+	else
+	{
+		m_ExtraArmor = TRS_FALSE;
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -98,7 +125,7 @@ void CNPC_CombineS::Precache()
 
 #ifdef MAPBASE
 	// Need to do this for dirt variant
-	if( !Q_strnicmp( pModelName, "models/combine_super_sold", 25 ) )
+	if( Q_stristr(pModelName, "super") )
 #else
 	if( !Q_stricmp( pModelName, "models/combine_super_soldier.mdl" ) )
 #endif
@@ -162,6 +189,25 @@ void CNPC_CombineS::ClearAttackConditions( )
 		// don't sense for it every frame.
 		SetCondition( COND_CAN_RANGE_ATTACK2 );
 	}
+}
+#else
+void CNPC_CombineS::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator)
+{
+	CTakeDamageInfo infoCopy = info;
+
+	if (m_ExtraArmor == TRS_TRUE)
+	{
+		Vector vForward;
+		GetVectors(&vForward, nullptr, nullptr);
+
+		float flDot = DotProduct(vecDir, vForward);
+		if (flDot <= .6f)
+		{
+			infoCopy.ScaleDamage(sk_combine_armor_dmgscale.GetFloat());
+		}
+	}
+
+	BaseClass::TraceAttack(infoCopy, vecDir, ptr, pAccumulator);
 }
 #endif
 
@@ -439,14 +485,26 @@ Activity CNPC_CombineS::NPC_TranslateActivity( Activity eNewActivity )
 
 	return BaseClass::NPC_TranslateActivity( eNewActivity );
 }
+#endif
 
+CNPC_CombineS::CNPC_CombineS()
+{
+#ifdef MAPBASE
+	m_ExtraArmor = TRS_NONE;
+#endif // MAPBASE
+}
 
 //---------------------------------------------------------
 // Save/Restore
 //---------------------------------------------------------
 BEGIN_DATADESC( CNPC_CombineS )
 
-	DEFINE_KEYFIELD( m_iUseMarch, FIELD_INTEGER, "usemarch" ),
+#ifdef HL2_EPISODIC
+DEFINE_KEYFIELD(m_iUseMarch, FIELD_INTEGER, "usemarch"),
+#endif // HL2_EPISODIC
+
+#ifdef MAPBASE
+DEFINE_KEYFIELD(m_ExtraArmor, FIELD_INTEGER, "hasarmor"),
+#endif // MAPBASE
 
 END_DATADESC()
-#endif

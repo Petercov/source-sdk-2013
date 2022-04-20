@@ -18,11 +18,11 @@
 class CNPC_CombineS : public CNPC_Combine
 {
 	DECLARE_CLASS( CNPC_CombineS, CNPC_Combine );
-#if HL2_EPISODIC
 	DECLARE_DATADESC();
-#endif
 
-public: 
+public:
+	CNPC_CombineS();
+
 	void		Spawn( void );
 	void		Precache( void );
 	void		DeathSound( const CTakeDamageInfo &info );
@@ -37,6 +37,8 @@ public:
 
 #ifndef MAPBASE // Moved to CAI_GrenadeUser
 	void		ClearAttackConditions( void );
+#else
+	void		TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator);
 #endif
 
 	bool		m_fIsBlocking;
@@ -57,7 +59,10 @@ protected:
 	/// whether to use the more casual march anim in ep2_outland_05
 	int			m_iUseMarch;
 #endif
-
+#ifdef MAPBASE
+private:
+	int			m_ExtraArmor;
+#endif // MAPBASE
 };
 
 #endif // NPC_COMBINES_H

@@ -307,6 +307,8 @@ static const char *g_ppszModelLocs[] =
 	"Group01",
 	"Group02",
 	"Group03%s",
+	"",
+	"Office1"
 };
 
 #define IsExcludedHead( type, bMedic, iHead) false // see XBox codeline for an implementation
@@ -718,6 +720,7 @@ void CNPC_Citizen::SelectModel()
 			{ "prison",			CT_DOWNTRODDEN	},
 			{ "c17",			CT_REBEL		},
 			{ "citadel",		CT_DOWNTRODDEN	},
+			{ "office",			CT_HOSTAGE		},
 		};
 
 		char szMapName[256];
