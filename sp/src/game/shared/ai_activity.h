@@ -45,7 +45,7 @@
 // This enables a bunch of new activities for unused Half-Life 2 weapons, particularly those which exist in the SDK, but are deactivated by default.
 // This essentially just means mods which restore those weapons have the option of using custom activities for them.
 // Mapbase's backup activity system would allow them to fall back to other weapons if the relevant activities do not exist.
-#define EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES 0
+#define EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES 1
 
 // EXPANDED NAVIGATION ACTIVITIES
 // This enables some new navigation-related activities.
