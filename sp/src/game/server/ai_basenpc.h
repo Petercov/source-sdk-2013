@@ -1344,6 +1344,8 @@ private:
 	int									 m_iInteractionState;
 	int									 m_iInteractionPlaying;
 #ifdef MAPBASE
+	bool								m_bInteractionMadeDeathSound;
+
 public:
 #endif
 	CUtlVector<ScriptedNPCInteraction_t> m_ScriptedInteractions;

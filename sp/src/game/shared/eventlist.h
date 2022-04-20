@@ -88,6 +88,8 @@ typedef enum
 #ifdef MAPBASE
 	AE_NPC_RESPONSE,	// Play a response system concept if we're not speaking
 	AE_NPC_RESPONSE_FORCED,		// Always play a response system concept
+
+	AE_NPC_MAKE_INTERACTION_DEATHSOUND,
 #endif
 
 	LAST_SHARED_ANIMEVENT,

@@ -629,7 +629,12 @@ void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 	CleanupOnDeath( info.GetAttacker() );
 
 	StopLoopingSounds();
+#ifndef MAPBASE
 	DeathSound( info );
+#else
+	if (!m_bInteractionMadeDeathSound)
+		DeathSound(info);
+#endif
 
 	if ( ( GetFlags() & FL_NPC ) && ( ShouldGib( info ) == false ) )
 	{
@@ -967,9 +972,13 @@ int CAI_BaseNPC::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 	// REVISIT: Combine soldiers shoot each other a lot and then talk about it
 	// this improves that case a bunch, but it seems kind of harsh.
-	if ( !m_pSquad || !m_pSquad->SquadIsMember( info.GetAttacker() ) )
+	if (
+#ifdef MAPBASE
+		!m_bInteractionMadeDeathSound &&
+#endif // MAPBASE
+		(!m_pSquad || !m_pSquad->SquadIsMember(info.GetAttacker())))
 	{
-		PainSound( info );// "Ouch!"
+		PainSound(info);// "Ouch!"
 	}
 
 	// See if we're running a dynamic interaction that should break when I am damaged.
@@ -10006,6 +10015,23 @@ void CAI_BaseNPC::HandleAnimEvent( animevent_t *pEvent )
 				DevWarning( "%s received AE_NPC_HURT_INTERACTION_PARTNER anim event, but it's not interacting with anything.\n", GetDebugName() );
 				return;
 			}
+#ifdef MAPBASE
+			else if (pEvent->event == AE_NPC_MAKE_INTERACTION_DEATHSOUND)
+			{
+				// If we're currently interacting with an enemy, sound like we're dying
+				if (m_hInteractionPartner)
+				{
+					CTakeDamageInfo info(m_hInteractionPartner, m_hInteractionPartner, GetHealth(), DMG_GENERIC | DMG_PREVENT_PHYSICS_FORCE);
+					DeathSound(info);
+
+					m_bInteractionMadeDeathSound = true;
+					return;
+				}
+
+				DevWarning("%s received AE_NPC_MAKE_INTERACTION_DEATHSOUND anim event, but it's not interacting with anything.\n", GetDebugName());
+				return;
+			}
+#endif // MAPBASE
 		}
 
 		// FIXME: why doesn't this code pass unhandled events down to its parent?
@@ -12161,6 +12187,7 @@ BEGIN_DATADESC( CAI_BaseNPC )
 
 	DEFINE_KEYFIELD( m_flSpeedModifier, FIELD_FLOAT, "BaseSpeedModifier" ),
 	DEFINE_FIELD( m_FakeSequenceGestureLayer,	FIELD_INTEGER ),
+	DEFINE_FIELD(m_bInteractionMadeDeathSound, FIELD_BOOLEAN),
 #endif
 
 	// Satisfy classcheck
@@ -13039,6 +13066,7 @@ CAI_BaseNPC::CAI_BaseNPC(void)
 	m_flSpeedModifier = 1.0f;
 
 	m_FakeSequenceGestureLayer = -1;
+	m_bInteractionMadeDeathSound = false;
 #endif
 }
 
