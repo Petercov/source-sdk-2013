@@ -282,6 +282,7 @@ class CAI_PlayerNPCDummy : public CAI_SensingDummy<CAI_BaseNPC>
 	DECLARE_CLASS(CAI_PlayerNPCDummy, CAI_SensingDummy<CAI_BaseNPC>);
 	DECLARE_DATADESC();
 public:
+	CAI_PlayerNPCDummy();
 
 	// Don't waste CPU doing sensing code.
 	// We now need hearing for state changes and stuff, but sight isn't necessary at the moment.

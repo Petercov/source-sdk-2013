@@ -1962,8 +1962,13 @@ void CNPC_CScanner::TakePhoto(void)
 		if ( GetTarget()->MyNPCPointer() != NULL )
 		{
 			m_OnPhotographNPC.FireOutput( GetTarget(), this );
-			GetTarget()->MyNPCPointer()->DispatchInteraction( g_interactionScannerInspectBegin, NULL, this );
+#ifndef HL2_PLAYER_TALKER
+			GetTarget()->MyNPCPointer()->DispatchInteraction(g_interactionScannerInspectBegin, NULL, this);
+#endif // !HL2_PLAYER_TALKER
 		}
+#ifdef HL2_PLAYER_TALKER
+		GetTarget()->DispatchInteraction(g_interactionScannerInspectBegin, NULL, this);
+#endif // HL2_PLAYER_TALKER
 	}
 
 	SetIdealActivity( (Activity) ACT_SCANNER_FLARE_START );

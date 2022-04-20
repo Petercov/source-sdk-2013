@@ -35,7 +35,7 @@
 
 ConVar player_mute_responses( "player_mute_responses", "0", FCVAR_ARCHIVE, "Mutes the responsive player." );
 
-ConVar player_dummy_in_squad( "player_dummy_in_squad", "0", FCVAR_ARCHIVE, "Puts the player dummy in the player's squad, which means squadmates will see enemies the player sees." );
+ConVar player_dummy_in_squad( "player_dummy_in_squad", "1", FCVAR_ARCHIVE, "Puts the player dummy in the player's squad, which means squadmates will see enemies the player sees." );
 ConVar player_dummy_free_knowledge_time( "player_dummy_free_knowledge_time", "3.0", FCVAR_ARCHIVE, "How long the player dummy should update the position of enemies they can't see (i.e. enemies passed to them or enemies that are eluding them)." );
 ConVar player_dummy_memory_discard_time( "player_dummy_memory_discard_time", "120", FCVAR_ARCHIVE, "How long the player dummy should remember enemies." );
 ConVar player_dummy( "player_dummy", "1", FCVAR_NONE, "Enables the player NPC dummy." );
@@ -863,7 +863,11 @@ bool CHL2_TalkingPlayer::GetGameTextSpeechParams( hudtextparms_t &params )
 //-----------------------------------------------------------------------------
 CAI_Expresser *CHL2_TalkingPlayer::CreateExpresser(void)
 {
+#ifdef NEW_RESPONSE_SYSTEM
+	m_pExpresser = new CAI_ExpresserWithFollowup(this);
+#else
 	m_pExpresser = new CAI_Expresser(this);
+#endif
 	if (!m_pExpresser)
 		return NULL;
 
@@ -1763,6 +1767,11 @@ DEFINE_FIELD(m_hOuter, FIELD_EHANDLE),
 END_DATADESC()
 
 LINK_ENTITY_TO_CLASS(player_npc_dummy, CAI_PlayerNPCDummy);
+
+CAI_PlayerNPCDummy::CAI_PlayerNPCDummy()
+{
+	AddEFlags(EFL_SERVER_ONLY); // We don't need an edict
+}
 
 //-----------------------------------------------------------------------------
 // Purpose: 
