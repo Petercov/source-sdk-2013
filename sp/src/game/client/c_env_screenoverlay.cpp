@@ -251,7 +251,7 @@ END_RECV_TABLE()
 void C_EnvScreenEffect::ReceiveMessage( int classID, bf_read &msg )
 {
 	// Make sure our IDs match
-	if ( classID != GetClientClass()->m_ClassID )
+	if ( classID != ThisClass::GetClientClass()->m_ClassID )
 	{
 		// Message is for subclass
 		BaseClass::ReceiveMessage( classID, msg );

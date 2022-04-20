@@ -1628,7 +1628,7 @@ void C_BaseEntity::ComputeWorldSpaceSurroundingBox( Vector *pVecWorldMins, Vecto
 void C_BaseEntity::ReceiveMessage( int classID, bf_read &msg )
 {
 	// BaseEntity doesn't have a base class we could relay this message to
-	Assert( classID == GetClientClass()->m_ClassID );
+	Assert( classID == ThisClass::GetClientClass()->m_ClassID );
 	
 	int messageType = msg.ReadByte();
 	switch( messageType )

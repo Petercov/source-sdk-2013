@@ -127,7 +127,7 @@ void C_NPC_Vortigaunt::ClientThink( void )
 void C_NPC_Vortigaunt::ReceiveMessage( int classID, bf_read &msg )
 {
 	// Is the message for a sub-class?
-	if ( classID != GetClientClass()->m_ClassID )
+	if ( classID != ThisClass::GetClientClass()->m_ClassID )
 	{
 		BaseClass::ReceiveMessage( classID, msg );
 		return;

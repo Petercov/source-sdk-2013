@@ -980,7 +980,7 @@ bool C_BasePlayer::CanSetSoundMixer( void )
 
 void C_BasePlayer::ReceiveMessage( int classID, bf_read &msg )
 {
-	if ( classID != GetClientClass()->m_ClassID )
+	if ( classID != ThisClass::GetClientClass()->m_ClassID )
 	{
 		// message is for subclass
 		BaseClass::ReceiveMessage( classID, msg );

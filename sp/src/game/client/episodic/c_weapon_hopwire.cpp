@@ -369,7 +369,7 @@ C_GrenadeHopwire::C_GrenadeHopwire( void )
 //-----------------------------------------------------------------------------
 void C_GrenadeHopwire::ReceiveMessage( int classID, bf_read &msg )
 {
-	if ( classID != GetClientClass()->m_ClassID )
+	if ( classID != ThisClass::GetClientClass()->m_ClassID )
 	{
 		// Message is for subclass
 		BaseClass::ReceiveMessage( classID, msg );

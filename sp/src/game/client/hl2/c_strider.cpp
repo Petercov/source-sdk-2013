@@ -640,7 +640,7 @@ C_Strider::~C_Strider()
 
 void C_Strider::ReceiveMessage( int classID, bf_read &msg )
 {
-	if ( classID != GetClientClass()->m_ClassID )
+	if ( classID != ThisClass::GetClientClass()->m_ClassID )
 	{
 		// message is for subclass
 		BaseClass::ReceiveMessage( classID, msg );

@@ -3066,6 +3066,13 @@ inline bool FClassnameIs(CBaseEntity *pEntity, const char *szClassname)
 	return pEntity->ClassMatches(szClassname); 
 }
 
+template <class T = CBaseEntity>
+inline void EntityMessageBegin(T* entity, bool reliable = false)
+{
+	Assert(entity);
+	EntityMessageBeginInternal(entity, entity->T::GetServerClass(), reliable);
+}
+
 class CPointEntity : public CBaseEntity
 {
 public:

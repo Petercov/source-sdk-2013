@@ -3340,13 +3340,14 @@ void CServerGameClients::ClientCommandKeyValues( edict_t *pEntity, KeyValues *pK
 //-----------------------------------------------------------------------------
 static bf_write *g_pMsgBuffer = NULL;
 
-void EntityMessageBegin( CBaseEntity * entity, bool reliable /*= false*/ ) 
+void EntityMessageBeginInternal(CBaseEntity* entity, ServerClass* pServerClass, bool reliable)
 {
 	Assert( !g_pMsgBuffer );
 
 	Assert ( entity );
+	Assert(pServerClass);
 
-	g_pMsgBuffer = engine->EntityMessageBegin( entity->entindex(), entity->GetServerClass(), reliable );
+	g_pMsgBuffer = engine->EntityMessageBegin( entity->entindex(), pServerClass, reliable );
 }
 
 void UserMessageBegin( IRecipientFilter& filter, const char *messagename )
