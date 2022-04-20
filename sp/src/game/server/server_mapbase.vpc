@@ -11,6 +11,7 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;ASW_PROJECTED_TEXTURES;DYNAMIC_RTT_SHADOWS;GLOWS_ENABLE"
 		$PreprocessorDefinitions		"$BASE;MAPBASE_VSCRIPT"		[$MAPBASE_VSCRIPT]
 		$PreprocessorDefinitions		"$BASE;NEW_RESPONSE_SYSTEM"		[$NEW_RESPONSE_SYSTEM]
+		$PreprocessorDefinitions		"$BASE;HL2_PLAYER_TALKER"		[$HL2_PLAYER_TALKER]
 	}
 }
 
@@ -89,6 +90,9 @@ $Project
 			$File	"mapbase\variant_tools.h"
 			$File	"mapbase\vgui_text_display.cpp"
 			$File	"mapbase\weapon_custom_hl2.cpp"
+			
+			$File	"mapbase\hl2_player_talker.cpp" [$HL2_PLAYER_TALKER]
+			$File	"mapbase\hl2_player_talker.h" [$HL2_PLAYER_TALKER]
 			
 			$File	"mapbase\logic_eventlistener.cpp"
 			$File	"mapbase\logic_register_activator.cpp"

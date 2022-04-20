@@ -367,6 +367,11 @@ public:
 	virtual void			Event_Killed( const CTakeDamageInfo &info );
 	// Notifier that I've killed some other entity. (called from Victim's Event_Killed).
 	virtual void			Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo &info );
+#ifdef HL2_PLAYER_TALKER
+	// Blixibon - Created for the talking player to know when each NPC dies, including non-enemies or enemies not killed by him
+	virtual void			Event_NPCKilled( CAI_BaseNPC *pVictim, const CTakeDamageInfo &info ) {}
+	virtual void			Event_NPCIgnited( CAI_BaseNPC *pVictim ) {}
+#endif
 
 	virtual void			Event_Dying( const CTakeDamageInfo &info );
 

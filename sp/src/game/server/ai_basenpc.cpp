@@ -617,6 +617,15 @@ void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 
 	m_lifeState = LIFE_DYING;
 
+#ifdef HL2_PLAYER_TALKER
+	// Talking players need to be notified of the death of every single NPC in the game.
+	// This is so that the player to get all the information needed for enemies dying, allies dying, and enemies being killed by allies.
+	if ( CBasePlayer *pPlayer = UTIL_GetLocalPlayer() )
+	{
+		pPlayer->Event_NPCKilled(this, info);
+	}
+#endif
+
 	CleanupOnDeath( info.GetAttacker() );
 
 	StopLoopingSounds();
@@ -680,6 +689,11 @@ void CAI_BaseNPC::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bo
 		{
 			alyx->EnemyIgnited( this );
 		}
+
+#ifdef HL2_PLAYER_TALKER
+		// Blixibon - Player comments on this now too
+		pPlayer->Event_NPCIgnited( this );
+#endif
 	}
 #endif
 }

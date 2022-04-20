@@ -201,6 +201,9 @@ public:
 	CAI_BaseNPC *GetSquadCommandRepresentative();
 	int GetNumSquadCommandables();
 	int GetNumSquadCommandableMedics();
+#ifdef HL2_PLAYER_TALKER
+	inline CAI_Squad *GetPlayerSquad() { return m_pPlayerAISquad; } // Blixibon - Needed for player responses
+#endif
 
 #ifdef MAPBASE
 	void InputSquadForceSummon( inputdata_t &inputdata );
@@ -373,10 +376,16 @@ protected:
 	virtual void		ItemPostFrame();
 	virtual void		PlayUseDenySound();
 
+#ifdef HL2_PLAYER_TALKER
+	virtual bool		CommanderExecuteOne( CAI_BaseNPC *pNpc, const commandgoal_t &goal, CAI_BaseNPC **Allies, int numAllies ); // 1upD - made protected and virtual so talking player can override
+
+	virtual void		OnSquadMemberKilled( inputdata_t &data ); // 1upD - made protected and virtual so talking player can override	
+#else
 private:
 	bool				CommanderExecuteOne( CAI_BaseNPC *pNpc, const commandgoal_t &goal, CAI_BaseNPC **Allies, int numAllies );
 
 	void				OnSquadMemberKilled( inputdata_t &data );
+#endif
 
 	Class_T				m_nControlClass;			// Class when player is controlling another entity
 	// This player's HL2 specific data that should only be replicated to 
