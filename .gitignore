@@ -93,6 +93,10 @@ sp/src/materialsystem/*.dll
 sp/src/materialsystem/*.pdb
 sp/src/vgui2/*.dll
 sp/src/vgui2/*.pdb
+/sp/src/materialsystem/stdshaders/Debug_dx9_mod_episodic
+/sp/src/materialsystem/stdshaders/Debug_dx9_mod_hl2
+/sp/src/materialsystem/stdshaders/Release_dx9_mod_episodic
+/sp/src/materialsystem/stdshaders/Release_dx9_mod_hl2
 
 # Build support files
 sp/src/devtools/gcc9+support.o

@@ -1644,18 +1644,21 @@ void CAI_ExpresserHost_NPC_DoModifyOrAppendCriteria( CAI_BaseNPC *pSpeaker, AI_C
 		set.AppendCriteria( "npcstate", UTIL_VarArgs( "[NPCState::%s]", pStateNames[pSpeaker->m_NPCState] ) );
 	}
 
-	if ( pSpeaker->GetEnemy() )
+#ifndef MAPBASE
+	if (pSpeaker->GetEnemy())
 	{
-		set.AppendCriteria( "enemy", pSpeaker->GetEnemy()->GetClassname() );
-		set.AppendCriteria( "timesincecombat", "-1" );
+		set.AppendCriteria("enemy", pSpeaker->GetEnemy()->GetClassname());
+		set.AppendCriteria("timesincecombat", "-1");
 	}
 	else
 	{
-		if ( pSpeaker->GetLastEnemyTime() == 0.0 )
-			set.AppendCriteria( "timesincecombat", "999999.0" );
+		if (pSpeaker->GetLastEnemyTime() == 0.0)
+			set.AppendCriteria("timesincecombat", "999999.0");
 		else
-			set.AppendCriteria( "timesincecombat", UTIL_VarArgs( "%f", gpGlobals->curtime - pSpeaker->GetLastEnemyTime() ) );
+			set.AppendCriteria("timesincecombat", UTIL_VarArgs("%f", gpGlobals->curtime - pSpeaker->GetLastEnemyTime()));
 	}
+#endif // !MAPBASE
+
 
 	set.AppendCriteria( "speed", UTIL_VarArgs( "%.3f", pSpeaker->GetSmoothedVelocity().Length() ) );
 
