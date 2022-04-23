@@ -74,6 +74,7 @@ public:
 	virtual float	PassengerDamageModifier( const CTakeDamageInfo &info );
 
 	virtual void	EnterVehicle( CBaseCombatCharacter *pPassenger );
+	virtual void	PreExitVehicle(CBaseCombatCharacter* pPlayer, int nRole);
 	virtual void	ExitVehicle( int nRole );
 
 	void			AimGunAt( Vector *endPos, float flInterval );
