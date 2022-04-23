@@ -193,6 +193,9 @@ bool CDarknessLightSourcesSystem::IsEntityVisibleToTarget( CBaseEntity *pLooker,
 	if ( pTarget->IsEffectActive( EF_BRIGHTLIGHT ) || pTarget->IsEffectActive( EF_DIMLIGHT ) )
 		return true;
 
+	if (pTarget->IsPlayer() && ToBasePlayer(pTarget)->MuzzleFlashTime() > gpGlobals->curtime)
+		return true;
+
 	bool bDebug = g_debug_darkness.GetBool();
 	if ( bDebug && pLooker )
 	{
