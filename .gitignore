@@ -103,3 +103,10 @@ sp/src/devtools/gcc9+support.o
 
 .vs
 /*/game/*/bin/*
+/sp/src/materialsystem/stdshaders/filestocopy.txt
+/sp/src/materialsystem/stdshaders/makefile.stdshader_dx9_20b
+/sp/src/materialsystem/stdshaders/makefile.stdshader_dx9_20b.copy
+/sp/src/materialsystem/stdshaders/makefile.stdshader_dx9_30
+/sp/src/materialsystem/stdshaders/makefile.stdshader_dx9_30.copy
+/sp/src/materialsystem/stdshaders/uniquefilestocopy.txt
+/sp/src/materialsystem/stdshaders/vcslist.txt
