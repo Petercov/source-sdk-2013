@@ -65,6 +65,17 @@ IMPLEMENT_CLIENTCLASS_DT( C_EnvProjectedTexture, DT_EnvProjectedTexture, CEnvPro
 	// Not needed on the client right now, change when it actually is needed
 	//RecvPropBool(	 RECVINFO( m_bProjectedTextureVersion )	),
 #endif
+
+#ifdef GSTRING_VOLUMETRICS
+	// GSTRINGMIGRATION
+	RecvPropBool(RECVINFO(m_bEnableVolumetrics)),
+	RecvPropFloat(RECVINFO(m_flVolumetricsFadeDistance)),
+	RecvPropInt(RECVINFO(m_iVolumetricsQuality)),
+	RecvPropFloat(RECVINFO(m_flVolumetricsQualityBias)),
+	RecvPropFloat(RECVINFO(m_flVolumetricsMultiplier)),
+	// END GSTRINGMIGRATION
+#endif // GSTRING_VOLUMETRICS
+
 END_RECV_TABLE()
 
 C_EnvProjectedTexture *C_EnvProjectedTexture::Create( )
@@ -104,6 +115,12 @@ C_EnvProjectedTexture *C_EnvProjectedTexture::Create( )
 }
 
 C_EnvProjectedTexture::C_EnvProjectedTexture( void )
+#ifdef GSTRING_VOLUMETRICS
+// GSTRINGMIGRATION
+	: m_bEnableVolumetrics(false)
+	, m_flVolumetricsQualityBias(1.0f)
+// END GSTRINGMIGRATION
+#endif // GSTRING_VOLUMETRICS
 {
 	m_LightHandle = CLIENTSHADOW_INVALID_HANDLE;
 	m_bForceUpdate = true;
@@ -426,6 +443,15 @@ void C_EnvProjectedTexture::UpdateLight( void )
 		state.m_bAlwaysDraw = m_bAlwaysDraw;
 #endif
 
+#ifdef GSTRING_VOLUMETRICS
+		VolumetricState_t Volum;
+		Volum.m_bEnableVolumetrics = m_bEnableVolumetrics;
+		Volum.m_flVolumetricsFadeDistance = m_flVolumetricsFadeDistance;
+		Volum.m_iVolumetricsQuality = m_iVolumetricsQuality;
+		Volum.m_flVolumetricsMultiplier = m_flVolumetricsMultiplier;
+		Volum.m_flVolumetricsQualityBias = m_flVolumetricsQualityBias;
+#endif // GSTRING_VOLUMETRICS
+
 		if( m_LightHandle == CLIENTSHADOW_INVALID_HANDLE )
 		{
 			m_LightHandle = g_pClientShadowMgr->CreateFlashlight( state );
@@ -440,6 +466,10 @@ void C_EnvProjectedTexture::UpdateLight( void )
 			g_pClientShadowMgr->UpdateFlashlightState( m_LightHandle, state );
 			m_bForceUpdate = false;
 		}
+
+#ifdef GSTRING_VOLUMETRICS
+		g_pClientShadowMgr->UpdateFlashlightVolumetrics(m_LightHandle, Volum);
+#endif
 
 		g_pClientShadowMgr->GetFrustumExtents( m_LightHandle, m_vecExtentsMin, m_vecExtentsMax );
 

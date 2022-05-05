@@ -222,10 +222,7 @@ BEGIN_VS_SHADER( SDK_Teeth_DX9, "Help for SDK_Teeth_DX9" )
 
 			float vEyePos_SpecExponent[4];
 			pShaderAPI->GetWorldSpaceCameraPosition( vEyePos_SpecExponent );
-			if (g_pHardwareConfig->HasFastVertexTextures() || g_pHardwareConfig->SupportsPixelShaders_2_b())
-				vEyePos_SpecExponent[3] = params[PHONGEXPONENT]->GetFloatValue();
-			else
-				vEyePos_SpecExponent[3] = 0.0f;
+			vEyePos_SpecExponent[3] = params[PHONGEXPONENT]->GetFloatValue();
 			pShaderAPI->SetPixelShaderConstant( PSREG_EYEPOS_SPEC_EXPONENT, vEyePos_SpecExponent, 1 );
 
 			if ( hasBump )

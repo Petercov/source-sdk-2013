@@ -97,6 +97,15 @@ private:
 	//bool		m_bProjectedTextureVersion;
 #endif
 
+#ifdef GSTRING_VOLUMETRICS
+	bool m_bEnableVolumetrics;
+	float m_flVolumetricsFadeDistance;
+	int m_iVolumetricsQuality;
+	float m_flVolumetricsMultiplier;
+	float m_flVolumetricsQualityBias;
+#endif // GSTRING_VOLUMETRICS
+
+
 	Vector	m_vecExtentsMin;
 	Vector	m_vecExtentsMax;
 
