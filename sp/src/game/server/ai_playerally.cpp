@@ -779,7 +779,7 @@ bool CAI_PlayerAlly::SelectQuestionAndAnswerSpeech( AISpeechSelection_t *pSelect
 //-----------------------------------------------------------------------------
 void CAI_PlayerAlly::PostSpeakDispatchResponse( AIConcept_t concept, AI_Response *response )
 {
-#ifdef HL2_EPISODIC
+#if defined(HL2_EPISODIC) || defined(MAPBASE)
 	CAI_AllySpeechManager *pSpeechManager = GetAllySpeechManager();
 	ConceptInfo_t *pConceptInfo	= pSpeechManager->GetConceptInfo( concept );
 	if ( pConceptInfo && (pConceptInfo->flags & AICF_QUESTION) && GetSpeechTarget() )
@@ -1046,7 +1046,7 @@ int CAI_PlayerAlly::SelectNonCombatSpeech( AISpeechSelection_t *pSelection )
 {
 	bool bResult = false;
 
-	#ifdef HL2_EPISODIC
+	#if defined(HL2_EPISODIC) || defined(MAPBASE)
 	// See if we can Q&A first
 	if ( GetState() == NPC_STATE_IDLE || GetState() == NPC_STATE_ALERT )
 	{
