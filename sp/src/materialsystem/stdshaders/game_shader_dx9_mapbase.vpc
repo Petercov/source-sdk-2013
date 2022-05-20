@@ -68,6 +68,14 @@ $Project
 		$File	"core_dx9.cpp"
 
 		$File	"gstring_light_volumetrics.cpp"
+
+		$File	"VertexlitPBR_dx9.cpp"
+		$File	"VertexlitPBR_dx9_helper.cpp"
+		$File	"VertexlitPBR_dx9_helper.h"
+
+		$File	"LightmappedPBR_dx9.cpp"
+		$File	"LightmappedPBR_dx9_helper.cpp"
+		$File	"LightmappedPBR_dx9_helper.h"
 	}
 
 	//$Shaders	"mapbase_dx9_20b.txt"
