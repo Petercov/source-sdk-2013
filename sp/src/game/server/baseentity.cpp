@@ -7511,6 +7511,10 @@ void CBaseEntity::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 		const char *szGlobalName = GlobalEntity_GetName(i);
 		int iGlobalState = (int)GlobalEntity_GetStateByIndex(i);
 		set.AppendCriteria( szGlobalName, UTIL_VarArgs( "%i", iGlobalState ) );
+#ifdef MAPBASE
+		int iGlobalCounter = GlobalEntity_GetCounter(i);
+		set.AppendCriteria(CFmtStr("%s_counter"), UTIL_VarArgs("%i", iGlobalCounter));
+#endif // MAPBASE
 	}
 
 #ifndef MAPBASE // We do this later now so contexts can override criteria. I originally didn't want to remove it here in case there would be problems, but I think I have all of the bases covered.
@@ -7522,6 +7526,12 @@ void CBaseEntity::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 	{
 		set.AppendCriteria( "episodic", "1" );
 	}
+#ifdef MAPBASE
+	else
+	{
+		set.AppendCriteria("episodic", "0");
+	}
+#endif // MAPBASE
 
 	// Append anything from world I/O/keyvalues with "world" as prefix
 #ifdef MAPBASE
