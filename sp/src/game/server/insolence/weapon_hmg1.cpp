@@ -29,11 +29,14 @@ public:
 	bool	Deploy( void );
 	bool	Reload( void );
 
+	int		GetMinBurst() { return 6; }
+	int		GetMaxBurst() { return 10; }
+
 	int CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector cone = VECTOR_CONE_15DEGREES;
+		static Vector cone = VECTOR_CONE_10DEGREES;
 		return cone;
 	}
 
@@ -61,6 +64,7 @@ public:
 				WeaponSound(SINGLE_NPC);
 				pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, vecSpread, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
 				pOperator->DoMuzzleFlash();
+				m_iClip1 -= 1;
 			}
 			break;
 			default:
