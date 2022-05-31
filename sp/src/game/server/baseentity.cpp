@@ -7513,7 +7513,7 @@ void CBaseEntity::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 		set.AppendCriteria( szGlobalName, UTIL_VarArgs( "%i", iGlobalState ) );
 #ifdef MAPBASE
 		int iGlobalCounter = GlobalEntity_GetCounter(i);
-		set.AppendCriteria(CFmtStr("%s_counter"), UTIL_VarArgs("%i", iGlobalCounter));
+		set.AppendCriteria(CFmtStr("%s_counter", szGlobalName), UTIL_VarArgs("%i", iGlobalCounter));
 #endif // MAPBASE
 	}
 
