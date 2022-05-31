@@ -87,7 +87,9 @@ protected:
 	float	m_flSoonestPrimaryAttack;
 
 	static const char *pShootSounds[];
-
+#ifdef MAPBASE
+public:
+#endif // MAPBASE
 	DECLARE_ACTTABLE();
 	DECLARE_DATADESC();
 };

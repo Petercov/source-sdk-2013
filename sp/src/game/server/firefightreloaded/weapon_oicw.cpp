@@ -54,7 +54,7 @@ PRECACHE_WEAPON_REGISTER(weapon_oicw);
 
 acttable_t	CWeaponOICW::m_acttable[] =
 {
-	#if AR2_ACTIVITY_FIX == 1
+#if AR2_ACTIVITY_FIX == 1
 	{ ACT_RANGE_ATTACK1,			ACT_RANGE_ATTACK_AR2,			true },
 	{ ACT_RELOAD,					ACT_RELOAD_SMG1,				true },
 	{ ACT_IDLE,						ACT_IDLE_AR2,					true },
@@ -176,7 +176,7 @@ acttable_t	CWeaponOICW::m_acttable[] =
 	{ ACT_HL2MP_IDLE_CROUCH,			ACT_HL2MP_IDLE_CROUCH_AR2,            false },
 	{ ACT_HL2MP_WALK_CROUCH,			ACT_HL2MP_WALK_CROUCH_AR2,            false },
 	{ ACT_HL2MP_GESTURE_RANGE_ATTACK,	ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2,    false },
-	{ ACT_HL2MP_GESTURE_RELOAD,			ACT_HL2MP_GESTURE_RELOAD_AR2,        false },
+	{ ACT_HL2MP_GESTURE_RELOAD,			ACT_HL2MP_GESTURE_RELOAD_SMG1,        false },
 	{ ACT_HL2MP_JUMP,					ACT_HL2MP_JUMP_AR2,                    false },
 #if EXPANDED_HL2DM_ACTIVITIES
 	{ ACT_HL2MP_WALK,					ACT_HL2MP_WALK_AR2,						false },
@@ -186,6 +186,19 @@ acttable_t	CWeaponOICW::m_acttable[] =
 };
 
 IMPLEMENT_ACTTABLE(CWeaponOICW);
+
+#ifdef MAPBASE
+// Allows Weapon_BackupActivity() to access the SMG1's activity table.
+acttable_t* GetOICWActtable()
+{
+	return CWeaponOICW::m_acttable;
+}
+
+int GetOICWActtableCount()
+{
+	return ARRAYSIZE(CWeaponOICW::m_acttable);
+}
+#endif
 
 CWeaponOICW::CWeaponOICW()
 {

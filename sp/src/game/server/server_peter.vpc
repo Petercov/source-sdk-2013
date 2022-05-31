@@ -16,12 +16,13 @@ $Project
 {
 	$Folder	"Source Files"
 	{
-		$Folder "Firefight Reloaded"
+		$Folder "HL2 Beta"
 		{
 			$Folder "Weapons"
 			{
 				$File	"firefightreloaded\weapon_oicw.cpp"
 				$File	"firefightreloaded\weapon_oicw.h"
+				$File	"insolence\weapon_hmg1.cpp"
 			}
 		}
 	}

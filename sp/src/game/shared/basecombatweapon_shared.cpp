@@ -1105,8 +1105,11 @@ WeaponClass_t CBaseCombatWeapon::WeaponClassify()
 #endif
 #if EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES
 	case ACT_IDLE_ANGRY_AR1:
+	case ACT_IDLE_ANGRY_AR3:
 	case ACT_IDLE_ANGRY_SMG2:
+	case ACT_IDLE_ANGRY_SMG3:
 	case ACT_IDLE_ANGRY_SNIPER_RIFLE:
+	case ACT_IDLE_ANGRY_HMG1:
 #endif
 	case ACT_IDLE_ANGRY_SMG1:
 	case ACT_IDLE_ANGRY_AR2:		return WEPCLASS_RIFLE;
@@ -1220,8 +1223,11 @@ acttable_t *CBaseCombatWeapon::GetDefaultBackupActivityList( acttable_t *pTable,
 #endif
 #if EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES
 		case ACT_IDLE_ANGRY_AR1:
+		case ACT_IDLE_ANGRY_AR3:
 		case ACT_IDLE_ANGRY_SMG2:
+		case ACT_IDLE_ANGRY_SMG3:
 		case ACT_IDLE_ANGRY_SNIPER_RIFLE:
+		case ACT_IDLE_ANGRY_HMG1:
 #endif
 		case ACT_IDLE_ANGRY_SMG1:
 		case ACT_IDLE_ANGRY_AR2:

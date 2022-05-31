@@ -46,6 +46,7 @@ STUB_WEAPON_CLASS( weapon_oldmanharpoon, WeaponOldManHarpoon, C_WeaponCitizenPac
 #endif
 #ifdef HL2BETA_WEAPONS
 STUB_WEAPON_CLASS(weapon_oicw, WeaponOICW, C_HLMachineGun);
+STUB_WEAPON_CLASS(weapon_hmg1, WeaponHMG1, C_HLSelectFireMachineGun);
 #endif // HL2BETA_WEAPONS
 #endif
 
