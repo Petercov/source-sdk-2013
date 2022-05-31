@@ -63,6 +63,10 @@ public:
 	void Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
 	void Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
+#ifdef MAPBASE
+	virtual bool	NPC_HasAltFire(void) { return true; }
+#endif // MAPBASE
+
 	DECLARE_ACTTABLE();
 
 protected:

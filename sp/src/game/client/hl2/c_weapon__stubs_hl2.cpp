@@ -44,6 +44,9 @@ STUB_WEAPON_CLASS( weapon_hopwire, WeaponHopwire, C_BaseHLCombatWeapon );
 #ifdef HL2_LOSTCOAST
 STUB_WEAPON_CLASS( weapon_oldmanharpoon, WeaponOldManHarpoon, C_WeaponCitizenPackage );
 #endif
+#ifdef HL2BETA_WEAPONS
+STUB_WEAPON_CLASS(weapon_oicw, WeaponOICW, C_HLMachineGun);
+#endif // HL2BETA_WEAPONS
 #endif
 
 

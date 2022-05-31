@@ -410,6 +410,12 @@ ConVar	sk_npc_dmg_762mm			( "sk_npc_dmg_762mm", "4", FCVAR_REPLICATED );
 ConVar	sk_max_762mm				( "sk_max_762mm", "60", FCVAR_REPLICATED );
 #endif
 
+#ifdef HL2BETA_WEAPONS
+ConVar	sk_plr_dmg_oicw_grenade("sk_plr_dmg_oicw_grenade", "0", FCVAR_REPLICATED);
+ConVar	sk_npc_dmg_oicw_grenade("sk_npc_dmg_oicw_grenade", "0", FCVAR_REPLICATED);
+ConVar	sk_max_oicw_grenade("sk_max_oicw_grenade", "0", FCVAR_REPLICATED);
+#endif // HL2BETA_WEAPONS
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : iDmgType - 
@@ -2230,6 +2236,10 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("556mm", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_556mm", "sk_npc_dmg_556mm", "sk_max_556mm", BULLET_IMPULSE(200, 1225), 0);
 		def.AddAmmoType("762mm", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_762mm", "sk_npc_dmg_762mm", "sk_max_762mm", BULLET_IMPULSE(200, 1225), 0);
 #endif
+
+#ifdef HL2BETA_WEAPONS
+		def.AddAmmoType("OICW_Grenade", DMG_BURN | DMG_ALWAYSGIB, TRACER_NONE, "sk_plr_dmg_oicw_grenade", "sk_npc_dmg_oicw_grenade", "sk_max_oicw_grenade", 0, 0);
+#endif // HL2BETA_WEAPONS
 	}
 
 	return &def;

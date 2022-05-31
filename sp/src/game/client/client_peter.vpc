@@ -1,0 +1,13 @@
+//-----------------------------------------------------------------------------
+//	CLIENT_MAPBASE.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Configuration
+{
+	$Compiler
+	{
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS"
+	}
+}

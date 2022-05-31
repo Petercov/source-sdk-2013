@@ -323,6 +323,8 @@ public:
 #ifdef MAPBASE
 	// Originally created for the crossbow, can be used to add special NPC reloading behavior
 	virtual void			Reload_NPC( bool bPlaySound = true );
+
+	virtual bool			NPC_HasAltFire(void) { return false; }
 #endif
 
 	virtual bool			AutoFiresFullClip( void ) { return false; }

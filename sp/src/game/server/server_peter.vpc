@@ -1,0 +1,28 @@
+//-----------------------------------------------------------------------------
+//	SERVER_PETER.VPC
+//
+//	Project Base Script
+//-----------------------------------------------------------------------------
+
+$Configuration
+{
+	$Compiler
+	{
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS"
+	}
+}
+
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$Folder "Firefight Reloaded"
+		{
+			$Folder "Weapons"
+			{
+				$File	"firefightreloaded\weapon_oicw.cpp"
+				$File	"firefightreloaded\weapon_oicw.h"
+			}
+		}
+	}
+}

@@ -377,7 +377,7 @@ bool CAI_GrenadeUser<BASE_NPC>::CanAltFireEnemy( bool bUseFreeKnowledge )
 	if( !this->GetEnemy() )
 		return false;
 
-	if (!EntIsClass(this->GetActiveWeapon(), gm_isz_class_AR2) && !EntIsClass(this->GetActiveWeapon(), gm_isz_class_SMG1))
+	if (!this->GetActiveWeapon()->NPC_HasAltFire())
 		return false;
 
 	CBaseEntity *pEnemy = this->GetEnemy();

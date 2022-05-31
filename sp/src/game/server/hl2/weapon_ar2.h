@@ -65,6 +65,10 @@ public:
 
 	const WeaponProficiencyInfo_t *GetProficiencyValues();
 
+#ifdef MAPBASE
+	virtual bool			NPC_HasAltFire(void) { return true; }
+#endif // MAPBASE
+
 protected:
 
 	float					m_flDelayedFire;
