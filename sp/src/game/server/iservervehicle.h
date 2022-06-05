@@ -18,7 +18,7 @@
 class CBaseEntity;
 class CBasePlayer;
 class CBaseCombatCharacter;
-class CNPC_VehicleDriver;
+class CAI_BaseNPC;
 enum VehicleSeatQuery_e;
 
 // This is used by the player to access vehicles. It's an interface so the
@@ -81,7 +81,7 @@ public:
 
 	// NPC Driving
 	virtual bool			NPC_CanDrive( void ) = 0;
-	virtual void			NPC_SetDriver( CNPC_VehicleDriver *pDriver ) = 0;
+	virtual void			NPC_SetDriver(CAI_BaseNPC* pDriver) = 0;
   	virtual void			NPC_DriveVehicle( void ) = 0;
 	virtual void			NPC_ThrottleCenter( void ) = 0;
 	virtual void			NPC_ThrottleReverse( void ) = 0;

@@ -438,6 +438,20 @@ bool CAI_BehaviorBase::CanTranslateCrouchActivity( void )
 
 	return m_pBackBridge->BackBridge_CanTranslateCrouchActivity();
 }
+
+bool CAI_BehaviorBase::OverrideMove(float flInterval)
+{
+	Assert(m_pBackBridge != NULL);
+
+	return m_pBackBridge->BackBridge_OverrideMove(flInterval);
+}
+
+bool CAI_BehaviorBase::OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval)
+{
+	Assert(m_pBackBridge != NULL);
+
+	return m_pBackBridge->BackBridge_OverrideMoveFacing(move, flInterval);
+}
 #endif
 
 //-------------------------------------

@@ -86,6 +86,16 @@ CNPC_VehicleDriver::~CNPC_VehicleDriver( void )
 	ClearWaypoints();
 }
 
+#ifdef MAPBASE
+Class_T CNPC_VehicleDriver::Classify()
+{
+	if (!m_hVehicleEntity || !m_pVehicleInterface)
+		return CLASS_NONE;
+
+	return m_pVehicleInterface->ClassifyPassenger(this, CLASS_NONE);
+}
+#endif // MAPBASE
+
 //------------------------------------------------------------------------------
 // Purpose :
 //------------------------------------------------------------------------------

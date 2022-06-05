@@ -862,7 +862,7 @@ void CPropCrane::InputForcePlayerIn( inputdata_t &inputdata )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CPropCrane::SetNPCDriver( CNPC_VehicleDriver *pDriver )
+void CPropCrane::SetNPCDriver( CAI_BaseNPC *pDriver )
 {
 	m_hNPCDriver = pDriver;
 	m_nNPCButtons = 0;
@@ -961,19 +961,19 @@ void CCraneServerVehicle::GetVehicleViewPosition( int nRole, Vector *pAbsOrigin,
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CCraneServerVehicle::NPC_SetDriver( CNPC_VehicleDriver *pDriver )
+void CCraneServerVehicle::NPC_SetDriver(CAI_BaseNPC* pDriver)
 {
-	GetCrane()->SetNPCDriver( pDriver );
+	GetCrane()->SetNPCDriver(pDriver);
 
-	if ( pDriver )
+	if (pDriver)
 	{
-		SetVehicleVolume( 1.0 );	// Vehicles driven by NPCs are louder
-		GetCrane()->SetSimulatedEveryTick( false );
+		SetVehicleVolume(1.0);	// Vehicles driven by NPCs are louder
+		GetCrane()->SetSimulatedEveryTick(false);
 	}
 	else
 	{
-		SetVehicleVolume( 0.5 );
-		GetCrane()->SetSimulatedEveryTick( true );
+		SetVehicleVolume(0.5);
+		GetCrane()->SetSimulatedEveryTick(true);
 	}
 }
 

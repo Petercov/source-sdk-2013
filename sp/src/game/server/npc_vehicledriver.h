@@ -151,10 +151,14 @@ public:
 
 	int				BloodColor( void ) { return DONT_BLEED; }
 
+#ifdef MAPBASE
+	Class_T			Classify(void);
+#else
 #ifdef HL2_DLL
 	Class_T			Classify( void ) { return CLASS_METROPOLICE; }
 #else
 	Class_T			Classify( void ) { return CLASS_NONE; }
+#endif
 #endif
 
 	Disposition_t	IRelationType( CBaseEntity *pTarget );

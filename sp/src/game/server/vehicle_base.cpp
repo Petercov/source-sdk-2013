@@ -1384,7 +1384,7 @@ bool CFourWheelServerVehicle::IsPassengerExiting( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CFourWheelServerVehicle::NPC_SetDriver( CNPC_VehicleDriver *pDriver )
+void CFourWheelServerVehicle::NPC_SetDriver( CAI_BaseNPC *pDriver )
 {
 	if ( pDriver )
 	{

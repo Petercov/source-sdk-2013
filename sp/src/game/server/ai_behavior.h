@@ -47,7 +47,7 @@ class IBehaviorBackBridge;
 
 //-------------------------------------
 
-abstract_class CAI_BehaviorBase : public CAI_Component
+class CAI_BehaviorBase : public CAI_Component
 {
 	DECLARE_CLASS( CAI_BehaviorBase, CAI_Component )
 public:
@@ -134,6 +134,9 @@ public:
 	bool BridgeCanUnholsterWeapon( void );
 	bool BridgeShouldPickADeathPose( void );
 	bool BridgeCanTranslateCrouchActivity( void );
+
+	bool BridgeOverrideMove(float flInterval);
+	bool BridgeOverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
 #endif
 
 	virtual void GatherConditions();
@@ -224,6 +227,9 @@ protected:
 	virtual bool CanUnholsterWeapon( void );
 	virtual bool ShouldPickADeathPose( void );
 	virtual bool CanTranslateCrouchActivity( void );
+
+	virtual bool OverrideMove(float flInterval);				// Override to take total control of movement (return true if done so)
+	virtual	bool OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
 #endif
 
 	virtual bool ShouldAlwaysThink();
@@ -338,7 +344,7 @@ private:
 //			what base class would do or control order in which it's donw
 //-----------------------------------------------------------------------------
 
-abstract_class IBehaviorBackBridge
+class IBehaviorBackBridge
 {
 public:
 	virtual void 		 BackBridge_GatherConditions() = 0;
@@ -377,6 +383,9 @@ public:
 
 	virtual bool		 BackBridge_ShouldPickADeathPose( void ) = 0;
 	virtual bool		 BackBridge_CanTranslateCrouchActivity( void ) = 0;
+
+	virtual bool		 BackBridge_OverrideMove(float flInterval) = 0;
+	virtual	bool		 BackBridge_OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval) = 0;
 #endif
 
 //-------------------------------------
@@ -479,6 +488,9 @@ public:
 	bool			CanUnholsterWeapon( void );
 	bool			ShouldPickADeathPose( void );
 	bool			CanTranslateCrouchActivity( void );
+
+	bool			OverrideMove(float flInterval);				// Override to take total control of movement (return true if done so)
+	bool			OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
 #endif
 	
 	bool			ShouldAlwaysThink();
@@ -546,6 +558,9 @@ private:
 
 	bool			 BackBridge_ShouldPickADeathPose( void );
 	bool			 BackBridge_CanTranslateCrouchActivity( void );
+
+	bool			 BackBridge_OverrideMove(float flInterval);
+	bool			 BackBridge_OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
 #endif
 
 	CAI_BehaviorBase **AccessBehaviors();
@@ -938,6 +953,16 @@ inline bool CAI_BehaviorBase::BridgeShouldPickADeathPose( void )
 inline bool CAI_BehaviorBase::BridgeCanTranslateCrouchActivity( void )
 {
 	return CanTranslateCrouchActivity();
+}
+
+inline bool CAI_BehaviorBase::BridgeOverrideMove(float flInterval)
+{
+	return OverrideMove(flInterval);
+}
+
+inline bool CAI_BehaviorBase::BridgeOverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval)
+{
+	return OverrideMoveFacing(move, flInterval);
 }
 #endif
 
@@ -1540,6 +1565,18 @@ inline bool CAI_BehaviorHost<BASE_NPC>::BackBridge_CanTranslateCrouchActivity( v
 {
 	return BaseClass::CanTranslateCrouchActivity();
 }
+
+template<class BASE_NPC>
+inline bool CAI_BehaviorHost<BASE_NPC>::BackBridge_OverrideMove(float flInterval)
+{
+	return BaseClass::OverrideMove(flInterval);
+}
+
+template<class BASE_NPC>
+inline bool CAI_BehaviorHost<BASE_NPC>::BackBridge_OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval)
+{
+	return BaseClass::OverrideMoveFacing(move, flInterval);
+}
 #endif
 
 //-------------------------------------
@@ -1977,6 +2014,24 @@ inline bool CAI_BehaviorHost<BASE_NPC>::CanTranslateCrouchActivity( void )
 		return m_pCurBehavior->BridgeCanTranslateCrouchActivity();
 
 	return BaseClass::CanTranslateCrouchActivity();
+}
+
+template<class BASE_NPC>
+inline bool CAI_BehaviorHost<BASE_NPC>::OverrideMove(float flInterval)
+{
+	if (m_pCurBehavior)
+		return m_pCurBehavior->BridgeOverrideMove(flInterval);
+
+	return BaseClass::OverrideMove(flInterval);
+}
+
+template<class BASE_NPC>
+inline bool CAI_BehaviorHost<BASE_NPC>::OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval)
+{
+	if (m_pCurBehavior)
+		return m_pCurBehavior->BridgeOverrideMoveFacing(move, flInterval);
+
+	return BaseClass::OverrideMoveFacing(move, flInterval);
 }
 #endif
 

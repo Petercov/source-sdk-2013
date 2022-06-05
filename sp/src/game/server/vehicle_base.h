@@ -52,7 +52,7 @@ public:
 	const vehicle_operatingparams_t	*GetVehicleOperatingParams( void );
 
 	// NPC Driving
-	void					NPC_SetDriver( CNPC_VehicleDriver *pDriver );
+	void					NPC_SetDriver( CAI_BaseNPC *pDriver );
 	void					NPC_DriveVehicle( void );
 
 	CPropVehicleDriveable	*GetFourWheelVehicle( void );
@@ -292,7 +292,12 @@ public:
 	CNetworkVar( bool, m_nScannerDisabledVehicle );
 
 	// NPC Driver
+#ifndef MAPBASE
 	CHandle<CNPC_VehicleDriver>	 m_hNPCDriver;
+#else
+	AIHANDLE					 m_hNPCDriver;
+#endif // !MAPBASE
+
 	EHANDLE						 m_hKeepUpright;
 
 	// --------------------------------

@@ -83,7 +83,7 @@ public:
 	void	GetVehicleViewPosition( int nRole, Vector *pAbsOrigin, QAngle *pAbsAngles, float *pFOV = NULL );
 
 	// NPC Driving
-	void	NPC_SetDriver( CNPC_VehicleDriver *pDriver );
+	void	NPC_SetDriver(CAI_BaseNPC* pDriver);
 	void	NPC_DriveVehicle( void );
 
 	virtual bool	IsPassengerEntering( void ) { return false; }	// NOTE: This mimics the scenario HL2 would have seen
@@ -164,7 +164,7 @@ public:
 	void			RecalculateCraneTip( void );
 	void			GetVectors(Vector* pForward, Vector* pRight, Vector* pUp) const;
 
-	void			SetNPCDriver( CNPC_VehicleDriver *pDriver );
+	void			SetNPCDriver(CAI_BaseNPC* pDriver);
 
 // IDrivableVehicle
 public:
@@ -200,7 +200,11 @@ private:
 	CNetworkVar( bool, m_bMagnetOn ); 
 
 	// NPC Driving
+#ifndef MAPBASE
 	CHandle<CNPC_VehicleDriver>		m_hNPCDriver;
+#else
+	AIHANDLE						m_hNPCDriver;
+#endif // !MAPBASE
 	int								m_nNPCButtons;
 
 	// Entering / Exiting
