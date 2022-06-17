@@ -437,6 +437,25 @@ const PassengerSeatAnims_t *CBaseServerVehicle::NPC_GetPassengerSeatAnims( CBase
 	return NULL;
 }
 
+#ifdef MAPBASE
+const PassengerSeatActRemap_t* CBaseServerVehicle::NPC_GetPassengerSeatActivties(CBaseCombatCharacter* pPassenger)
+{
+	// Get the role and seat the the supplied passenger
+	for (int i = 0; i < m_PassengerInfo.Count(); i++)
+	{
+		if (m_PassengerInfo[i].m_hPassenger == pPassenger)
+		{
+			int nSeat = m_PassengerInfo[i].GetSeat();
+			int nRole = m_PassengerInfo[i].GetRole();
+
+			return &m_PassengerRoles[nRole].m_PassengerSeats[nSeat].m_ActRemap;
+		}
+	}
+
+	return nullptr;
+}
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: Get and set the current driver. Use PassengerRole_t enum in shareddefs.h for adding passengers
 //-----------------------------------------------------------------------------
@@ -687,6 +706,17 @@ int __cdecl SeatPrioritySort( const SortSeatPriorityType *s1, const SortSeatPrio
 	return ( s1->GetPriority() > s2->GetPriority() );
 }
 
+int FindOrCreateActivityNamed(const char* pszActivityName)
+{
+	int iRet = ActivityList_IndexForName(pszActivityName);
+	if (iRet != ACT_INVALID)
+		return iRet;
+
+	iRet = ActivityList_RegisterPrivateActivity(pszActivityName);
+	CAI_BaseNPC::AddActivityToSR(pszActivityName, iRet);
+	return iRet;
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Parse one set of entry/exit data
 // Input  : *pSetKeyValues - Key values for this set
@@ -700,6 +730,29 @@ void CBaseServerVehicle::ParseNPCPassengerSeat( KeyValues *pSetKeyValues, CPasse
 	int nAttachmentID = pAnimating->LookupAttachment( lpszAttachmentName );
 	pSeat->m_nAttachmentID = nAttachmentID;
 	pSeat->m_strSeatName = AllocPooledString( lpszAttachmentName );
+
+#ifdef MAPBASE
+	KeyValues* pActRemap = pSetKeyValues->FindKey("activity_remap");
+	if (pActRemap)
+	{
+		for (KeyValues* pActKey = pActRemap->GetFirstTrueSubKey(); pActKey != nullptr; pActKey = pActKey->GetNextTrueSubKey())
+		{
+			int iOldAct = FindOrCreateActivityNamed(pActKey->GetName());
+			int iNewAct = FindOrCreateActivityNamed(pActKey->GetString());
+			pSeat->m_ActRemap.InsertOrReplace(iOldAct, iNewAct);
+		}
+	}
+
+	KeyValues* pRequiredAct = pSetKeyValues->FindKey("required_activity");
+	if (pRequiredAct)
+	{
+		pSeat->m_RequiredActivity = FindOrCreateActivityNamed(pRequiredAct->GetString());
+	}
+	else
+	{
+		pSeat->m_RequiredActivity = ACT_INVALID;
+	}
+#endif // MAPBASE
 
 	KeyValues *pKey = pSetKeyValues->GetFirstSubKey();
 	while ( pKey != NULL )
@@ -2376,6 +2429,18 @@ CBaseCombatCharacter *CBaseServerVehicle::NPC_GetPassengerInSeat( int nRoleID, i
 	return NULL;
 }
 
+namespace VehicleHelper
+{
+	inline bool	HaveSequenceForActivity(CStudioHdr* pHdr, int activity)
+	{
+#if STUDIO_SEQUENCE_ACTIVITY_LOOKUPS_ARE_SLOW
+		return ((pHdr) ? (pHdr->SelectWeightedSequence(activity, -1) != ACTIVITY_NOT_AVAILABLE) : false);
+#else
+		return ((pHdr) ? pHdr->HaveSequenceForActivity(activity) : false);
+#endif
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Find the first available seat (ranked by priority)
 // Input  : nRoleID - Role index
@@ -2390,6 +2455,15 @@ int CBaseServerVehicle::NPC_GetAvailableSeat_Any( CBaseCombatCharacter *pPasseng
 		CBaseCombatCharacter *pCurrentPassenger = NPC_GetPassengerInSeat( nRoleID, i );
 		if ( pCurrentPassenger != NULL && pCurrentPassenger != pPassenger )
 			continue;
+
+#ifdef MAPBASE
+		if (pPassenger && pPassenger->GetModelPtr())
+		{
+			const int iRequiredAct = m_PassengerRoles[nRoleID].m_PassengerSeats[i].m_RequiredActivity;
+			if (iRequiredAct != ACT_INVALID && !VehicleHelper::HaveSequenceForActivity(pPassenger->GetModelPtr(), iRequiredAct))
+				continue;
+		}
+#endif // MAPBASE
 
 		// This seat is open
 		return i;

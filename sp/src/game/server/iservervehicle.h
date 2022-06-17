@@ -74,6 +74,9 @@ public:
 	virtual int				NPC_GetPassengerSeatAttachment( CBaseCombatCharacter *pPassenger ) = 0;
 	virtual bool			NPC_HasAvailableSeat( string_t strRoleName ) = 0;
 	
+#ifdef MAPBASE
+	virtual const PassengerSeatActRemap_t* NPC_GetPassengerSeatActivties(CBaseCombatCharacter* pPassenger) = 0;
+#endif // MAPBASE
 	virtual const PassengerSeatAnims_t	*NPC_GetPassengerSeatAnims( CBaseCombatCharacter *pPassenger, PassengerSeatAnimType_t nType ) = 0;
 	virtual CBaseCombatCharacter		*NPC_GetPassengerInSeat( int nRoleID, int nSeatID ) = 0;
 

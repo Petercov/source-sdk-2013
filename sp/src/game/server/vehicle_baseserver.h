@@ -88,7 +88,11 @@ private:
 class CPassengerSeat
 {
 public:
-	CPassengerSeat( void ) : m_nAttachmentID( -1 ) {};
+	CPassengerSeat(void) : m_nAttachmentID(-1)
+#ifdef MAPBASE
+		, m_ActRemap(DefLessFunc(int))
+#endif // MAPBASE
+	{};
 	int GetAttachmentID( void ) const { return m_nAttachmentID; }
 
 private:
@@ -96,6 +100,10 @@ private:
 	int										m_nAttachmentID;		// Goal attachment
 	CUtlVector<CPassengerSeatTransition>	m_EntryTransitions;		// Entry information
 	CUtlVector<CPassengerSeatTransition>	m_ExitTransitions;		// Exit information
+#ifdef MAPBASE
+	CUtlMap<int, int>						m_ActRemap;
+	int										m_RequiredActivity;
+#endif // MAPBASE
 
 	friend class CBaseServerVehicle;
 };
@@ -168,7 +176,7 @@ public:
 
 	// NPC Driving
 	virtual bool			NPC_CanDrive( void ) { return true; }
-	virtual void			NPC_SetDriver( CNPC_VehicleDriver *pDriver ) { return; }
+	virtual void			NPC_SetDriver( CAI_BaseNPC *pDriver ) { return; }
 	virtual void			NPC_DriveVehicle( void ) { return; }
 	virtual void			NPC_ThrottleCenter( void );
 	virtual void			NPC_ThrottleReverse( void );
@@ -203,7 +211,9 @@ public:
 	virtual int		NPC_GetAvailableSeat( CBaseCombatCharacter *pPassenger, string_t strRoleName, VehicleSeatQuery_e nQueryType );
 	bool			NPC_HasAvailableSeat( string_t strRoleName );
 
-
+#ifdef MAPBASE
+	virtual const PassengerSeatActRemap_t* NPC_GetPassengerSeatActivties(CBaseCombatCharacter* pPassenger);
+#endif // MAPBASE
 	virtual const PassengerSeatAnims_t	*NPC_GetPassengerSeatAnims( CBaseCombatCharacter *pPassenger, PassengerSeatAnimType_t nType );
 	virtual CBaseCombatCharacter		*NPC_GetPassengerInSeat( int nRoleID, int nSeatID );
 

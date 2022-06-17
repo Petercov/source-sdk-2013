@@ -1,0 +1,49 @@
+#ifndef AI_BEHAVIOR_DRIVER_H
+#define AI_BEHAVIOR_DRIVER_H
+#pragma once
+
+#include "ai_behavior.h"
+#include "ai_behavior_passenger_companion.h"
+
+class CAI_DriverBehavior : public CAI_PassengerBehavior
+{
+public:
+	DECLARE_CLASS(CAI_DriverBehavior, CAI_PassengerBehavior);
+	DECLARE_DATADESC();
+
+	CAI_DriverBehavior();
+
+	enum
+	{
+		// Schedules
+		SCHED_DRIVER_RUN_TO_ENTER_VEHICLE = BaseClass::NEXT_SCHEDULE,
+		SCHED_DRIVER_RUN_TO_ENTER_VEHICLE_FAILED,
+		SCHED_DRIVER_ENTER_VEHICLE_PAUSE,
+		SCHED_DRIVER_EXIT_STUCK_VEHICLE,
+		SCHED_DRIVER_ENTER_VEHICLE_IMMEDIATELY,
+		NEXT_SCHEDULE,
+
+		// Tasks
+		TASK_DRIVER_GET_PATH_TO_VEHICLE_ENTRY_POINT = BaseClass::NEXT_TASK,
+		TASK_DRIVER_GET_PATH_TO_NEAR_VEHICLE,
+		TASK_DRIVER_EXIT_STUCK_VEHICLE,
+		TASK_DRIVER_RUN_TO_VEHICLE_ENTRANCE,
+		NEXT_TASK,
+
+		// Conditions
+		COND_DRIVER_CAN_LEAVE_STUCK_VEHICLE = BaseClass::NEXT_CONDITION,
+		COND_DRIVER_WARN_OVERTURNED,
+		COND_DRIVER_WARN_COLLISION,
+		COND_DRIVER_VEHICLE_MOVED_FROM_MARK,
+		COND_DRIVER_CAN_ENTER_IMMEDIATELY,
+		NEXT_CONDITION,
+	};
+
+	virtual const char* GetName(void) { return "Vehicle Driver"; }
+	inline string_t GetRoleName(void) { return MAKE_STRING("driver"); }
+
+protected:
+	DEFINE_CUSTOM_SCHEDULE_PROVIDER;
+};
+
+#endif
