@@ -24,6 +24,7 @@
 class CNPC_VehicleDriver;
 class CFourWheelVehiclePhysics;
 class CPropVehicleDriveable;
+class CAI_BaseNPC;
 class CSoundPatch;
 
 // the tires are considered to be skidding if they have sliding velocity of 10 in/s or more
@@ -295,7 +296,7 @@ public:
 #ifndef MAPBASE
 	CHandle<CNPC_VehicleDriver>	 m_hNPCDriver;
 #else
-	AIHANDLE					 m_hNPCDriver;
+	CHandle<CAI_BaseNPC>		 m_hNPCDriver;
 #endif // !MAPBASE
 
 	EHANDLE						 m_hKeepUpright;

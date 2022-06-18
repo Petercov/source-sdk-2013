@@ -80,7 +80,7 @@ private:
 	
 	Activity	NPC_TranslateActivity( Activity newActivity );
 	void		GatherConditions( void );
-	bool		OverrideMoveFacing( const AILocalMoveGoal_t &move, float flInterval );
+	//bool		OverrideMoveFacing( const AILocalMoveGoal_t &move, float flInterval );
 	void		StartTask( const Task_t *pTask );
 	void		RunTask( const Task_t *pTask );
 	
