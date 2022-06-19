@@ -15255,6 +15255,7 @@ void CAI_BaseNPC::StartScriptedNPCInteraction( CAI_BaseNPC *pOtherNPC, ScriptedN
 	const char *pszEntrySequence = GetScriptedNPCInteractionSequence( pInteraction, SNPCINT_ENTRY );
 	const char *pszSequence = GetScriptedNPCInteractionSequence( pInteraction, SNPCINT_SEQUENCE );
 	const char *pszExitSequence = GetScriptedNPCInteractionSequence( pInteraction, SNPCINT_EXIT );
+#ifdef MAPBASE
 	const char* pszRecvEntrySequence = pszEntrySequence;
 	const char* pszRecvSequence = pszSequence;
 	const char* pszRecvExitSequence = pszExitSequence;
@@ -15262,9 +15263,10 @@ void CAI_BaseNPC::StartScriptedNPCInteraction( CAI_BaseNPC *pOtherNPC, ScriptedN
 	if ((pInteraction->iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
 	{
 		pszRecvEntrySequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_ENTRY);
-		pszRecvSequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_ENTRY);
-		pszRecvExitSequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_ENTRY);
+		pszRecvSequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_SEQUENCE);
+		pszRecvExitSequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_EXIT);
 	}
+#endif // MAPBASE
 
 	// Debug
 	if ( ai_debug_dyninteractions.GetBool() )
@@ -15281,6 +15283,20 @@ void CAI_BaseNPC::StartScriptedNPCInteraction( CAI_BaseNPC *pOtherNPC, ScriptedN
 			{
 				Msg( " - Exit sequence: %s\n", pszExitSequence );
 			}
+#ifdef MAPBASE
+			if ((pInteraction->iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
+			{
+				if (pszRecvEntrySequence)
+				{
+					Msg(" - Partner entry sequence: %s\n", pszRecvEntrySequence);
+				}
+				Msg(" - Partner core sequence: %s\n", pszRecvSequence);
+				if (pszRecvExitSequence)
+				{
+					Msg(" - Partner Exit sequence: %s\n", pszRecvExitSequence);
+				}
+			}
+#endif // MAPBASE
 		}
 	}
 
@@ -15330,9 +15346,15 @@ void CAI_BaseNPC::StartScriptedNPCInteraction( CAI_BaseNPC *pOtherNPC, ScriptedN
 	if ( pOtherNPC )
 	{
 		pTheirSequence = (CAI_ScriptedSequence*)CreateEntityByName( "scripted_sequence" );
-		pTheirSequence->KeyValue( "m_iszEntry", pszRecvEntrySequence );
-		pTheirSequence->KeyValue( "m_iszPlay", pszRecvSequence );
-		pTheirSequence->KeyValue( "m_iszPostIdle", pszRecvExitSequence );
+#ifdef MAPBASE
+		pTheirSequence->KeyValue("m_iszEntry", pszRecvEntrySequence);
+		pTheirSequence->KeyValue("m_iszPlay", pszRecvSequence);
+		pTheirSequence->KeyValue("m_iszPostIdle", pszRecvExitSequence);
+#else
+		pTheirSequence->KeyValue("m_iszEntry", pszEntrySequence);
+		pTheirSequence->KeyValue("m_iszPlay", pszSequence);
+		pTheirSequence->KeyValue("m_iszPostIdle", pszExitSequence);
+#endif // MAPBASE
 		pTheirSequence->KeyValue( "m_fMoveTo", "5" );
 		pTheirSequence->SetAbsOrigin( vecOtherOrigin );
 		pTheirSequence->SetAbsAngles( angOtherAngles );
@@ -16111,6 +16133,14 @@ void CAI_BaseNPC::InputForceInteractionWithNPC( inputdata_t &inputdata )
 		if ( Q_strncmp( pszParam, STRING(m_ScriptedInteractions[i].iszInteractionName), strlen(pszParam) ) )
 			continue;
 
+#ifdef MAPBASE
+		if ((m_ScriptedInteractions[i].iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
+		{
+			if (pNPC->LookupSequence(STRING(m_ScriptedInteractions[i].iszRecvPhases[SNPCINT_SEQUENCE])) == -1)
+				continue;
+		}
+		else
+#endif // MAPBASE
 		// Use sequence? or activity?
 		if ( m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity != ACT_INVALID )
 		{
