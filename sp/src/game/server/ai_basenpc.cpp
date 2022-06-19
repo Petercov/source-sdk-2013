@@ -14904,6 +14904,16 @@ void CAI_BaseNPC::ParseScriptedNPCInteractions(void)
 						else if (!Q_strncmp(szName, "exit_activity", 13))
 							sInteraction.sPhases[SNPCINT_EXIT].iActivity = GetActivityID(szValue);
 
+						else if (!Q_strncmp(szName, "recv_entry_sequence", 19))
+							sInteraction.iszRecvPhases[SNPCINT_ENTRY] = AllocPooledString(szValue);
+						else if (!Q_strncmp(szName, "recv_sequence", 13))
+						{
+							sInteraction.iszRecvPhases[SNPCINT_SEQUENCE] = AllocPooledString(szValue);
+							sInteraction.iFlags |= SCNPC_FLAG_USE_RECV_ANIMS;
+						}
+						else if (!Q_strncmp(szName, "recv_exit_sequence", 18))
+							sInteraction.iszRecvPhases[SNPCINT_EXIT] = AllocPooledString(szValue);
+
 						else if (!Q_strncmp(szName, "delay", 5))
 							sInteraction.flDelay = atof(szValue);
 						else if (!Q_strncmp(szName, "origin_max_delta", 16))
@@ -15217,6 +15227,14 @@ void CAI_BaseNPC::StartRunningInteraction( CAI_BaseNPC *pOtherNPC, bool bActive 
 	m_scriptState = SCRIPT_PLAYING;
 }
 
+inline const char* GetScriptedNPCInteractionRecvSequence(ScriptedNPCInteraction_t* pInteraction, int iPhase)
+{
+	if (pInteraction->iszRecvPhases[iPhase] != NULL_STRING)
+		return STRING(pInteraction->iszRecvPhases[iPhase]);
+
+	return NULL;
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -15237,6 +15255,16 @@ void CAI_BaseNPC::StartScriptedNPCInteraction( CAI_BaseNPC *pOtherNPC, ScriptedN
 	const char *pszEntrySequence = GetScriptedNPCInteractionSequence( pInteraction, SNPCINT_ENTRY );
 	const char *pszSequence = GetScriptedNPCInteractionSequence( pInteraction, SNPCINT_SEQUENCE );
 	const char *pszExitSequence = GetScriptedNPCInteractionSequence( pInteraction, SNPCINT_EXIT );
+	const char* pszRecvEntrySequence = pszEntrySequence;
+	const char* pszRecvSequence = pszSequence;
+	const char* pszRecvExitSequence = pszExitSequence;
+
+	if ((pInteraction->iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
+	{
+		pszRecvEntrySequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_ENTRY);
+		pszRecvSequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_ENTRY);
+		pszRecvExitSequence = GetScriptedNPCInteractionRecvSequence(pInteraction, SNPCINT_ENTRY);
+	}
 
 	// Debug
 	if ( ai_debug_dyninteractions.GetBool() )
@@ -15302,9 +15330,9 @@ void CAI_BaseNPC::StartScriptedNPCInteraction( CAI_BaseNPC *pOtherNPC, ScriptedN
 	if ( pOtherNPC )
 	{
 		pTheirSequence = (CAI_ScriptedSequence*)CreateEntityByName( "scripted_sequence" );
-		pTheirSequence->KeyValue( "m_iszEntry", pszEntrySequence );
-		pTheirSequence->KeyValue( "m_iszPlay", pszSequence );
-		pTheirSequence->KeyValue( "m_iszPostIdle", pszExitSequence );
+		pTheirSequence->KeyValue( "m_iszEntry", pszRecvEntrySequence );
+		pTheirSequence->KeyValue( "m_iszPlay", pszRecvSequence );
+		pTheirSequence->KeyValue( "m_iszPostIdle", pszRecvExitSequence );
 		pTheirSequence->KeyValue( "m_fMoveTo", "5" );
 		pTheirSequence->SetAbsOrigin( vecOtherOrigin );
 		pTheirSequence->SetAbsAngles( angOtherAngles );
@@ -15588,21 +15616,33 @@ void CAI_BaseNPC::CalculateValidEnemyInteractions( void )
 
 #ifdef MAPBASE
 		// If they have an interaction with the same name, it means we're not supposed to engage with them
-		bool bSame = false;
-		for ( int i2 = 0; i2 < pNPC->m_ScriptedInteractions.Count(); i2++ )
+		// Unless we have a seperate receiving animation set
+		if ((pInteraction->iFlags & SCNPC_FLAG_USE_RECV_ANIMS) == 0)
 		{
-			// These strings are pooled, so this works
-			if (m_ScriptedInteractions[i].iszInteractionName == pNPC->m_ScriptedInteractions[i2].iszInteractionName)
+			bool bSame = false;
+			for (int i2 = 0; i2 < pNPC->m_ScriptedInteractions.Count(); i2++)
 			{
-				bSame = true;
-				break;
+				// These strings are pooled, so this works
+				if (pInteraction->iszInteractionName == pNPC->m_ScriptedInteractions[i2].iszInteractionName)
+				{
+					bSame = true;
+					break;
+				}
 			}
-		}
 
-		if (bSame)
-			continue;
+			if (bSame)
+				continue;
+		}
 #endif
 
+#ifdef MAPBASE
+		if ((pInteraction->iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
+		{
+			if (pNPC->LookupSequence(STRING(pInteraction->iszRecvPhases[SNPCINT_SEQUENCE])) == -1)
+				continue;
+		}
+		else
+#endif // MAPBASE
 		// Use sequence? or activity?
 		if ( pInteraction->sPhases[SNPCINT_SEQUENCE].iActivity != ACT_INVALID )
 		{
