@@ -307,7 +307,16 @@ static const char *g_ppszModelLocs[] =
 	"Group01",
 	"Group02",
 	"Group03%s",
-	"",
+	"Group01",
+	"Group03b",
+	"Group03x", // May wish to change this to "Group04%s" IF a brute and medic version of the long fall rebel are created - then we can have Group04, Group04b, Group04m
+	"Group04%s", // Arctic
+	"Group04%s", // Arbeit
+	"Group04%s", // Arbeit2
+
+	"Hazmat01", // Gasmask
+	"Group06", // Worker
+
 	"Office1"
 };
 
@@ -519,7 +528,7 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 		}
 	}
 
-	if ( m_Type == CT_REBEL )
+	if ( m_Type == CT_REBEL || m_Type == CT_ARCTIC)
 	{
 		for ( i = 0; i < nHeads; ++i )
 		{

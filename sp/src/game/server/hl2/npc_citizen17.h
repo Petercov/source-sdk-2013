@@ -53,6 +53,15 @@ enum CitizenType_t
 	CT_REBEL,
 	CT_UNIQUE,
 
+	CT_BRUTE,
+	CT_LONGFALL,
+	CT_ARCTIC,
+	CT_ARBEIT,		// Pre-war Arbeit employees
+	CT_ARBEIT_SEC,	// Pre-war Arbeit security guards
+
+	CT_GASMASK,
+	CT_WORKER,
+
 	CT_HOSTAGE,
 };
 
