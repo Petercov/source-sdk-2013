@@ -286,6 +286,7 @@ void CWeaponOICW::ItemPostFrame(void)
 				}
 			}
 		}
+		return;
 	}
 
 	//Throw a grenade.
@@ -311,6 +312,7 @@ void CWeaponOICW::ItemPostFrame(void)
 			m_iFireMode = 0;
 			WeaponSound(EMPTY);
 		}
+		return;
 	}
 
 	//Allow a refire as fast as the player can click
@@ -525,7 +527,7 @@ void CWeaponOICW::Zoom(void)
 	if (pPlayer == NULL)
 		return;
 
-	color32 lightGreen = { 50, 255, 170, 32 };
+	//color32 lightGreen = { 50, 255, 170, 32 };
 
 	if (m_bZoomed)
 	{
@@ -538,7 +540,7 @@ void CWeaponOICW::Zoom(void)
 
 			m_bZoomed = false;
 
-			UTIL_ScreenFade(pPlayer, lightGreen, 0.2f, 0, (FFADE_IN | FFADE_PURGE));
+			//UTIL_ScreenFade(pPlayer, lightGreen, 0.2f, 0, (FFADE_IN | FFADE_PURGE));
 		}
 	}
 	else
@@ -551,7 +553,7 @@ void CWeaponOICW::Zoom(void)
 
 			m_bZoomed = true;
 
-			UTIL_ScreenFade(pPlayer, lightGreen, 0.2f, 0, (FFADE_OUT | FFADE_PURGE | FFADE_STAYOUT));
+			//UTIL_ScreenFade(pPlayer, lightGreen, 0.2f, 0, (FFADE_OUT | FFADE_PURGE | FFADE_STAYOUT));
 		}
 	}
 }

@@ -34,6 +34,11 @@ public:
 	float			GetFireRate( void ) { return 0.1f; }
 	int				CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 
+#ifdef MAPBASE
+	virtual int				GetMinBurst() { return 3; }
+	virtual int				GetMaxBurst() { return 3; }
+#endif // MAPBASE
+
 	DECLARE_ACTTABLE();
 };
 
@@ -141,7 +146,7 @@ void CWeaponSMG2::Precache( void )
 //-----------------------------------------------------------------------------
 const Vector &CWeaponSMG2::GetBulletSpread( void )
 {
-	static const Vector cone = VECTOR_CONE_10DEGREES;
+	static const Vector cone = VECTOR_CONE_3DEGREES;
 	return cone;
 }
 
@@ -154,6 +159,7 @@ void CWeaponSMG2::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatChar
 {
 	switch( pEvent->event )
 	{
+		case EVENT_WEAPON_SMG1:
 		case EVENT_WEAPON_SMG2:
 		{
 			Vector vecShootOrigin, vecShootDir;

@@ -11,3 +11,17 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS"
 	}
 }
+
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$Folder "HL2 Beta"
+		{
+			$Folder "Weapons"
+			{
+				$File	"peter\c_weapon_irifle.cpp"
+			}
+		}
+	}
+}

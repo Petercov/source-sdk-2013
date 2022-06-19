@@ -354,12 +354,20 @@ void CHLSelectFireMachineGun::PrimaryAttack( void )
 		break;
 
 	case FIREMODE_3RNDBURST:
+#ifdef MAPBASE
+		if (m_iBurstSize > 0)
+			return;
+#endif // MAPBASE
+
+
 		m_iBurstSize = GetBurstSize();
 		
 		// Call the think function directly so that the first round gets fired immediately.
 		BurstThink();
 		SetThink( &CHLSelectFireMachineGun::BurstThink );
+#ifndef MAPBASE
 		m_flNextPrimaryAttack = gpGlobals->curtime + GetBurstCycleRate();
+#endif // !MAPBASE
 		m_flNextSecondaryAttack = gpGlobals->curtime + GetBurstCycleRate();
 
 		// Pick up the rest of the burst through the think function.
@@ -422,6 +430,9 @@ void CHLSelectFireMachineGun::SecondaryAttack( void )
 //-----------------------------------------------------------------------------
 void CHLSelectFireMachineGun::BurstThink( void )
 {
+#ifdef MAPBASE
+	m_flNextPrimaryAttack = gpGlobals->curtime; // HACK?
+#endif // MAPBASE
 	CHLMachineGun::PrimaryAttack();
 
 	m_iBurstSize--;

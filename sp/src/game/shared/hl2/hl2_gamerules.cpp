@@ -414,6 +414,10 @@ ConVar	sk_max_762mm				( "sk_max_762mm", "60", FCVAR_REPLICATED );
 ConVar	sk_plr_dmg_oicw_grenade("sk_plr_dmg_oicw_grenade", "0", FCVAR_REPLICATED);
 ConVar	sk_npc_dmg_oicw_grenade("sk_npc_dmg_oicw_grenade", "0", FCVAR_REPLICATED);
 ConVar	sk_max_oicw_grenade("sk_max_oicw_grenade", "0", FCVAR_REPLICATED);
+
+ConVar	sk_plr_dmg_irifle("sk_plr_dmg_irifle", "0", FCVAR_REPLICATED);
+ConVar	sk_npc_dmg_irifle("sk_npc_dmg_irifle", "0", FCVAR_REPLICATED);
+ConVar	sk_max_incendiary("sk_max_incendiary", "0", FCVAR_REPLICATED);
 #endif // HL2BETA_WEAPONS
 
 //-----------------------------------------------------------------------------
@@ -2239,6 +2243,7 @@ CAmmoDef *GetAmmoDef()
 
 #ifdef HL2BETA_WEAPONS
 		def.AddAmmoType("OICW_Grenade", DMG_BURN | DMG_ALWAYSGIB, TRACER_NONE, "sk_plr_dmg_oicw_grenade", "sk_npc_dmg_oicw_grenade", "sk_max_oicw_grenade", 0, 0);
+		def.AddAmmoType("Incendiary", DMG_BURN | DMG_ENERGYBEAM, TRACER_NONE, "sk_plr_dmg_irifle", "sk_npc_dmg_irifle", "sk_max_incendiary", 0, 0);
 #endif // HL2BETA_WEAPONS
 	}
 

@@ -22,6 +22,7 @@
 #include "in_buttons.h"
 #include "soundent.h"
 #include "vstdlib/random.h"
+#include "ammodef.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -31,7 +32,7 @@
 #define SNIPER_BULLET_COUNT_PLAYER			1			// Fire n bullets per shot fired by the player.
 #define SNIPER_BULLET_COUNT_NPC				1			// Fire n bullets per shot fired by NPCs.
 #define SNIPER_TRACER_FREQUENCY_PLAYER		0			// Draw a tracer every nth shot fired by the player.
-#define SNIPER_TRACER_FREQUENCY_NPC			0			// Draw a tracer every nth shot fired by NPCs.
+#define SNIPER_TRACER_FREQUENCY_NPC			1			// Draw a tracer every nth shot fired by NPCs.
 #define SNIPER_KICKBACK						3			// Range for punchangle when firing.
 
 #define SNIPER_ZOOM_RATE					0.2			// Interval between zoom levels in seconds.
@@ -47,8 +48,13 @@ static int g_nZoomFOV[] =
 };
 
 #ifdef MAPBASE
-extern acttable_t *GetAR2Acttable();
+#ifdef HL2BETA_WEAPONS
+acttable_t* GetOICWActtable();
+int GetOICWActtableCount();
+#else
+extern acttable_t* GetAR2Acttable();
 extern int GetAR2ActtableCount();
+#endif // HL2BETA_WEAPONS
 #endif
 
 class CWeaponSniperRifle : public CBaseHLCombatWeapon
@@ -63,7 +69,7 @@ public:
 
 	void Precache( void );
 
-	int CapabilitiesGet( void ) const;
+	int CapabilitiesGet( void );
 
 	const Vector &GetBulletSpread( void );
 
@@ -76,10 +82,17 @@ public:
 
 	void Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
-#ifdef MAPBSAE
-	virtual acttable_t		*GetBackupActivityList() { return GetAR2Acttable(); }
+#ifdef MAPBASE
+#ifndef HL2BETA_WEAPONS
+	virtual acttable_t* GetBackupActivityList() { return GetAR2Acttable(); }
 	virtual int				GetBackupActivityListCount() { return GetAR2ActtableCount(); }
+#else
+	virtual acttable_t* GetBackupActivityList() { return GetOICWActtable(); }
+	virtual int				GetBackupActivityListCount() { return GetOICWActtableCount(); }
+#endif // !HL2BETA_WEAPONS
 #endif
+
+	void		MakeTracer(const Vector& vecTracerSrc, const trace_t& tr, int iTracerType);
 
 	DECLARE_ACTTABLE();
 
@@ -196,8 +209,8 @@ CWeaponSniperRifle::CWeaponSniperRifle( void )
 
 	m_fMinRange1		= 65;
 	m_fMinRange2		= 65;
-	m_fMaxRange1		= 2048;
-	m_fMaxRange2		= 2048;
+	m_fMaxRange1		= 5000;
+	m_fMaxRange2		= 5000;
 }
 
 
@@ -205,7 +218,7 @@ CWeaponSniperRifle::CWeaponSniperRifle( void )
 // Purpose: 
 // Output : int
 //-----------------------------------------------------------------------------
-int CWeaponSniperRifle::CapabilitiesGet( void ) const
+int CWeaponSniperRifle::CapabilitiesGet( void )
 {
 	return bits_CAP_WEAPON_RANGE_ATTACK1;
 }
@@ -333,6 +346,9 @@ void CWeaponSniperRifle::ItemPostFrame( void )
 void CWeaponSniperRifle::Precache( void )
 {
 	BaseClass::Precache();
+
+	PrecacheParticleSystem("sniper_trail");
+	PrecacheParticleSystem("sniper_trail_npc");
 }
 
 
@@ -512,6 +528,7 @@ void CWeaponSniperRifle::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCom
 				vecSpread = GetBulletSpread();
 			}
 			WeaponSound( SINGLE_NPC );
+			m_iClip1--;
 			pOperator->FireBullets( SNIPER_BULLET_COUNT_NPC, vecShootOrigin, vecShootDir, vecSpread, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, SNIPER_TRACER_FREQUENCY_NPC );
 			pOperator->DoMuzzleFlash();
 			break;
@@ -523,5 +540,26 @@ void CWeaponSniperRifle::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCom
 			break;
 		}
 	}
+}
+
+void CWeaponSniperRifle::MakeTracer(const Vector& vecTracerSrc, const trace_t& tr, int iTracerType)
+{
+#if 1
+	Vector vNewSrc = vecTracerSrc;
+	int iEntIndex = entindex();
+	int iAttachment = LookupAttachment("muzzle");
+	const char* pszParticleName = "sniper_trail_npc";
+
+	if (GetOwner() && GetOwner()->IsPlayer())
+	{
+		iEntIndex = GetOwner()->entindex();
+		iAttachment = TRACER_DONT_USE_ATTACHMENT;
+		pszParticleName = "sniper_trail";
+	}
+
+	UTIL_ParticleTracer(pszParticleName, vNewSrc, tr.endpos, iEntIndex, iAttachment, true);
+#else
+	BaseClass::MakeTracer(vecTracerSrc, tr, iTracerType);
+#endif
 }
 
