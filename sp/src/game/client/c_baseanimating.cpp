@@ -3877,6 +3877,10 @@ bool C_BaseAnimating::DispatchMuzzleEffect( const char *options, bool isFirstPer
 		{
 			weaponType = MUZZLEFLASH_AR2;
 		}
+		else if (Q_stricmp(token, "SNIPER") == 0)
+		{
+			weaponType = MUZZLEFLASH_SNIPER;
+		}
 		else
 		{
 			//NOTENOTE: This means you specified an invalid muzzleflash type, check your spelling?

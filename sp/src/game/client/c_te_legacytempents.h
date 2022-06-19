@@ -188,8 +188,8 @@ private:
 	int						AddVisibleTempEntity( C_LocalTempEntity *pEntity );
 
 	// AR2
-	void					MuzzleFlash_AR2_Player( const Vector &origin, const QAngle &angles, ClientEntityHandle_t hEntity );
-	void					MuzzleFlash_AR2_NPC( const Vector &origin, const QAngle &angles, ClientEntityHandle_t hEntity );
+	void					MuzzleFlash_AR2_Player(ClientEntityHandle_t hEntity, int attachmentIndex);
+	void					MuzzleFlash_AR2_NPC(ClientEntityHandle_t hEntity, int attachmentIndex);
 							
 	// SMG1					
 	void					MuzzleFlash_SMG1_Player( ClientEntityHandle_t hEntity, int attachmentIndex );
@@ -212,6 +212,9 @@ private:
 
 	// RPG
 	void					MuzzleFlash_RPG_NPC( ClientEntityHandle_t hEntity, int attachmentIndex );
+
+	// Sniper
+	void					MuzzleFlash_Sniper_NPC(ClientEntityHandle_t hEntity, int attachmentIndex);
 };
 
 

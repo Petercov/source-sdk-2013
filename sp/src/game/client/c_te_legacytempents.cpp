@@ -1791,6 +1791,15 @@ void CTempEnts::MuzzleFlash( int type, ClientEntityHandle_t hEntity, int attachm
 			MuzzleFlash_RPG_NPC( hEntity, attachmentIndex );
 		}
 		break;
+	case MUZZLEFLASH_SNIPER:
+		if (firstPerson)
+		{
+
+		}
+		else
+		{
+			MuzzleFlash_Sniper_NPC(hEntity, attachmentIndex);
+		}
 		break;
 	default:
 		{
@@ -2812,10 +2821,10 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 // Input: 
 //==================================================
 
-void CTempEnts::MuzzleFlash_AR2_NPC( const Vector &origin, const QAngle &angles, ClientEntityHandle_t hEntity )
+void CTempEnts::MuzzleFlash_AR2_NPC(ClientEntityHandle_t hEntity, int attachmentIndex)
 {
 	//Draw the cloud of fire
-	FX_MuzzleEffect( origin, angles, 1.0f, hEntity );
+	FX_MuzzleEffectAttached(1.0f, hEntity, attachmentIndex);
 }
 
 //-----------------------------------------------------------------------------
@@ -3245,6 +3254,12 @@ void CTempEnts::MuzzleFlash_RPG_NPC( ClientEntityHandle_t hEntity, int attachmen
 	//Draw the cloud of fire
 	FX_MuzzleEffectAttached( 1.5f, hEntity, attachmentIndex );
 
+}
+
+void CTempEnts::MuzzleFlash_Sniper_NPC(ClientEntityHandle_t hEntity, int attachmentIndex)
+{
+	//Draw the cloud of fire
+	FX_MuzzleEffectAttached(2.5f, hEntity, attachmentIndex);
 }
 
 
