@@ -39,6 +39,8 @@
 #include "ai_looktarget.h"
 #include "sceneentity.h"
 #include "tier0/icommandline.h"
+#include "particle_parse.h"
+#include "IEffects.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -111,6 +113,14 @@ ConVar player_squad_autosummon_player_tolerance( "player_squad_autosummon_player
 ConVar player_squad_autosummon_time_after_combat( "player_squad_autosummon_time_after_combat", "8" );
 ConVar player_squad_autosummon_debug( "player_squad_autosummon_debug", "0" );
 
+ConVar npc_citizen_longfall_death_height("npc_citizen_longfall_death_height", "32768");
+ConVar npc_citizen_longfall_glow_chest_jump_fade_enter("npc_citizen_longfall_glow_chest_jump_fade_enter", "0.25");
+ConVar npc_citizen_longfall_glow_chest_jump_fade_exit("npc_citizen_longfall_glow_chest_jump_fade_exit", "0.5");
+ConVar npc_citizen_brute_mask_eject_threshold("npc_citizen_brute_mask_eject_threshold", "100");
+
+ConVar  sk_citizen_head("sk_citizen_head", "1.0"); // Added by Blixibon. Multiplies by sk_npc_head
+ConVar	sk_citizen_longfall_gear("sk_citizen_longfall_gear", "1.5"); // Added by Blixibon. Multiplies longfall gear.
+
 #ifdef MAPBASE
 ConVar npc_citizen_resupplier_adjust_ammo("npc_citizen_resupplier_adjust_ammo", "1", FCVAR_NONE, "If what ammo we give to the player would go over their max, should we adjust what we give accordingly (1) or cancel it altogether? (0)" );
 
@@ -131,6 +141,26 @@ const float HEAL_TARGET_RANGE = 120; // 10 feet
 const float HEAL_TOSS_TARGET_RANGE = 480; // 40 feet when we are throwing medkits 
 const float HEAL_TARGET_RANGE_Z = 72; // a second check that Gordon isn't too far above us -- 6 feet
 #endif
+
+#define BRUTE_MASK_MODEL "models/humans/group03b/welding_mask.mdl"
+#define BRUTE_MASK_NUM_SKINS 3
+#define BRUTE_MASK_BODYGROUP 1
+
+#define LONGFALL_GEAR_BODYGROUP 1
+#define LONGFALL_GLOW_CHEST_SPRITE	"sprites/light_glow01.vmt"
+#define LONGFALL_GLOW_CHEST_BRIGHT	164
+#define LONGFALL_GLOW_CHEST_A		255
+#define LONGFALL_GLOW_CHEST_R		255
+#define LONGFALL_GLOW_CHEST_G		230
+#define LONGFALL_GLOW_CHEST_B		105
+#define LONGFALL_GLOW_CHEST_SCALE	0.5f
+#define LONGFALL_GLOW_CHEST_JUMP_BRIGHT	255
+#define LONGFALL_GLOW_CHEST_JUMP_A		255
+#define LONGFALL_GLOW_CHEST_JUMP_R		100
+#define LONGFALL_GLOW_CHEST_JUMP_G		230
+#define LONGFALL_GLOW_CHEST_JUMP_B		255
+#define LONGFALL_GLOW_CHEST_JUMP_SCALE	0.75f
+#define LONGFALL_GLOW_SHOULDER_SPRITE	"sprites/glow1.vmt"
 
 // player must be at least this distance away from an enemy before we fire an RPG at him
 const float RPG_SAFE_DISTANCE = CMissile::EXPLOSION_RADIUS + 64.0;
@@ -379,6 +409,9 @@ BEGIN_DATADESC( CNPC_Citizen )
 	DEFINE_KEYFIELD(	m_bAlternateAiming,			FIELD_BOOLEAN, "AlternateAiming" ),
 #endif
 
+	DEFINE_FIELD(m_pChestGlow, FIELD_EHANDLE),
+	DEFINE_FIELD(m_pShoulderGlow, FIELD_EHANDLE),
+
 	DEFINE_OUTPUT(		m_OnJoinedPlayerSquad,	"OnJoinedPlayerSquad" ),
 	DEFINE_OUTPUT(		m_OnLeftPlayerSquad,	"OnLeftPlayerSquad" ),
 	DEFINE_OUTPUT(		m_OnFollowOrder,		"OnFollowOrder" ),
@@ -515,7 +548,7 @@ void CNPC_Citizen::Precache()
 //-----------------------------------------------------------------------------
 void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 {
-	if ( m_Type == CT_UNIQUE )
+	if (type == CT_UNIQUE )
 		return;
 
 	int nHeads = ARRAYSIZE( g_ppszRandomHeads );
@@ -528,7 +561,7 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 		}
 	}
 
-	if ( m_Type == CT_REBEL || m_Type == CT_ARCTIC)
+	if (type == CT_REBEL || type == CT_ARCTIC)
 	{
 		for ( i = 0; i < nHeads; ++i )
 		{
@@ -537,6 +570,23 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 				PrecacheModel( CFmtStr( "models/Humans/%s/%s", (const char *)(CFmtStr(g_ppszModelLocs[m_Type], "m")), g_ppszRandomHeads[i] ) );
 			}
 		}
+	}
+
+	// Blixibon - Long-fall assets
+	if (type == CT_LONGFALL)
+	{
+		PrecacheScriptSound("NPC_Citizen_JumpRebel.Jump");
+		PrecacheScriptSound("NPC_Citizen_JumpRebel.Jump_Death");
+		PrecacheScriptSound("NPC_Citizen_JumpRebel.Land");
+
+		PrecacheModel(LONGFALL_GLOW_CHEST_SPRITE);
+		PrecacheModel(LONGFALL_GLOW_SHOULDER_SPRITE);
+
+		//PrecacheParticleSystem("citizen_longfall_jump");
+	}
+	else if (type == CT_BRUTE)
+	{
+		PrecacheModel(BRUTE_MASK_MODEL);
 	}
 }
 
@@ -625,6 +675,19 @@ void CNPC_Citizen::Spawn()
 		pRPG->StopGuiding();
 	}
 
+	if (m_Type == CT_LONGFALL)
+	{
+		CapabilitiesAdd(bits_CAP_MOVE_JUMP);
+	}
+
+	if (m_Type == CT_BRUTE)
+	{
+		// Randomize brute mask skin based on entity index
+		m_nSkin = entindex() % BRUTE_MASK_NUM_SKINS;
+	}
+
+	CapabilitiesAdd(bits_CAP_MOVE_CLIMB);
+
 	m_flTimePlayerStare = FLT_MAX;
 
 	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
@@ -700,6 +763,12 @@ void CNPC_Citizen::SelectModel()
 		PrecacheAllOfType( CT_DOWNTRODDEN );
 		PrecacheAllOfType( CT_REFUGEE );
 		PrecacheAllOfType( CT_REBEL );
+		PrecacheAllOfType(CT_BRUTE);
+		PrecacheAllOfType(CT_LONGFALL);
+		PrecacheAllOfType(CT_ARCTIC);
+		PrecacheAllOfType(CT_GASMASK);
+		PrecacheAllOfType(CT_WORKER);
+		PrecacheAllOfType(CT_HOSTAGE);
 	}
 
 	const char *pszModelName = NULL;
@@ -904,18 +973,32 @@ void CNPC_Citizen::SelectExpressionType()
 	if ( m_ExpressionType != CIT_EXP_UNASSIGNED )
 		return;
 
-	switch ( m_Type )
+	switch (m_Type)
 	{
 	case CT_DOWNTRODDEN:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt( CIT_EXP_SCARED, CIT_EXP_NORMAL );
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
 		break;
 	case CT_REFUGEE:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt( CIT_EXP_SCARED, CIT_EXP_NORMAL );
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
 		break;
 	case CT_REBEL:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt( CIT_EXP_SCARED, CIT_EXP_ANGRY );
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
 		break;
-
+	case CT_BRUTE:
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_NORMAL, CIT_EXP_ANGRY); // Brutes show no fear
+		break;
+	case CT_LONGFALL:
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_NORMAL, CIT_EXP_ANGRY); // Long fall boot rebels are crazy
+		break;
+	case CT_ARCTIC:
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
+		break;
+	case CT_GASMASK:
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
+		break;
+	case CT_WORKER:
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
+		break;
 	case CT_DEFAULT:
 	case CT_UNIQUE:
 	default:
@@ -2474,20 +2557,20 @@ bool CNPC_Citizen::ShouldLookForBetterWeapon()
 		{
 			bool bDefer = false;
 
+//#ifdef MAPBASE
+//			if ( EntIsClass(pWeapon, gm_isz_class_AR2) )
+//#else
+//			if( FClassnameIs( pWeapon, "weapon_ar2" ) )
+//#endif
+//			{
+//				// Content to keep this weapon forever
+//				m_flNextWeaponSearchTime = OTHER_DEFER_SEARCH_TIME;
+//				bDefer = true;
+//			}
 #ifdef MAPBASE
-			if ( EntIsClass(pWeapon, gm_isz_class_AR2) )
+			/*else*/ if( EntIsClass(pWeapon, gm_isz_class_RPG) )
 #else
-			if( FClassnameIs( pWeapon, "weapon_ar2" ) )
-#endif
-			{
-				// Content to keep this weapon forever
-				m_flNextWeaponSearchTime = OTHER_DEFER_SEARCH_TIME;
-				bDefer = true;
-			}
-#ifdef MAPBASE
-			else if( EntIsClass(pWeapon, gm_isz_class_RPG) )
-#else
-			else if( FClassnameIs( pWeapon, "weapon_rpg" ) )
+			/*else*/ if( FClassnameIs( pWeapon, "weapon_rpg" ) )
 #endif
 			{
 				// Content to keep this weapon forever
@@ -4818,4 +4901,393 @@ int CNPC_Citizen::DrawDebugTextOverlays( void )
 		text_offset++;
 	}
 	return text_offset;
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Returns true if a reasonable jumping distance
+//		1upD - If this rebel is using Aperture Science tech, he should be able
+//				to jump incredible distances
+// Input  :
+// Output :
+//-----------------------------------------------------------------------------
+bool CNPC_Citizen::IsJumpLegal(const Vector& startPos, const Vector& apex, const Vector& endPos) const
+{
+	if (m_Type == CT_LONGFALL)
+	{
+		const float MAX_JUMP_RISE = 1024.0f; // This one might need some adjustment - how high is too high?
+		const float MAX_JUMP_DISTANCE = 1024.0f;
+		const float MAX_JUMP_DROP = 8192.0f; // Basically any height
+
+		return BaseClass::IsJumpLegal(startPos, apex, endPos, MAX_JUMP_RISE, MAX_JUMP_DROP, MAX_JUMP_DISTANCE);
+	}
+
+	return BaseClass::IsJumpLegal(startPos, apex, endPos);
+}
+
+extern ConVar showhitlocation;
+extern ConVar sk_npc_head;
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+float CNPC_Citizen::GetHitgroupDamageMultiplier(int iHitGroup, const CTakeDamageInfo& info)
+{
+	switch (iHitGroup)
+	{
+	case HITGROUP_HEAD:
+	{
+		// Multiplied by sk_npc_head
+		return sk_citizen_head.GetFloat() * sk_npc_head.GetFloat();
+	} break;
+
+	case HITGROUP_GEAR:
+	{
+		if (m_Type == CT_LONGFALL)
+			return sk_citizen_longfall_gear.GetFloat();
+	} break;
+	}
+
+	return BaseClass::GetHitgroupDamageMultiplier(iHitGroup, info);
+}
+
+#define SNEAK_ATTACK_DIST	360.0f // 30 feet
+//=========================================================
+// TraceAttack is overridden here for jump rebel purposes.
+//=========================================================
+void CNPC_Citizen::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator)
+{
+	m_fNoDamageDecal = false;
+	if (m_takedamage == DAMAGE_NO)
+		return;
+
+	bool bSneakAttacked = false;
+
+	if (ptr->hitgroup == HITGROUP_HEAD)
+	{
+		if (info.GetAttacker() && info.GetAttacker()->IsPlayer() && info.GetAttacker() != GetEnemy() && !IsInAScript())
+		{
+			// Shot in the head by a player I've never seen. In this case the player 
+			// has gotten the drop on this enemy and such an attack is always lethal (at close range)
+			bSneakAttacked = true;
+
+			AIEnemiesIter_t	iter;
+			for (AI_EnemyInfo_t* pMemory = GetEnemies()->GetFirst(&iter); pMemory != NULL; pMemory = GetEnemies()->GetNext(&iter))
+			{
+				if (pMemory->hEnemy == info.GetAttacker())
+				{
+					bSneakAttacked = false;
+					break;
+				}
+			}
+
+			float flDist;
+
+			flDist = (info.GetAttacker()->GetAbsOrigin() - GetAbsOrigin()).Length();
+
+			if (flDist > SNEAK_ATTACK_DIST)
+			{
+				bSneakAttacked = false;
+			}
+		}
+	}
+
+	CTakeDamageInfo subInfo = info;
+	if (bSneakAttacked)
+		subInfo.SetDamage(GetHealth());
+
+	SetLastHitGroup(ptr->hitgroup);
+	m_nForceBone = ptr->physicsbone;		// save this bone for physics forces
+
+	Assert(m_nForceBone > -255 && m_nForceBone < 256);
+
+	bool bDebug = showhitlocation.GetBool();
+
+	switch (ptr->hitgroup)
+	{
+	case HITGROUP_GENERIC:
+		if (bDebug) DevMsg("Hit Location: Generic\n");
+		break;
+
+	case HITGROUP_GEAR:
+		// Blixibon - Allows jump rebels to use gear hitgroup as a weak point
+		if (m_Type == CT_LONGFALL)
+			subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
+		else
+		{
+			subInfo.SetDamage(0.01);
+			ptr->hitgroup = HITGROUP_GENERIC;
+		}
+		if (bDebug) DevMsg("Hit Location: Gear\n");
+		break;
+
+	case HITGROUP_HEAD:
+		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
+		if (bDebug) DevMsg("Hit Location: Head\n");
+		break;
+
+	case HITGROUP_CHEST:
+		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
+		if (bDebug) DevMsg("Hit Location: Chest\n");
+		break;
+
+	case HITGROUP_STOMACH:
+		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
+		if (bDebug) DevMsg("Hit Location: Stomach\n");
+		break;
+
+	case HITGROUP_LEFTARM:
+	case HITGROUP_RIGHTARM:
+		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
+		if (bDebug) DevMsg("Hit Location: Left/Right Arm\n");
+		break
+			;
+	case HITGROUP_LEFTLEG:
+	case HITGROUP_RIGHTLEG:
+		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
+		if (bDebug) DevMsg("Hit Location: Left/Right Leg\n");
+		break;
+
+	default:
+		if (bDebug) DevMsg("Hit Location: UNKNOWN\n");
+		break;
+	}
+
+	bool bBloodAllowed = DamageFilterAllowsBlood(info);
+	if (subInfo.GetDamage() >= 1.0 && !(subInfo.GetDamageType() & DMG_SHOCK) && bBloodAllowed)
+	{
+		if (ptr->hitgroup == HITGROUP_GEAR)
+		{
+			// Blixibon - Jump rebels have weak sparks in response to gear damage
+			g_pEffects->Sparks(ptr->endpos, 2, 2);
+		}
+		else
+			SpawnBlood(ptr->endpos, vecDir, BloodColor(), subInfo.GetDamage());// a little surface blood.
+
+		TraceBleed(subInfo.GetDamage(), vecDir, ptr, subInfo.GetDamageType());
+
+		if (ptr->hitgroup == HITGROUP_HEAD && m_iHealth - subInfo.GetDamage() > 0)
+		{
+			m_fNoDamageDecal = true;
+		}
+	}
+	else if (!bBloodAllowed)
+	{
+		m_fNoDamageDecal = true;
+	}
+
+	// Airboat gun will impart major force if it's about to kill him....
+	if (info.GetDamageType() & DMG_AIRBOAT)
+	{
+		if (subInfo.GetDamage() >= GetHealth())
+		{
+			float flMagnitude = subInfo.GetDamageForce().Length();
+			if ((flMagnitude != 0.0f) && (flMagnitude < 400.0f * 65.0f))
+			{
+				subInfo.ScaleDamageForce(400.0f * 65.0f / flMagnitude);
+			}
+		}
+	}
+
+	if (info.GetInflictor())
+	{
+		subInfo.SetInflictor(info.GetInflictor());
+	}
+	else
+	{
+		subInfo.SetInflictor(info.GetAttacker());
+	}
+
+	AddMultiDamage(subInfo, this);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_Citizen::Event_Killed(const CTakeDamageInfo& info)
+{
+	if (m_pChestGlow)
+		m_pChestGlow->FadeAndDie(0.5f);
+
+	if (m_pShoulderGlow)
+		m_pShoulderGlow->FadeAndDie(0.5f);
+
+	if (m_Type == CT_BRUTE && GetBodygroup(BRUTE_MASK_BODYGROUP) != 1)
+	{
+		// Make the mask fly off under high damage
+		if (info.GetDamage() >= npc_citizen_brute_mask_eject_threshold.GetFloat() && !(info.GetDamageType() & DMG_REMOVENORAGDOLL))
+		{
+			Vector vecMaskPos;
+			QAngle vecMaskAng;
+			GetAttachment("anim_attachment_head", vecMaskPos, vecMaskAng);
+
+			CBaseEntity* pGib = CreateNoSpawn("prop_physics", vecMaskPos, vecMaskAng, this);
+			if (pGib)
+			{
+				pGib->SetModelName(AllocPooledString(BRUTE_MASK_MODEL));
+				pGib->GetBaseAnimating()->m_nSkin = m_nSkin;
+				pGib->AddSpawnFlags(SF_PHYSPROP_DEBRIS | SF_PHYSPROP_IS_GIB);
+				DispatchSpawn(pGib);
+
+				if (VPhysicsGetObject() && pGib->VPhysicsGetObject())
+				{
+					Vector velocity = info.GetDamageForce() * VPhysicsGetObject()->GetInvMass();
+
+					// Give the mask some extra velocity so it's easier to see
+					velocity.z += 20.0f;
+					velocity *= 3.0f;
+
+					pGib->VPhysicsGetObject()->AddVelocity(&velocity, NULL);
+				}
+
+				if (info.GetDamageType() & DMG_DISSOLVE)
+				{
+					pGib->GetBaseAnimating()->Dissolve(NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL);
+				}
+				else
+				{
+					pGib->SUB_StartFadeOut(10.0f, false);
+				}
+			}
+
+			SetBodygroup(BRUTE_MASK_BODYGROUP, 1);
+		}
+	}
+	else if (m_Type == CT_LONGFALL)
+	{
+		// Make the ragdoll bounce up when the gear is shot
+		if (LastHitGroup() == HITGROUP_GEAR)
+		{
+			CTakeDamageInfo myInfo = info;
+
+			Vector vecBackpack;
+			GetAttachment("backpack_mid", vecBackpack);
+
+			g_pEffects->Sparks(vecBackpack, 4, 4);
+			UTIL_Smoke(vecBackpack, 20, 5);
+
+			myInfo.SetDamageForce(info.GetDamageForce() + Vector(0, 0, npc_citizen_longfall_death_height.GetFloat()));
+			EmitSound("NPC_Citizen_JumpRebel.Jump_Death");
+
+			// See if we'll hit a low ceiling
+			Vector vecOrigin = WorldSpaceCenter();
+			trace_t tr;
+			AI_TraceLine(vecOrigin, vecOrigin + (myInfo.GetDamageForce() * VPhysicsGetObject()->GetInvMass() * 0.5f),
+				MASK_SOLID, this, COLLISION_GROUP_NONE, &tr);
+
+			if (tr.fraction != 1.0f)
+			{
+				UTIL_DecalTrace(&tr, "Rollermine.Crater");
+
+				// It seems that the blood decal now overwrites the rollermine crater
+				//UTIL_DecalTrace( &tr, "Blood" );
+			}
+
+			BaseClass::Event_Killed(myInfo);
+
+			/*if (m_hDeathRagdoll)
+			{
+				// Add a jump particle to the death ragdoll
+				// TODO: citizen_longfall_jump_death?
+				DispatchParticleEffect("citizen_longfall_jump", PATTACH_POINT_FOLLOW, m_hDeathRagdoll, LookupAttachment("backpack_end"));
+
+				CRagdollBoogie::Create(m_hDeathRagdoll, 50, gpGlobals->curtime, RandomFloat(2.0f, 3.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL);
+			}*/
+
+			return;
+		}
+	}
+
+#ifdef EZ2
+	// Medics ALWAYS drop healthkits. Reward the player for taking them out
+	if (IsMedic())
+	{
+		DropItem("item_healthkit", WorldSpaceCenter() + RandomVector(-4, 4), RandomAngle(0, 360));
+	}
+
+#endif
+
+	BaseClass::Event_Killed(info);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_Citizen::OnChangeActivity(Activity eNewActivity)
+{
+	BaseClass::OnChangeActivity(eNewActivity);
+
+	if (m_Type == CT_LONGFALL)
+	{
+		switch (eNewActivity)
+		{
+		case ACT_JUMP:
+		{
+			// Do the jump particle
+			//DispatchParticleEffect("citizen_longfall_jump", PATTACH_POINT_FOLLOW, this, LookupAttachment("backpack_end"));
+
+			// Make the chest eye a different color while we're jumping
+			if (m_pChestGlow)
+			{
+				m_pChestGlow->SetRenderColor(LONGFALL_GLOW_CHEST_JUMP_R, LONGFALL_GLOW_CHEST_JUMP_G, LONGFALL_GLOW_CHEST_JUMP_B, LONGFALL_GLOW_CHEST_JUMP_A);
+				m_pChestGlow->SetBrightness(LONGFALL_GLOW_CHEST_JUMP_BRIGHT, npc_citizen_longfall_glow_chest_jump_fade_enter.GetFloat());
+				m_pChestGlow->SetScale(LONGFALL_GLOW_CHEST_JUMP_SCALE, npc_citizen_longfall_glow_chest_jump_fade_enter.GetFloat());
+			}
+
+			EmitSound("NPC_Citizen_JumpRebel.Jump");
+		} break;
+
+		case ACT_GLIDE:
+			break;
+
+		case ACT_LAND:
+		{
+			EmitSound("NPC_Citizen_JumpRebel.Land");
+		}
+		// Need to have a default case here due to jump rebels not always switching to ACT_LAND after jumping
+		default:
+		{
+			// If we were jumping, return the chest eye to its normal color
+			if (m_pChestGlow && m_pChestGlow->GetBrightness() == LONGFALL_GLOW_CHEST_JUMP_BRIGHT)
+			{
+				m_pChestGlow->SetRenderColor(LONGFALL_GLOW_CHEST_R, LONGFALL_GLOW_CHEST_G, LONGFALL_GLOW_CHEST_B, LONGFALL_GLOW_CHEST_A);
+				m_pChestGlow->SetBrightness(LONGFALL_GLOW_CHEST_BRIGHT, npc_citizen_longfall_glow_chest_jump_fade_exit.GetFloat());
+				m_pChestGlow->SetScale(LONGFALL_GLOW_CHEST_SCALE, npc_citizen_longfall_glow_chest_jump_fade_exit.GetFloat());
+			}
+		}
+		break;
+		}
+	}
+}
+
+bool CNPC_Citizen::CreateSprites(void)
+{
+	if (m_Type == CT_LONGFALL)
+	{
+		m_pChestGlow = CSprite::SpriteCreate(LONGFALL_GLOW_CHEST_SPRITE, GetLocalOrigin(), false);
+		if (m_pChestGlow)
+		{
+			m_pChestGlow->SetAttachment(this, LookupAttachment("backpack_eye_chest"));
+
+			m_pChestGlow->SetTransparency(kRenderWorldGlow, LONGFALL_GLOW_CHEST_R, LONGFALL_GLOW_CHEST_G, LONGFALL_GLOW_CHEST_B, LONGFALL_GLOW_CHEST_A, kRenderFxNoDissipation);
+			m_pChestGlow->SetScale(0.5f, 0.1f);
+			m_pChestGlow->SetGlowProxySize(2.f);
+		}
+
+		m_pShoulderGlow = CSprite::SpriteCreate(LONGFALL_GLOW_SHOULDER_SPRITE, GetLocalOrigin(), false);
+		if (m_pShoulderGlow)
+		{
+			m_pShoulderGlow->SetAttachment(this, LookupAttachment("backpack_eye_shoulder"));
+
+			m_pShoulderGlow->SetTransparency(kRenderWorldGlow, 255, 245, 180, 192, kRenderFxNoDissipation);
+			m_pShoulderGlow->SetScale(0.15f, 0.1f);
+			m_pShoulderGlow->SetGlowProxySize(1.f);
+		}
+	}
+
+	return true;
+}
+
+bool CNPC_Citizen::AllowedToIgnite(void)
+{
+	return (m_Type != CT_GASMASK);
 }

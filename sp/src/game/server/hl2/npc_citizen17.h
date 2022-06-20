@@ -17,6 +17,7 @@
 #endif
 
 struct SquadCandidate_t;
+class CSprite;
 
 //-----------------------------------------------------------------------------
 //
@@ -147,6 +148,7 @@ public:
 	Activity		NPC_TranslateActivity( Activity eNewActivity );
 	void 			HandleAnimEvent( animevent_t *pEvent );
 	void			TaskFail( AI_TaskFailureCode_t code );
+	void			OnChangeActivity(Activity eNewActivity);
 
 #ifndef MAPBASE // Moved to CAI_BaseNPC
 	void 			PickupItem( CBaseEntity *pItem );
@@ -176,11 +178,17 @@ public:
 
 	bool			ShouldLookForBetterWeapon();
 
+	bool			IsJumpLegal(const Vector& startPos, const Vector& apex, const Vector& endPos) const; // Added by 1upD - Override for jump rebels
 
 	//---------------------------------
 	// Damage handling
 	//---------------------------------
 	int 			OnTakeDamage_Alive( const CTakeDamageInfo &info );
+	float			GetHitgroupDamageMultiplier(int iHitGroup, const CTakeDamageInfo& info);
+	void			TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator);
+	void			Event_Killed(const CTakeDamageInfo& info);
+
+	virtual	bool		AllowedToIgnite(void);
 
 #ifdef MAPBASE
 	//---------------------------------
@@ -293,6 +301,8 @@ public:
 	void			SetCitizenType( int iType ) { m_Type = (CitizenType_t)iType; }
 #endif
 
+	bool	CreateSprites(void);
+
 private:
 	//-----------------------------------------------------
 	// Conditions, Schedules, Tasks
@@ -398,6 +408,9 @@ private:
 	bool					m_bNeverLeavePlayerSquad; // Don't leave the player squad unless killed, or removed via Entity I/O. 
 	
 	//-----------------------------------------------------
+
+	CHandle<CSprite>		m_pChestGlow;
+	CHandle<CSprite>		m_pShoulderGlow;
 	
 #ifdef MAPBASE_VSCRIPT
 	static ScriptHook_t		g_Hook_SelectModel;

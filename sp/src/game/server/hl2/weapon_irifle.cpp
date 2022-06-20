@@ -35,7 +35,7 @@
 #define BOLT_AIR_VELOCITY	2500
 #define BOLT_WATER_VELOCITY	1500
 
-#define IRIFLE_DAMAGE_TYPE DMG_ENERGYBEAM|DMG_BURN
+#define IRIFLE_DAMAGE_TYPE DMG_ENERGYBEAM
 
 extern acttable_t* GetAR2Acttable();
 extern int GetAR2ActtableCount();
