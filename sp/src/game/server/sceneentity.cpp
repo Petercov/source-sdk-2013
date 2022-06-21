@@ -5291,15 +5291,28 @@ void StopScriptedScene( CBaseFlex *pActor, EHANDLE hSceneEnt )
 //-----------------------------------------------------------------------------
 float GetSceneDuration( char const *pszScene )
 {
+#ifndef MAPBASE
 	unsigned int msecs = 0;
 
 	SceneCachedData_t cachedData;
-	if ( scenefilecache->GetSceneCachedData( pszScene, &cachedData ) )
+	if (scenefilecache->GetSceneCachedData(pszScene, &cachedData))
 	{
 		msecs = cachedData.msecs;
 	}
 
 	return (float)msecs * 0.001f;
+#else
+	float flSecs = 0.0f;
+
+	CChoreoScene* pScene = CSceneEntity::LoadScene(pszScene, nullptr);
+	if (pScene)
+	{
+		flSecs = pScene->GetDuration();
+		delete pScene;
+	}
+
+	return flSecs;
+#endif // !MAPBASE
 }
 
 //-----------------------------------------------------------------------------
