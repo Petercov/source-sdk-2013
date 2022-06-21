@@ -5689,6 +5689,26 @@ void CBaseEntity::PrecacheModelComponents( int nModelIndex )
 					PrecacheParticleSystem( pParticleEffectName );
 				}
 			}
+
+#ifdef MAPBASE
+			if (IsX360())
+			{
+				const char* pszFootstepSet = pModelKeyValues->GetString("footstep_set", nullptr);
+				if (pszFootstepSet)
+				{
+					char soundname[256];
+
+					Q_snprintf(soundname, sizeof(soundname), "%s.RunFootstepLeft", pszFootstepSet);
+					PrecacheSoundHelper(soundname);
+					Q_snprintf(soundname, sizeof(soundname), "%s.RunFootstepRight", pszFootstepSet);
+					PrecacheSoundHelper(soundname);
+					Q_snprintf(soundname, sizeof(soundname), "%s.FootstepLeft", pszFootstepSet);
+					PrecacheSoundHelper(soundname);
+					Q_snprintf(soundname, sizeof(soundname), "%s.FootstepRight", pszFootstepSet);
+					PrecacheSoundHelper(soundname);
+				}
+			}
+#endif // MAPBASE
 		}
 	}
 

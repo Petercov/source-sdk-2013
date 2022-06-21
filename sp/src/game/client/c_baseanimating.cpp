@@ -857,6 +857,10 @@ C_BaseAnimating::C_BaseAnimating() :
 	Q_memset(&m_mouth, 0, sizeof(m_mouth));
 	m_flCycle = 0;
 	m_flOldCycle = 0;
+
+#ifdef MAPBASE
+	m_iszFootStepSet = NULL_STRING;
+#endif // MAPBASE
 }
 
 //-----------------------------------------------------------------------------
@@ -1237,6 +1241,19 @@ CStudioHdr *C_BaseAnimating::OnNewModel()
 	}
 
 	InitModelEffects();
+
+#ifdef MAPBASE
+	KeyValues* pModelKeyValues = new KeyValues("");
+	KeyValues::AutoDelete autodelete_pModelKeyValues(pModelKeyValues);
+	if (pModelKeyValues->LoadFromBuffer(hdr->pszName(), hdr->GetRenderHdr()->KeyValueText()))
+	{
+		const char* pszFootstepSet = pModelKeyValues->GetString("footstep_set", nullptr);
+		if (pszFootstepSet)
+		{
+			m_iszFootStepSet = AllocPooledString(pszFootstepSet);
+		}
+	}
+#endif // MAPBASE
 
 	// lookup generic eye attachment, if exists
 	m_iEyeAttachment = LookupAttachment( "eyes" );
@@ -4075,6 +4092,13 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 		{
 #ifndef HL2MP
 			char pSoundName[256];
+#ifdef MAPBASE
+			if (m_iszFootStepSet != NULL_STRING)
+			{
+				options = STRING(m_iszFootStepSet);
+			}
+			else
+#endif // MAPBASE
 			if ( !options || !options[0] )
 			{
 				options = "NPC_CombineS";
@@ -4101,6 +4125,13 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 		{
 #ifndef HL2MP
 			char pSoundName[256];
+#ifdef MAPBASE
+			if (m_iszFootStepSet != NULL_STRING)
+			{
+				options = STRING(m_iszFootStepSet);
+			}
+			else
+#endif // MAPBASE
 			if ( !options || !options[0] )
 			{
 				options = "NPC_CombineS";
