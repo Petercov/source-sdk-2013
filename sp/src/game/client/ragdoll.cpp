@@ -16,6 +16,10 @@
 #include "view.h"
 #include "physics_saverestore.h"
 #include "vphysics/constraints.h"
+#ifdef MAPBASE
+#include "jigglebones.h"
+#endif // MAPBASE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -657,7 +661,43 @@ void C_ServerRagdoll::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 		{
 			QuaternionMatrix( q[i], pos[i], bonematrix );
 
-			if (pbones[i].parent == -1) 
+#ifdef MAPBASE
+			if ((hdr->boneFlags(i) & BONE_ALWAYS_PROCEDURAL) &&
+				(hdr->pBone(i)->proctype & STUDIO_PROC_JIGGLE))
+			{
+				//
+				// Physics-based "jiggle" bone
+				// Bone is assumed to be along the Z axis
+				// Pitch around X, yaw around Y
+				//
+
+				// compute desired bone orientation
+				matrix3x4_t goalMX;
+
+				if (pbones[i].parent == -1)
+				{
+					ConcatTransforms(cameraTransform, bonematrix, goalMX);
+				}
+				else
+				{
+					ConcatTransforms(GetBone(pbones[i].parent), bonematrix, goalMX);
+				}
+
+				// get jiggle properties from QC data
+				mstudiojigglebone_t* jiggleInfo = (mstudiojigglebone_t*)pbones[i].pProcedure();
+
+				if (!m_pJiggleBones)
+				{
+					m_pJiggleBones = new CJiggleBones;
+				}
+
+				// do jiggle physics
+				m_pJiggleBones->BuildJiggleTransformations(i, gpGlobals->realtime, jiggleInfo, goalMX, GetBoneForWrite(i));
+
+			}
+			else
+#endif // MAPBASE
+			if (pbones[i].parent == -1)
 			{
 				ConcatTransforms( cameraTransform, bonematrix, GetBoneForWrite( i ) );
 			} 

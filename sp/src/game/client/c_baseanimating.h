@@ -650,7 +650,7 @@ protected:
 	string_t						m_iszFootStepSet;
 #endif // MAPBASE
 
-private:
+protected:
 	float							m_flOldModelScale;
 	int								m_nOldSequence;
 	CBoneMergeCache					*m_pBoneMergeCache;	// This caches the strcmp lookups that it has to do
