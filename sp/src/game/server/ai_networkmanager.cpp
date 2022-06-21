@@ -947,12 +947,121 @@ void CAI_NetworkManager::InitializeAINetworks()
 	{
 		g_ai_norebuildgraph.SetValue( 0 );
 	}
-	if ( CAI_NetworkManager::IsAIFileCurrent( STRING( gpGlobals->mapname ) ) )
+
+	if ( CAI_NetworkManager::IsAIFileCurrent( STRING( gpGlobals->mapname ) ) && !CAI_NetworkManager::IsTextFileNewer(STRING(gpGlobals->mapname)))
 	{
 		pNetwork->LoadNetworkGraph(); 
 		if ( !g_bAIDisabledByUser )
 		{
 			CAI_BaseNPC::m_nDebugBits &= ~bits_debugDisableAI;
+		}
+	}
+
+	char szNodeTextFilename[MAX_PATH];// text node coordinate filename
+	Q_snprintf(szNodeTextFilename, sizeof(szNodeTextFilename), "maps/graphs/%s.txt", STRING(gpGlobals->mapname));
+	if (filesystem->FileExists(szNodeTextFilename))
+	{
+		CUtlBuffer buf(0, 0, CUtlBuffer::TEXT_BUFFER);
+		if (filesystem->ReadFile(szNodeTextFilename, "game", buf))
+		{
+			DevMsg("Parsing .txt node file!\n");
+			if (!buf.Size())
+				return;
+
+			const int maxLen = 128;
+			char line[maxLen];
+			int num = 0;
+
+			// loop through every line of the file, read it in
+			while (true)
+			{
+				buf.GetLine(line, maxLen);
+				if (Q_strlen(line) <= 0)
+					break; // reached the end of the file
+
+				if (isalpha(line[0]))
+				{
+					CUtlStringList args;
+					V_SplitString(line + 2, " ", args);
+
+					CUtlString entdata(CFmtStr(
+						"{\n"
+						R"("origin" "%s %s %s")" "\n"
+						R"("MinimumState" "1")" "\n"
+						R"("MaximumState" "3")" "\n"
+						R"("IgnoreFacing" "2")" "\n"
+						R"("nodeFOV" "180")" "\n"
+						, args[0], args[1], args[2]));
+
+					switch (line[0])
+					{
+						// Ground
+					case 'G':
+						entdata.Append(CFmtStr(R"("angles" "0 %s 0")" "\n" R"("hinttype" "%s")" "\n" R"("classname" "info_node_hint")" "\n", args[3], args[4]));
+						break;
+					case 'g':
+					default:
+						entdata.Append(R"("classname" "info_node")");
+						break;
+
+						// Air
+					case 'A':
+						entdata.Append(CFmtStr(R"("angles" "0 %s 0")" "\n" R"("hinttype" "%s")" "\n" R"("classname" "info_node_air_hint")" "\n", args[3], args[4]));
+						break;
+					case 'a':
+						entdata.Append(R"("classname" "info_node_air")");
+						break;
+
+						// Climb
+					case 'C':
+					case 'c':
+						entdata.Append(CFmtStr(R"("angles" "0 %s 0")" "\n" R"("hinttype" "%s")" "\n" R"("classname" "info_node_climb")" "\n", args[3], args[4]));
+						break;
+
+						// Jump
+					case 'J':
+					case 'j':
+						entdata.Append(R"("hinttype" "901")" "\n" R"("classname" "info_node_hint")" "\n");
+						break;
+
+						// Strider
+					case 'S':
+					case 's':
+						entdata.Append(R"("hinttype" "904")" "\n" R"("classname" "info_node_air_hint")" "\n");
+						break;
+					}
+
+					entdata.Append(CFmtStr(R"("nodeid" "%i")" "\n}\n", pNetwork->GetEditOps()->m_nNextWCIndex));
+
+					CBaseEntity* pEntity;
+					MapEntity_ParseEntity(pEntity, entdata.Get(), nullptr);
+					CNodeEnt* pNode = dynamic_cast<CNodeEnt*>(pEntity);
+					if (pNode)
+					{
+						pNode->Spawn(entdata.Get());
+						num++;
+					}
+				}
+				else
+				{
+					Vector origin;
+					UTIL_StringToVector(origin.Base(), line);
+					// now we want to create a CNodeEnt (info_node) at the location these coordinates describe
+					CNodeEnt* pNode = (CNodeEnt*)CreateNoSpawn("info_node", origin, vec3_angle, NULL);
+					if (pNode)
+					{//	setting this index stops it moaning, doesn't seem to affect anything else though
+						pNode->m_NodeData.nWCNodeID = g_pAINetworkManager->GetEditOps()->m_nNextWCIndex;
+						pNode->Spawn(); // spawning it adds it into the node graph
+						num++;
+					}
+				}
+
+				gEntList.CleanupDeleteList();
+				if (!buf.IsValid())
+					break;
+			}
+
+			DevMsg("Created %i nodes from text file\n", num);
 		}
 	}
 
@@ -1059,6 +1168,33 @@ bool CAI_NetworkManager::IsAIFileCurrent ( const char *szMapName )
 		}
 		return true;
 	}
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Returns true if there's a node text file, and its newer than the nodegraph file
+//-----------------------------------------------------------------------------
+bool CAI_NetworkManager::IsTextFileNewer(const char* szMapName)
+{
+	char szGraphFilename[MAX_PATH];
+	char szTextFilename[MAX_PATH];
+	Q_snprintf(szGraphFilename, sizeof(szGraphFilename), "maps/graphs/%s%s.ain", szMapName, GetPlatformExt());
+	Q_snprintf(szTextFilename, sizeof(szTextFilename), "maps/graphs/%s.txt", szMapName);
+
+	if (!filesystem->FileExists(szTextFilename))
+		return false; // if there's no text file, we clearly CANT use it
+
+	int iCompare;
+	if (engine->CompareFileTime(szTextFilename, szGraphFilename, &iCompare))
+	{
+		if (iCompare > 0)
+		{
+			Msg("Text file is newer\n");
+			return true; // text file is newer
+		}
+	}
+
+	Msg("Network file is newer\n");
 	return false;
 }
 
