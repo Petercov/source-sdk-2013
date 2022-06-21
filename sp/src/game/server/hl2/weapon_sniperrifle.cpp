@@ -31,7 +31,7 @@
 #define SNIPER_CONE_NPC						vec3_origin	// Spread cone when fired by NPCs.
 #define SNIPER_BULLET_COUNT_PLAYER			1			// Fire n bullets per shot fired by the player.
 #define SNIPER_BULLET_COUNT_NPC				1			// Fire n bullets per shot fired by NPCs.
-#define SNIPER_TRACER_FREQUENCY_PLAYER		0			// Draw a tracer every nth shot fired by the player.
+#define SNIPER_TRACER_FREQUENCY_PLAYER		1			// Draw a tracer every nth shot fired by the player.
 #define SNIPER_TRACER_FREQUENCY_NPC			1			// Draw a tracer every nth shot fired by NPCs.
 #define SNIPER_KICKBACK						3			// Range for punchangle when firing.
 
@@ -79,6 +79,10 @@ public:
 	bool Reload( void );
 	void Zoom( void );
 	virtual float GetFireRate( void ) { return 1; };
+	virtual int				GetMinBurst() { return 1; }
+	virtual int				GetMaxBurst() { return 1; }
+	virtual float			GetMinRestTime() { return 1.5f; }
+	virtual float			GetMaxRestTime() { return 3.f; }
 
 	void Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
@@ -205,7 +209,7 @@ CWeaponSniperRifle::CWeaponSniperRifle( void )
 	m_fNextZoom = gpGlobals->curtime;
 	m_nZoomLevel = 0;
 
-	m_bReloadsSingly = true;
+	//m_bReloadsSingly = true;
 
 	m_fMinRange1		= 65;
 	m_fMinRange2		= 65;
@@ -377,8 +381,8 @@ bool CWeaponSniperRifle::Reload( void )
 			// Play reload on different channel as it happens after every fire
 			// and otherwise steals channel away from fire sound
 			WeaponSound(RELOAD);
-			SendWeaponAnim( ACT_VM_RELOAD );
-
+			SendWeaponAnim(Clip1() ? ACT_VM_RELOAD : ACT_VM_RELOAD_EMPTY);
+			
 			m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
 
 			m_bInReload = true;
@@ -529,6 +533,7 @@ void CWeaponSniperRifle::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCom
 			}
 			WeaponSound( SINGLE_NPC );
 			m_iClip1--;
+
 			pOperator->FireBullets( SNIPER_BULLET_COUNT_NPC, vecShootOrigin, vecShootDir, vecSpread, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, SNIPER_TRACER_FREQUENCY_NPC );
 			pOperator->DoMuzzleFlash();
 			break;
