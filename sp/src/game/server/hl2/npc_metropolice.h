@@ -525,6 +525,9 @@ private:
 	// Determines whether this NPC is allowed to use grenades or alt-fire stuff.
 	eGrenadeCapabilities m_iGrenadeCapabilities;
 	eGrenadeDropCapabilities m_iGrenadeDropCapabilities;
+
+	bool					m_bRiotShield;
+	CHandle<CDynamicProp>	m_hRiotShield;
 #endif
 
 	AIHANDLE		m_hManhack;

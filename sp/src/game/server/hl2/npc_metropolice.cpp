@@ -22,6 +22,7 @@
 #ifdef MAPBASE
 #include "grenade_frag.h"
 #include "mapbase/GlobalStrings.h"
+#include "gib.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -167,6 +168,23 @@ int	ACT_PUSH_PLAYER;
 int ACT_MELEE_ATTACK_THRUST;
 int ACT_ACTIVATE_BATON;
 int ACT_DEACTIVATE_BATON;
+
+#ifdef MAPBASE
+int ACT_IDLE_HOLD_SHIELD;
+int ACT_RUN_SHIELD;
+int ACT_MELEE_ATTACK_SWING_SHIELD;
+int ACT_IDLE_ANGRY_HOLD_SHIELD;
+int ACT_WALK_SHIELD;
+int ACT_SHIELD_STATIONED;
+int ACT_SHIELD_STATIONED_CROUCH;
+int ACT_MELEE_ATTACK_SWING_STATIONED_CROUCH;
+int ACT_SHIELD_STATIONED_SETUP;
+
+extern acttable_t* GetSMG1Acttable();
+extern int GetSMG1ActtableCount();
+#endif // MAPBASE
+
+
  
 LINK_ENTITY_TO_CLASS( npc_metropolice, CNPC_MetroPolice );
 
@@ -262,6 +280,9 @@ BEGIN_DATADESC( CNPC_MetroPolice )
 	DEFINE_AIGRENADE_DATADESC()
 	DEFINE_INPUT( m_iGrenadeCapabilities, FIELD_INTEGER, "SetGrenadeCapabilities" ),
 	DEFINE_INPUT( m_iGrenadeDropCapabilities, FIELD_INTEGER, "SetGrenadeDropCapabilities" ),
+
+	DEFINE_KEYFIELD(m_bRiotShield, FIELD_BOOLEAN, "spawnshield"),
+	DEFINE_FIELD(m_hRiotShield, FIELD_EHANDLE),
 #endif
 
 END_DATADESC()
@@ -658,6 +679,10 @@ void CNPC_MetroPolice::Precache( void )
 	PrecacheScriptSound( "NPC_MetroPolice.HidingSpeech" );
 	enginesound->PrecacheSentenceGroup( "METROPOLICE" );
 
+#ifdef MAPBASE
+	PrecacheModel("models/pg_props/pg_weapons/pg_cp_shield_w.mdl");
+#endif // MAPBASE
+
 	BaseClass::Precache();
 }
 
@@ -805,6 +830,25 @@ void CNPC_MetroPolice::Spawn( void )
 	{
 		SetBodygroup( METROPOLICE_BODYGROUP_MANHACK, true );
 	}
+
+#ifdef MAPBASE
+	if (m_bRiotShield)
+	{
+		CDynamicProp* pShield = (CDynamicProp*)CreateNoSpawn("prop_dynamic_override", GetAbsOrigin(), GetAbsAngles(), this);
+		if (pShield)
+		{
+			pShield->SetModel("models/pg_props/pg_weapons/pg_cp_shield_w.mdl");
+			pShield->SetSolid(SOLID_VPHYSICS);
+			pShield->SetParent(this);
+			DispatchSpawn(pShield);
+			pShield->Activate();
+			pShield->SetMoveType(MOVETYPE_NONE);
+			pShield->AddEffects(EF_BONEMERGE | EF_BONEMERGE_FASTCULL);
+
+			m_hRiotShield = pShield;
+		}
+	}
+#endif // MAPBASE
 }
 
 
@@ -3566,6 +3610,51 @@ Activity CNPC_MetroPolice::NPC_TranslateActivity( Activity newActivity )
 	{
 		return ACT_COMBINE_THROW_GRENADE;
 	}
+
+	// Riot Shield Animations
+	if (m_bRiotShield)
+	{
+		// No weapon or melee uses special riot shield anims
+		if (!GetActiveWeapon() || GetActiveWeapon()->IsMeleeWeapon())
+		{
+			switch (newActivity)
+			{
+			case ACT_IDLE:
+				return (Activity)ACT_IDLE_HOLD_SHIELD;
+			case ACT_IDLE_ANGRY:
+				return (Activity)ACT_IDLE_ANGRY_HOLD_SHIELD;
+			case ACT_WALK:
+			case ACT_WALK_ANGRY:
+				return (Activity)ACT_WALK_SHIELD;
+			case ACT_RUN:
+				return (Activity)ACT_RUN_SHIELD;
+			case ACT_MELEE_ATTACK1:
+				return (Activity)ACT_MELEE_ATTACK_SWING_SHIELD;
+			case ACT_CROUCHIDLE:
+			case ACT_COVER:
+			case ACT_COVER_LOW:
+				return (Activity)ACT_SHIELD_STATIONED_CROUCH;
+			case ACT_COVER_MED:
+				return (Activity)ACT_SHIELD_STATIONED;
+			}
+		}
+		else
+		{
+			// Otherwise only smg1 anims have the correct arm position
+			acttable_t *pTable = GetSMG1Acttable();
+			for (int i = 0; i < GetSMG1ActtableCount(); i++, pTable++)
+			{
+				if (newActivity == pTable->baseAct)
+				{
+					// Don't pick backup activities we don't actually have an animation for.
+					if (!HaveSequenceForActivity((Activity)pTable->weaponAct))
+						break;
+
+					return (Activity)pTable->weaponAct;
+				}
+			}
+		}
+	}
 #endif
 
 	return newActivity;
@@ -3698,6 +3787,23 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 		DropGrenadeItemsOnDeath( info, pPlayer );
 #endif
 	}
+
+#ifdef MAPBASE
+	if (m_hRiotShield)
+	{
+		CGib* pRiotGib = CREATE_ENTITY(CGib, "gib");
+		if (pRiotGib)
+		{
+			pRiotGib->Spawn(STRING(m_hRiotShield->GetModelName()));
+			pRiotGib->InitGib(this, 0, 0);
+			pRiotGib->SetAbsOrigin(m_hRiotShield->GetAbsOrigin());
+			pRiotGib->SetAbsAngles(m_hRiotShield->GetAbsAngles());
+		}
+
+		m_hRiotShield->RemoveDeferred();
+		m_hRiotShield = NULL;
+	}
+#endif // MAPBASE
 
 	BaseClass::Event_Killed( info );
 }
@@ -6142,6 +6248,18 @@ AI_BEGIN_CUSTOM_NPC( npc_metropolice, CNPC_MetroPolice )
 	DECLARE_ACTIVITY( ACT_DEACTIVATE_BATON );
 	DECLARE_ACTIVITY( ACT_WALK_BATON );
 	DECLARE_ACTIVITY( ACT_IDLE_ANGRY_BATON );
+
+#ifdef MAPBASE
+	DECLARE_ACTIVITY(ACT_IDLE_HOLD_SHIELD);
+	DECLARE_ACTIVITY(ACT_WALK_SHIELD);
+	DECLARE_ACTIVITY(ACT_RUN_SHIELD);
+	DECLARE_ACTIVITY(ACT_IDLE_ANGRY_HOLD_SHIELD);
+	DECLARE_ACTIVITY(ACT_MELEE_ATTACK_SWING_SHIELD);
+	DECLARE_ACTIVITY(ACT_SHIELD_STATIONED);
+	DECLARE_ACTIVITY(ACT_SHIELD_STATIONED_CROUCH);
+	DECLARE_ACTIVITY(ACT_MELEE_ATTACK_SWING_STATIONED_CROUCH);
+	DECLARE_ACTIVITY(ACT_SHIELD_STATIONED_SETUP);
+#endif // MAPBASE
 
 	DECLARE_INTERACTION( g_interactionMetrocopStartedStitch );	
 	DECLARE_INTERACTION( g_interactionMetrocopIdleChatter );	
