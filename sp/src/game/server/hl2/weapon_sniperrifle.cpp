@@ -57,11 +57,17 @@ extern int GetAR2ActtableCount();
 #endif // HL2BETA_WEAPONS
 #endif
 
-class CWeaponSniperRifle : public CBaseHLCombatWeapon
+#ifdef MAPBASE
+typedef CBaseHLZoomableWeapon CWeaponSniperRifleBase;
+#else
+typedef CBaseHLCombatWeapon CWeaponSniperRifleBase;
+#endif // MAPBASE
+
+class CWeaponSniperRifle : public CWeaponSniperRifleBase
 {
 	DECLARE_DATADESC();
 public:
-	DECLARE_CLASS( CWeaponSniperRifle, CBaseHLCombatWeapon );
+	DECLARE_CLASS( CWeaponSniperRifle, CWeaponSniperRifleBase);
 
 	CWeaponSniperRifle(void);
 
@@ -491,6 +497,10 @@ void CWeaponSniperRifle::Zoom( void )
 	}
 
 	m_fNextZoom = gpGlobals->curtime + SNIPER_ZOOM_RATE;
+
+#ifdef MAPBASE
+	m_bInZoom = (m_nZoomLevel > 0);
+#endif // MAPBASE
 }
 
 

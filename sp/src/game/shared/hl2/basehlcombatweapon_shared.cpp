@@ -437,3 +437,32 @@ const WeaponProficiencyInfo_t *CBaseHLCombatWeapon::GetDefaultProficiencyValues(
 }
 
 #endif
+
+#ifdef MAPBASE
+IMPLEMENT_NETWORKCLASS_ALIASED(BaseHLZoomableWeapon, DT_BaseHLZoomableWeapon)
+
+BEGIN_NETWORK_TABLE(CBaseHLZoomableWeapon, DT_BaseHLZoomableWeapon)
+#if !defined( CLIENT_DLL )
+SendPropBool(SENDINFO(m_bInZoom)),
+#else
+RecvPropBool(RECVINFO(m_bInZoom)),
+#endif
+END_NETWORK_TABLE();
+
+
+#if !defined( CLIENT_DLL )
+//---------------------------------------------------------
+// Save/Restore
+//---------------------------------------------------------
+BEGIN_DATADESC(CBaseHLZoomableWeapon)
+
+DEFINE_FIELD(m_bInZoom, FIELD_BOOLEAN),
+
+END_DATADESC();
+#endif
+
+CBaseHLZoomableWeapon::CBaseHLZoomableWeapon()
+{
+	m_bInZoom = false;
+}
+#endif // MAPBASE

@@ -152,6 +152,9 @@ public:
 	CHudTexture 					*iconZoomedCrosshair;
 	CHudTexture 					*iconZoomedAutoaim;
 	CHudTexture						*iconSmall;
+#ifdef MAPBASE
+	CHudTexture*			hudScope;
+#endif // MAPBASE
 
 // TF2 specific
 	bool					bShowUsageHint;							// if true, then when you receive the weapon, show a hint about it

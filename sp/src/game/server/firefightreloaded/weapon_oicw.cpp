@@ -40,7 +40,9 @@ float GetCurrentGravity(void);
 BEGIN_DATADESC(CWeaponOICW)
 
 DEFINE_FIELD(m_nShotsFired, FIELD_INTEGER),
+#ifndef MAPBASE
 DEFINE_FIELD(m_bZoomed, FIELD_BOOLEAN),
+#endif // !MAPBASE
 DEFINE_FIELD(m_flSoonestPrimaryAttack, FIELD_TIME),
 DEFINE_FIELD(m_iFireMode, FIELD_INTEGER),
 
@@ -198,6 +200,8 @@ int GetOICWActtableCount()
 {
 	return ARRAYSIZE(CWeaponOICW::m_acttable);
 }
+
+#define m_bZoomed m_bInZoom
 #endif
 
 CWeaponOICW::CWeaponOICW()
@@ -286,7 +290,6 @@ void CWeaponOICW::ItemPostFrame(void)
 				}
 			}
 		}
-		return;
 	}
 
 	//Throw a grenade.
@@ -302,7 +305,7 @@ void CWeaponOICW::ItemPostFrame(void)
 			//hint.sprintf("#Valve_OICW_Grenades");
 			//pOwner->HintMessage("#Valve_OICW_Grenades");
 			m_iFireMode = 1;
-			WeaponSound(EMPTY);
+			WeaponSound(SPECIAL3);
 		}
 		else if (m_iFireMode == 1)
 		{
@@ -310,7 +313,7 @@ void CWeaponOICW::ItemPostFrame(void)
 			//hint.sprintf("#Valve_OICW_Scope");
 			//pOwner->HintMessage("#Valve_OICW_Scope");
 			m_iFireMode = 0;
-			WeaponSound(EMPTY);
+			WeaponSound(SPECIAL3);
 		}
 		return;
 	}
@@ -326,6 +329,9 @@ void CWeaponOICW::ItemPostFrame(void)
 	{
 		m_fFireDuration = 0.05f;
 	}
+
+	if (pOwner->m_nButtons & IN_ATTACK2)
+		return;
 
 	BaseClass::ItemPostFrame();
 }

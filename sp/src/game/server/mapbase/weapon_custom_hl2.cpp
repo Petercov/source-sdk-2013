@@ -371,10 +371,10 @@ void CHLCustomWeaponMelee::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCo
 //
 //--------------------------------------------------------------------------
 
-class CHLCustomWeaponGun : public CBaseHLCombatWeapon, public ICustomWeapon
+class CHLCustomWeaponGun : public CBaseHLZoomableWeapon, public ICustomWeapon
 {
 public:
-	DECLARE_CLASS(CHLCustomWeaponGun, CBaseHLCombatWeapon);
+	DECLARE_CLASS(CHLCustomWeaponGun, CBaseHLZoomableWeapon);
 	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 
@@ -480,7 +480,6 @@ private:
 	bool	m_bNeedPump;		// When emptied completely
 	bool	m_bDelayedFire1;	// Fire primary when finished reloading
 	bool	m_bDelayedFire2;	// Fire secondary when finished reloading
-	bool	m_bInZoom;
 	bool	m_bMustReload;
 
 	int	m_nShotsFired;	// Number of consecutive shots fired
@@ -510,7 +509,6 @@ DEFINE_FIELD(m_flNextSoundTime, FIELD_TIME),
 DEFINE_FIELD(m_bNeedPump, FIELD_BOOLEAN),
 DEFINE_FIELD(m_bDelayedFire1, FIELD_BOOLEAN),
 DEFINE_FIELD(m_bDelayedFire2, FIELD_BOOLEAN),
-DEFINE_FIELD(m_bInZoom, FIELD_BOOLEAN),
 DEFINE_FIELD(m_bMustReload, FIELD_BOOLEAN),
 END_DATADESC();
 
@@ -521,7 +519,6 @@ CHLCustomWeaponGun::CHLCustomWeaponGun()
 	m_bNeedPump = false;
 	m_bDelayedFire1 = false;
 	m_bDelayedFire2 = false;
-	m_bInZoom = false;
 	m_bMustReload = false;
 	m_nShotsFired = 0;
 }

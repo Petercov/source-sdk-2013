@@ -14,6 +14,9 @@
 
 #if defined( CLIENT_DLL )
 #define CBaseHLCombatWeapon C_BaseHLCombatWeapon
+#ifdef MAPBASE
+#define CBaseHLZoomableWeapon C_BaseHLZoomableWeapon
+#endif // MAPBASE
 #endif
 
 class CBaseHLCombatWeapon : public CBaseCombatWeapon
@@ -62,5 +65,26 @@ protected:
 	float			m_flRaiseTime;		// If lowered, the time we should raise the viewmodel
 	float			m_flHolsterTime;	// When the weapon was holstered
 };
+
+#ifdef MAPBASE
+class CBaseHLZoomableWeapon : public CBaseHLCombatWeapon
+{
+protected:
+#ifndef CLIENT_DLL
+	DECLARE_DATADESC();
+#endif // !CLIENT_DLL
+	DECLARE_CLASS(CBaseHLZoomableWeapon, CBaseHLCombatWeapon);
+
+public:
+	DECLARE_NETWORKCLASS();
+	CBaseHLZoomableWeapon();
+
+	virtual bool	IsWeaponZoomed() { return m_bInZoom; }
+
+protected:
+	CNetworkVar(bool, m_bInZoom);
+};
+#endif // MAPBASE
+
 
 #endif // BASEHLCOMBATWEAPON_SHARED_H

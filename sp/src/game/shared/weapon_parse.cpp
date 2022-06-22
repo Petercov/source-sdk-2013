@@ -409,6 +409,7 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	szDroppedModel[0] = 0;
 	m_bUsesHands = false;
 	m_nWeaponRestriction = WPNRESTRICT_NONE;
+	hudScope = 0;
 #endif
 }
 

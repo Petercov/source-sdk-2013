@@ -12,10 +12,18 @@
 #pragma once
 #endif
 
+#ifndef MAPBASE
 class C_HLMachineGun : public C_BaseHLCombatWeapon
 {
 public:
-	DECLARE_CLASS( C_HLMachineGun, C_BaseHLCombatWeapon );
+	DECLARE_CLASS(C_HLMachineGun, C_BaseHLCombatWeapon);
+#else
+class C_HLMachineGun : public C_BaseHLZoomableWeapon
+{
+public:
+	DECLARE_CLASS(C_HLMachineGun, C_BaseHLZoomableWeapon);
+#endif // !MAPBASE
+
 	DECLARE_CLIENTCLASS();
 };
 

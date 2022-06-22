@@ -56,7 +56,11 @@ public:
 
 		if (GetOwner() && GetOwner()->IsPlayer())
 		{
+#ifndef MAPBASE
 			cone = (m_bZoomed) ? VECTOR_CONE_1DEGREES : VECTOR_CONE_3DEGREES;
+#else
+			cone = (m_bInZoom) ? VECTOR_CONE_1DEGREES : VECTOR_CONE_3DEGREES;
+#endif // !MAPBASE
 		}
 		else
 		{
@@ -80,7 +84,9 @@ protected:
 
 	int				m_nShotsFired;
 
+#ifndef MAPBASE
 	bool			m_bZoomed;
+#endif // !MAPBASE
 
 	int				m_iFireMode;
 

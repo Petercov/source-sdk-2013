@@ -23,5 +23,10 @@ $Project
 				$File	"peter\c_weapon_irifle.cpp"
 			}
 		}
+		
+		$Folder "Peter"
+		{
+			$File	"peter\hud_scope.cpp"
+		}
 	}
 }

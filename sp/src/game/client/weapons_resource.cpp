@@ -209,6 +209,14 @@ void WeaponsResource::LoadWeaponSprites( WEAPON_FILE_INFO_HANDLE hWeaponFileInfo
 		}
 	}
 
+#ifdef MAPBASE
+	p = FindHudTextureInDict(tempList, "scope");
+	if (p)
+	{
+		pWeaponInfo->hudScope = gHUD.AddUnsearchableHudIconToList(*p);
+	}
+#endif // MAPBASE
+
 	FreeHudTextureList( tempList );
 }
 

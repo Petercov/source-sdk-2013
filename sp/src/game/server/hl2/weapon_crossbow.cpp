@@ -527,9 +527,16 @@ void CCrossbowBolt::BubbleThink( void )
 // CWeaponCrossbow
 //-----------------------------------------------------------------------------
 
+#ifndef MAPBASE
 class CWeaponCrossbow : public CBaseHLCombatWeapon
 {
-	DECLARE_CLASS( CWeaponCrossbow, CBaseHLCombatWeapon );
+	DECLARE_CLASS(CWeaponCrossbow, CBaseHLCombatWeapon);
+#else
+class CWeaponCrossbow : public CBaseHLZoomableWeapon
+{
+	DECLARE_CLASS(CWeaponCrossbow, CBaseHLZoomableWeapon);
+#endif // !MAPBASE
+
 public:
 
 	CWeaponCrossbow( void );
@@ -551,7 +558,9 @@ public:
 	virtual void	Operator_ForceNPCFire( CBaseCombatCharacter *pOperator, bool bSecondary );
 #endif
 	virtual bool	SendWeaponAnim( int iActivity );
+#ifndef MAPBASE
 	virtual bool	IsWeaponZoomed() { return m_bInZoom; }
+#endif // !MAPBASE
 	
 	bool	ShouldDisplayHUDHint() { return true; }
 
@@ -616,7 +625,9 @@ private:
 	ChargerState_t		m_nChargeState;
 	CHandle<CSprite>	m_hChargerSprite;
 
+#ifndef MAPBASE
 	bool				m_bInZoom;
+#endif // !MAPBASE
 	bool				m_bMustReload;
 };
 
@@ -629,7 +640,10 @@ END_SEND_TABLE()
 
 BEGIN_DATADESC( CWeaponCrossbow )
 
-	DEFINE_FIELD( m_bInZoom,		FIELD_BOOLEAN ),
+#ifndef MAPBASE
+	DEFINE_FIELD(m_bInZoom, FIELD_BOOLEAN),
+#endif // !MAPBASE
+
 	DEFINE_FIELD( m_bMustReload,	FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_nChargeState,	FIELD_INTEGER ),
 	DEFINE_FIELD( m_hChargerSprite,	FIELD_EHANDLE ),
@@ -782,7 +796,10 @@ CWeaponCrossbow::CWeaponCrossbow( void )
 	m_bReloadsSingly	= true;
 	m_bFiresUnderwater	= true;
 	m_bAltFiresUnderwater = true;
-	m_bInZoom			= false;
+#ifndef MAPBASE
+	m_bInZoom = false;
+#endif // !MAPBASE
+
 	m_bMustReload		= false;
 
 #ifdef MAPBASE

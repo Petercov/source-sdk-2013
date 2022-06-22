@@ -15,10 +15,18 @@
 //=========================================================
 // Machine gun base class
 //=========================================================
+#ifndef MAPBASE
 abstract_class CHLMachineGun : public CBaseHLCombatWeapon
 {
 public:
-	DECLARE_CLASS( CHLMachineGun, CBaseHLCombatWeapon );
+	DECLARE_CLASS(CHLMachineGun, CBaseHLCombatWeapon);
+#else
+class CHLMachineGun : public CBaseHLZoomableWeapon
+{
+public:
+	DECLARE_CLASS(CHLMachineGun, CBaseHLZoomableWeapon);
+#endif // !MAPBASE
+
 	DECLARE_DATADESC();
 
 	CHLMachineGun();
