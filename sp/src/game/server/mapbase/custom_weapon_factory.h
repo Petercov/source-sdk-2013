@@ -41,7 +41,7 @@ public:
 private:
 	void ParseGenericManifest();
 	void AddManifestFile(const char* file);
-	void AddManifestFile(KeyValues* pKV, bool bDontWarn = false);
+	void AddManifestFile(KeyValues* pKV, const char * pszMapName, bool bDontWarn = false);
 	void LoadCustomWeaponsManifest(const char* file, bool bDontWarn = false);
 
 	typedef struct CustomClassName_s

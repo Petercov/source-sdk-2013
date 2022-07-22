@@ -294,7 +294,7 @@ public:
 				V_snprintf( manifestName, sizeof( manifestName ), "%s_mapbase_manifest.txt", pathName );
 				if (filesystem->FileExists( manifestName, "ADDON" ))
 				{
-					if (pKV->LoadFromFile( filesystem, manifestName ))
+					if (pKV->LoadFromFile( filesystem, manifestName, "ADDON"))
 						AddManifestFile( pKV, pathName, false );
 				}
 				else

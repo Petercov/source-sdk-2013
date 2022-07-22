@@ -10,10 +10,12 @@
 #include "custom_weapon_factory.h"
 
 #define GENERIC_MANIFEST_FILE "scripts/mapbase_default_manifest.txt"
+#define GENERIC_MANIFEST_FILE_ADDON "scripts/mapbase_default_manifest_addon.txt"
 #define AUTOLOADED_MANIFEST_FILE UTIL_VarArgs("maps/%s_manifest.txt", STRING(gpGlobals->mapname))
 #define GLOBAL_WEAPONS_MANIFEST "scripts/custom_weapon_manifest.txt"
 
 extern ConVar mapbase_load_default_manifest;
+extern ConVar mapbase_load_addon_manifest;
 
 IMPLEMENT_PRIVATE_SYMBOLTYPE(CustomWeaponSymbol);
 
@@ -35,6 +37,37 @@ void CCustomWeaponSystem::LevelInitPreEntity()
 		// Load the generic script instead.
 		ParseGenericManifest();
 	}
+
+	// Load addon manifests if we should
+	if (mapbase_load_addon_manifest.GetBool())
+	{
+		char searchPaths[4096];
+		filesystem->GetSearchPath( "ADDON", true, searchPaths, sizeof( searchPaths ) );
+
+		for ( char *path = strtok( searchPaths, ";" ); path; path = strtok( NULL, ";" ) )
+		{
+			char pathName[MAX_PATH];
+			V_StripTrailingSlash( path );
+			V_FileBase( path, pathName, sizeof( pathName ) );
+
+			KeyValues *pKV = new KeyValues( "DefaultAddonManifest" );
+
+			char manifestName[MAX_PATH];
+			V_snprintf( manifestName, sizeof( manifestName ), "%s_mapbase_manifest.txt", pathName );
+			if (filesystem->FileExists( manifestName, "ADDON" ))
+			{
+				if (pKV->LoadFromFile( filesystem, manifestName, "ADDON"))
+					AddManifestFile( pKV, pathName, false );
+			}
+			else
+			{
+				if (pKV->LoadFromFile( filesystem, GENERIC_MANIFEST_FILE_ADDON ))
+					AddManifestFile( pKV, pathName, true );
+			}
+
+			pKV->deleteThis();
+		}
+	}
 }
 
 // Get a generic, hardcoded manifest with hardcoded names.
@@ -46,7 +79,7 @@ void CCustomWeaponSystem::ParseGenericManifest()
 	KeyValues* pKV = new KeyValues("DefaultManifest");
 	pKV->LoadFromFile(filesystem, GENERIC_MANIFEST_FILE);
 
-	AddManifestFile(pKV/*, true*/);
+	AddManifestFile(pKV, STRING(gpGlobals->mapname));
 
 	pKV->deleteThis();
 }
@@ -63,14 +96,14 @@ void CCustomWeaponSystem::AddManifestFile(const char* file)
 
 	CGMsg(1, CON_GROUP_MAPBASE_MISC, "===== Mapbase Manifest: Loading manifest file %s =====\n", file);
 
-	AddManifestFile(pKV, false);
+	AddManifestFile(pKV, STRING(gpGlobals->mapname), false);
 
 	CGMsg(1, CON_GROUP_MAPBASE_MISC, "==============================================================================\n");
 
 	pKV->deleteThis();
 }
 
-void CCustomWeaponSystem::AddManifestFile(KeyValues* pKV, bool bDontWarn)
+void CCustomWeaponSystem::AddManifestFile(KeyValues* pKV, const char *pszMapName, bool bDontWarn)
 {
 	KeyValues* pKey = pKV->FindKey("weapons");
 
@@ -89,7 +122,7 @@ void CCustomWeaponSystem::AddManifestFile(KeyValues* pKV, bool bDontWarn)
 			{
 				if (FStrEq(outStrings[i], "mapname"))
 				{
-					Q_strncat(value, STRING(gpGlobals->mapname), sizeof(value));
+					Q_strncat(value, pszMapName, sizeof(value));
 				}
 				else if (FStrEq(outStrings[i], "language"))
 				{
