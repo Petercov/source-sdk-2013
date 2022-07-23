@@ -396,6 +396,8 @@ void CBaseAnimating::Precache()
 	PrecacheParticleSystem( "burning_character" );
 #endif
 
+	PrecacheParticleSystem("dissolve");
+
 	BaseClass::Precache();
 }
 
