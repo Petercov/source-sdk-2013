@@ -395,6 +395,20 @@ C_ClientRagdoll::C_ClientRagdoll( bool bRestoring )
 
 void C_ClientRagdoll::OnSave( void )
 {
+	C_EntityFlame* pFireChild = dynamic_cast<C_EntityFlame*>(GetEffectEntity());
+
+	if (pFireChild)
+	{
+		for (int i = 0; i < NUM_HITBOX_FIRES; i++)
+		{
+			if (pFireChild->m_pFireSmoke[i] != NULL)
+			{
+				m_flScaleEnd[i] = pFireChild->m_pFireSmoke[i]->m_flScaleEnd;
+				m_flScaleTimeStart[i] = pFireChild->m_pFireSmoke[i]->m_flScaleTimeStart;
+				m_flScaleTimeEnd[i] = pFireChild->m_pFireSmoke[i]->m_flScaleTimeEnd;
+			}
+		}
+	}
 }
 
 void C_ClientRagdoll::OnRestore( void )

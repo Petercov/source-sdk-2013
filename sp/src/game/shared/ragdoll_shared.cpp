@@ -1245,11 +1245,10 @@ C_EntityFlame *FireEffect( C_BaseAnimating *pTarget, C_BaseEntity *pServerFire, 
 		pTarget->AddFlag( FL_ONFIRE );
 		pFire->SetParent( pTarget );
 		pFire->m_hEntAttached = (C_BaseEntity *) pTarget;
-
+		pFire->m_bCreatedClientside = true;
 		pFire->OnDataChanged( DATA_UPDATE_CREATED );
 		pFire->SetAbsOrigin( pTarget->GetAbsOrigin() );
 
-#ifdef HL2_EPISODIC
 		if ( pServerFire )
 		{
 			if ( pServerFire->IsEffectActive(EF_DIMLIGHT) )
@@ -1261,11 +1260,20 @@ C_EntityFlame *FireEffect( C_BaseAnimating *pTarget, C_BaseEntity *pServerFire, 
 				pFire->AddEffects( EF_BRIGHTLIGHT );
 			}
 		}
-#endif
 
 		//Play a sound
 		CPASAttenuationFilter filter( pTarget );
 		pTarget->EmitSound( filter, pTarget->GetSoundSourceIndex(), "General.BurningFlesh" );
+
+		if (pFire->m_pFireSmoke[0] && flScaleEnd)
+		{
+			for (int i = 0; i < NUM_HITBOX_FIRES; i++)
+			{
+				pFire->m_pFireSmoke[i]->m_flScaleEnd = flScaleEnd[i];
+				pFire->m_pFireSmoke[i]->m_flScaleTimeStart = flTimeStart[i];
+				pFire->m_pFireSmoke[i]->m_flScaleTimeEnd = flTimeEnd[i];
+			}
+		}
 
 		pFire->SetNextClientThink( gpGlobals->curtime + 7.0f );
 	}
@@ -1284,7 +1292,28 @@ void C_BaseAnimating::IgniteRagdoll( C_BaseAnimating *pSource )
 
 		if ( pFireChild )
 		{
-			pRagdoll->SetEffectEntity ( FireEffect( pRagdoll, pFireChild, NULL, NULL, NULL ) );
+			float flScaleEnd[NUM_HITBOX_FIRES];
+			float flScaleTimeStart[NUM_HITBOX_FIRES];
+			float flScaleTimeEnd[NUM_HITBOX_FIRES];
+
+			for (int i = 0; i < NUM_HITBOX_FIRES; i++)
+			{
+				if (pFireChild->m_pFireSmoke[i] != NULL)
+				{
+					flScaleEnd[i] = pFireChild->m_pFireSmoke[i]->m_flScaleEnd;
+					flScaleTimeStart[i] = pFireChild->m_pFireSmoke[i]->m_flScaleTimeStart;
+					flScaleTimeEnd[i] = pFireChild->m_pFireSmoke[i]->m_flScaleTimeEnd;
+				}
+				else
+				{
+					//Adrian: Ugh, have to do this just in case the entities flame haven't been setup.
+					flScaleEnd[i] = 0.2f;
+					flScaleTimeStart[i] = 1.0f;
+					flScaleTimeEnd[i] = 2.0f;
+				}
+			}
+
+			pRagdoll->SetEffectEntity ( FireEffect( pRagdoll, pFireChild, flScaleEnd, flScaleTimeStart, flScaleTimeEnd) );
 		}
 	}
 }
