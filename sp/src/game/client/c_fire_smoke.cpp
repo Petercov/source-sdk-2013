@@ -431,7 +431,7 @@ void C_FireSmoke::Start( void )
 	}
 
 	//Only make the glow if we've requested it
-	if (cl_fire_glow_effect.GetBool() && m_nFlags & bitsFIRESMOKE_GLOW)
+	if (cl_fire_glow_effect.GetBool() /*&& m_nFlags & bitsFIRESMOKE_GLOW*/)
 	{
 		//Create the fire overlay
 		if (m_pFireOverlay = new CFireOverlay(this))
@@ -1204,6 +1204,7 @@ void C_EntityFlame::AttachToHitBoxes(void)
 
 		m_nHitbox[i] = hitboxvolume[hitboxindex].nIndex;
 		m_pFireSmoke[i] = new C_FireSmoke;
+		m_pFireSmoke[i]->m_bOldEffects = true;
 
 		//
 		// Calculate a position within the hitbox to place the fire.

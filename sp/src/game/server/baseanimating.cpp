@@ -397,6 +397,9 @@ void CBaseAnimating::Precache()
 #endif
 
 	PrecacheParticleSystem("dissolve");
+	PrecacheParticleSystem("gluon_zap_sequence");
+
+	UTIL_PrecacheOther("_firesmoke");
 
 	BaseClass::Precache();
 }
