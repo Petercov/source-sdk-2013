@@ -1680,7 +1680,7 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 	if ( !hdr )
 		return;
 
-	matrix3x4_t bonematrix;
+	matrix3x4a_t bonematrix;
 	bool boneSimulated[MAXSTUDIOBONES];
 
 	// no bones have been simulated
@@ -1769,7 +1769,7 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 				//
 
 				// compute desired bone orientation
-				matrix3x4_t goalMX;
+				matrix3x4a_t goalMX;
 
 				if (pbones[i].parent == -1) 
 				{
@@ -1777,7 +1777,7 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 				} 
 				else 
 				{
-					ConcatTransforms( GetBone( pbones[i].parent ), bonematrix, goalMX );
+					ConcatTransforms_Aligned( GetBone( pbones[i].parent ), bonematrix, goalMX );
 				}
 
 				// get jiggle properties from QC data
@@ -1798,7 +1798,7 @@ void C_BaseAnimating::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quater
 			} 
 			else 
 			{
-				ConcatTransforms( GetBone( hdr->boneParent(i) ), bonematrix, GetBoneForWrite( i ) );
+				ConcatTransforms_Aligned( GetBone( hdr->boneParent(i) ), bonematrix, GetBoneForWrite( i ) );
 			}
 		}
 

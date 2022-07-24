@@ -256,16 +256,16 @@ bool CBoneMergeCache::GetAimEntOrigin( Vector *pAbsOrigin, QAngle *pAbsAngles )
 	
 	// Get mFollowBone.
 	m_pFollow->SetupBones( NULL, -1, m_nFollowBoneSetupMask, gpGlobals->curtime );
-	const matrix3x4_t &mFollowBone = m_pFollow->GetBone( m_MergedBones[0].m_iParentBone );
+	const matrix3x4a_t &mFollowBone = m_pFollow->GetBone( m_MergedBones[0].m_iParentBone );
 
 	// Get Inverse( mBoneLocal )
-	matrix3x4_t mBoneLocal, mBoneLocalInv;
+	matrix3x4a_t mBoneLocal, mBoneLocalInv;
 	SetupSingleBoneMatrix( m_pOwnerHdr, m_pOwner->GetSequence(), 0, m_MergedBones[0].m_iMyBone, mBoneLocal );
 	MatrixInvert( mBoneLocal, mBoneLocalInv );
 
 	// Now calculate mEntity = mFollowBone * Inverse( mBoneLocal )
-	matrix3x4_t mEntity;
-	ConcatTransforms( mFollowBone, mBoneLocalInv, mEntity );
+	matrix3x4a_t mEntity;
+	ConcatTransforms_Aligned( mFollowBone, mBoneLocalInv, mEntity );
 	MatrixAngles( mEntity, *pAbsAngles, *pAbsOrigin );
 
 	return true;

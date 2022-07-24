@@ -593,60 +593,60 @@ void ConcatRotations (const float in1[3][3], const float in2[3][3], float out[3]
 				in1[2][2] * in2[2][2];
 }
 
-void ConcatTransforms_Aligned( const matrix3x4_t &m0, const matrix3x4_t &m1, matrix3x4_t &out )
+void ConcatTransforms_Aligned(const matrix3x4a_t& m0, const matrix3x4a_t& m1, matrix3x4a_t& out)
 {
-	Assert( (((size_t)&m0) % 16) == 0 );
-	Assert( (((size_t)&m1) % 16) == 0 );
-	Assert( (((size_t)&out) % 16) == 0 );
+	Assert((((size_t)&m0) % 16) == 0);
+	Assert((((size_t)&m1) % 16) == 0);
+	Assert((((size_t)&out) % 16) == 0);
 
-	fltx4 lastMask = *(fltx4 *)(&g_SIMD_ComponentMask[3]);
-	fltx4 rowA0 = LoadAlignedSIMD( m0.m_flMatVal[0] );
-	fltx4 rowA1 = LoadAlignedSIMD( m0.m_flMatVal[1] );
-	fltx4 rowA2 = LoadAlignedSIMD( m0.m_flMatVal[2] );
+	fltx4 lastMask = *(fltx4*)(&g_SIMD_ComponentMask[3]);
+	fltx4 rowA0 = LoadAlignedSIMD(m0.m_flMatVal[0]);
+	fltx4 rowA1 = LoadAlignedSIMD(m0.m_flMatVal[1]);
+	fltx4 rowA2 = LoadAlignedSIMD(m0.m_flMatVal[2]);
 
-	fltx4 rowB0 = LoadAlignedSIMD( m1.m_flMatVal[0] );
-	fltx4 rowB1 = LoadAlignedSIMD( m1.m_flMatVal[1] );
-	fltx4 rowB2 = LoadAlignedSIMD( m1.m_flMatVal[2] );
+	fltx4 rowB0 = LoadAlignedSIMD(m1.m_flMatVal[0]);
+	fltx4 rowB1 = LoadAlignedSIMD(m1.m_flMatVal[1]);
+	fltx4 rowB2 = LoadAlignedSIMD(m1.m_flMatVal[2]);
 
 	// now we have the rows of m0 and the columns of m1
 	// first output row
 	fltx4 A0 = SplatXSIMD(rowA0);
 	fltx4 A1 = SplatYSIMD(rowA0);
 	fltx4 A2 = SplatZSIMD(rowA0);
-	fltx4 mul00 = MulSIMD( A0, rowB0 );
-	fltx4 mul01 = MulSIMD( A1, rowB1 );
-	fltx4 mul02 = MulSIMD( A2, rowB2 );
-	fltx4 out0 = AddSIMD( mul00, AddSIMD(mul01,mul02) );
+	fltx4 mul00 = MulSIMD(A0, rowB0);
+	fltx4 mul01 = MulSIMD(A1, rowB1);
+	fltx4 mul02 = MulSIMD(A2, rowB2);
+	fltx4 out0 = AddSIMD(mul00, AddSIMD(mul01, mul02));
 
 	// second output row
 	A0 = SplatXSIMD(rowA1);
 	A1 = SplatYSIMD(rowA1);
 	A2 = SplatZSIMD(rowA1);
-	fltx4 mul10 = MulSIMD( A0, rowB0 );
-	fltx4 mul11 = MulSIMD( A1, rowB1 );
-	fltx4 mul12 = MulSIMD( A2, rowB2 );
-	fltx4 out1 = AddSIMD( mul10, AddSIMD(mul11,mul12) );
+	fltx4 mul10 = MulSIMD(A0, rowB0);
+	fltx4 mul11 = MulSIMD(A1, rowB1);
+	fltx4 mul12 = MulSIMD(A2, rowB2);
+	fltx4 out1 = AddSIMD(mul10, AddSIMD(mul11, mul12));
 
 	// third output row
 	A0 = SplatXSIMD(rowA2);
 	A1 = SplatYSIMD(rowA2);
 	A2 = SplatZSIMD(rowA2);
-	fltx4 mul20 = MulSIMD( A0, rowB0 );
-	fltx4 mul21 = MulSIMD( A1, rowB1 );
-	fltx4 mul22 = MulSIMD( A2, rowB2 );
-	fltx4 out2 = AddSIMD( mul20, AddSIMD(mul21,mul22) );
+	fltx4 mul20 = MulSIMD(A0, rowB0);
+	fltx4 mul21 = MulSIMD(A1, rowB1);
+	fltx4 mul22 = MulSIMD(A2, rowB2);
+	fltx4 out2 = AddSIMD(mul20, AddSIMD(mul21, mul22));
 
 	// add in translation vector
-	A0 = AndSIMD(rowA0,lastMask);
-	A1 = AndSIMD(rowA1,lastMask);
-	A2 = AndSIMD(rowA2,lastMask);
+	A0 = AndSIMD(rowA0, lastMask);
+	A1 = AndSIMD(rowA1, lastMask);
+	A2 = AndSIMD(rowA2, lastMask);
 	out0 = AddSIMD(out0, A0);
 	out1 = AddSIMD(out1, A1);
 	out2 = AddSIMD(out2, A2);
 
-	StoreAlignedSIMD( out.m_flMatVal[0], out0 );
-	StoreAlignedSIMD( out.m_flMatVal[1], out1 );
-	StoreAlignedSIMD( out.m_flMatVal[2], out2 );
+	StoreAlignedSIMD(out.m_flMatVal[0], out0);
+	StoreAlignedSIMD(out.m_flMatVal[1], out1);
+	StoreAlignedSIMD(out.m_flMatVal[2], out2);
 }
 
 /*

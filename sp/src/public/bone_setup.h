@@ -22,6 +22,12 @@ class CIKContext;
 class CBoneAccessor;
 class IPoseDebugger;
 
+#ifdef CLIENT_DLL
+typedef matrix3x4a_t bonematrix_t;
+#else
+typedef matrix3x4_t bonematrix_t;
+#endif
+
 
 // This provides access to networked arrays, so if this code actually changes a value, 
 // the entity is marked as changed.
@@ -99,19 +105,19 @@ void SetupSingleBoneMatrix(
 // Purpose: build boneToWorld transforms for a specific bone
 void BuildBoneChain(
 	const CStudioHdr *pStudioHdr,
-	const matrix3x4_t &rootxform,
+	const bonematrix_t &rootxform,
 	const Vector pos[], 
 	const Quaternion q[], 
 	int	iBone,
-	matrix3x4_t *pBoneToWorld );
+	bonematrix_t *pBoneToWorld );
 
 void BuildBoneChain(
 	const CStudioHdr *pStudioHdr,
-	const matrix3x4_t &rootxform,
+	const bonematrix_t &rootxform,
 	const Vector pos[], 
 	const Quaternion q[], 
 	int	iBone,
-	matrix3x4_t *pBoneToWorld,
+	bonematrix_t *pBoneToWorld,
 	CBoneBitList &boneComputed );
 
 
@@ -257,7 +263,7 @@ private:
 };
 
 
-void Studio_AlignIKMatrix( matrix3x4_t &mMat, const Vector &vAlignTo );
+void Studio_AlignIKMatrix(matrix3x4_t &mMat, const Vector &vAlignTo );
 
 bool Studio_SolveIK( int iThigh, int iKnee, int iFoot, Vector &targetFoot, matrix3x4_t* pBoneToWorld );
 
@@ -273,9 +279,9 @@ public:
 	void AddDependencies(  mstudioseqdesc_t &seqdesc, int iSequence, float flCycle, const float poseParameters[], float flWeight = 1.0f );
 
 	void ClearTargets( void );
-	void UpdateTargets( Vector pos[], Quaternion q[], matrix3x4_t boneToWorld[], CBoneBitList &boneComputed );
+	void UpdateTargets( Vector pos[], Quaternion q[], bonematrix_t boneToWorld[], CBoneBitList &boneComputed );
 	void AutoIKRelease( void );
-	void SolveDependencies( Vector pos[], Quaternion q[], matrix3x4_t boneToWorld[], CBoneBitList &boneComputed );
+	void SolveDependencies( Vector pos[], Quaternion q[], bonematrix_t boneToWorld[], CBoneBitList &boneComputed );
 
 	void AddAutoplayLocks( Vector pos[], Quaternion q[] );
 	void SolveAutoplayLocks( Vector pos[], Quaternion q[] );
@@ -286,7 +292,7 @@ public:
 	void AddAllLocks( Vector pos[], Quaternion q[] );
 	void SolveAllLocks( Vector pos[], Quaternion q[] );
 
-	void SolveLock( const mstudioiklock_t *plock, int i, Vector pos[], Quaternion q[], matrix3x4_t boneToWorld[], CBoneBitList &boneComputed );
+	void SolveLock( const mstudioiklock_t *plock, int i, Vector pos[], Quaternion q[], bonematrix_t boneToWorld[], CBoneBitList &boneComputed );
 
 	CUtlVectorFixed< CIKTarget, 12 >	m_target;
 
@@ -295,12 +301,12 @@ private:
 	CStudioHdr const *m_pStudioHdr;
 
 	bool Estimate( int iSequence, float flCycle, int iTarget, const float poseParameter[], float flWeight = 1.0f ); 
-	void BuildBoneChain( const Vector pos[], const Quaternion q[], int iBone, matrix3x4_t *pBoneToWorld, CBoneBitList &boneComputed );
+	void BuildBoneChain( const Vector pos[], const Quaternion q[], int iBone, bonematrix_t *pBoneToWorld, CBoneBitList &boneComputed );
 
 	// virtual IK rules, filtered and combined from each sequence
 	CUtlVector< CUtlVector< ikcontextikrule_t > > m_ikChainRule;
 	CUtlVector< ikcontextikrule_t > m_ikLock;
-	matrix3x4_t m_rootxform;
+	CUtlMemoryFixed<matrix3x4a_t, 1, 16> m_rootxform;
 
 	int m_iFramecounter;
 	float m_flTime;
@@ -327,7 +333,7 @@ void Studio_BuildMatrices(
 	const Quaternion q[],
 	int iBone,
 	float flScale,
-	matrix3x4_t bonetoworld[MAXSTUDIOBONES],
+	bonematrix_t bonetoworld[MAXSTUDIOBONES],
 	int boneMask
 	);
 
@@ -420,7 +426,7 @@ public:
 	int				m_boneMask;
 
 private:
-	matrix3x4_t		*BoneArray();
+	matrix3x4a_t	*BoneArray();
 	short			*StudioToCached();
 	short			*CachedToStudio();
 

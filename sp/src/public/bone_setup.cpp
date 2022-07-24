@@ -28,6 +28,14 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#ifdef CLIENT_DLL
+typedef matrix3x4a_t bonematrix_t;
+#define ConcatBoneTransforms ConcatTransforms_Aligned
+#else
+typedef matrix3x4_t bonematrix_t;
+#define ConcatBoneTransforms ConcatTransforms
+#endif
+
 class CBoneSetup
 {
 public:
@@ -55,11 +63,9 @@ public:
 		T *p = (T *)m_FreeBlocks.Pop();
 		if ( !p )
 		{
-			p = new T[MAXSTUDIOBONES];
-			if ( ((size_t)p) % TSLIST_NODE_ALIGNMENT != 0 )
-			{
+			p = (T*)MemAlloc_AllocAligned(sizeof(T) * MAXSTUDIOBONES, 16);
+			if (((size_t)p) % MAX(TSLIST_NODE_ALIGNMENT, 16) != 0)
 				DebuggerBreak();
-			}
 		}
 
 		return p;
@@ -76,7 +82,7 @@ private:
 
 CBoneSetupMemoryPool<Quaternion> g_QaternionPool;
 CBoneSetupMemoryPool<Vector> g_VectorPool;
-CBoneSetupMemoryPool<matrix3x4_t> g_MatrixPool;
+CBoneSetupMemoryPool<matrix3x4a_t> g_MatrixPool;
 
 // -----------------------------------------------------------------
 CBoneCache *CBoneCache::CreateResource( const bonecacheparams_t &params )
@@ -99,9 +105,9 @@ CBoneCache *CBoneCache::CreateResource( const bonecacheparams_t &params )
 	int tableSizeStudio = sizeof(short) * params.pStudioHdr->numbones();
 	int tableSizeCached = sizeof(short) * cachedBoneCount;
 	int matrixSize = sizeof(matrix3x4_t) * cachedBoneCount;
-	int size = ( sizeof(CBoneCache) + tableSizeStudio + tableSizeCached + matrixSize + 3 ) & ~3;
+	size_t size = AlignValue(sizeof(CBoneCache) + tableSizeStudio + tableSizeCached, 16) + matrixSize;
 	
-	CBoneCache *pMem = (CBoneCache *)malloc( size );
+	CBoneCache* pMem = (CBoneCache*)MemAlloc_AllocAligned(size, 16);
 	Construct( pMem );
 	pMem->Init( params, size, studioToCachedIndex, cachedToStudioIndex, cachedBoneCount );
 	return pMem;
@@ -115,7 +121,7 @@ unsigned int CBoneCache::EstimatedSize( const bonecacheparams_t &params )
 
 void CBoneCache::DestroyResource()
 {
-	free( this );
+	MemAlloc_FreeAligned(this);
 }
 
 
@@ -139,7 +145,7 @@ void CBoneCache::Init( const bonecacheparams_t &params, unsigned int size, short
 	int cachedTableSize = cachedBoneCount * sizeof(short);
 	memcpy( CachedToStudio(), pCachedToStudio, cachedTableSize );
 
-	m_matrixOffset = ( m_cachedToStudioOffset + cachedTableSize + 3 ) & ~3;
+	m_matrixOffset = AlignValue(sizeof(CBoneCache) + m_cachedToStudioOffset + cachedTableSize, 16);
 	
 	UpdateBones( params.pBoneToWorld, params.pStudioHdr->numbones(), params.curtime );
 }
@@ -197,9 +203,9 @@ bool CBoneCache::IsValid( float curtime, float dt )
 
 
 // private functions
-matrix3x4_t *CBoneCache::BoneArray()
+matrix3x4a_t* CBoneCache::BoneArray()
 {
-	return (matrix3x4_t *)( (char *)(this+1) + m_matrixOffset );
+	return (matrix3x4a_t*)((byte*)(this) + m_matrixOffset);
 }
 
 short *CBoneCache::StudioToCached()
@@ -249,11 +255,11 @@ void Studio_InvalidateBoneCache( memhandle_t cacheHandle )
 
 void BuildBoneChain(
 	const CStudioHdr *pStudioHdr,
-	const matrix3x4_t &rootxform,
+	const bonematrix_t &rootxform,
 	const Vector pos[], 
 	const Quaternion q[], 
 	int	iBone,
-	matrix3x4_t *pBoneToWorld )
+	bonematrix_t *pBoneToWorld )
 {
 	CBoneBitList boneComputed;
 	BuildBoneChain( pStudioHdr, rootxform, pos, q, iBone, pBoneToWorld, boneComputed );
@@ -663,7 +669,7 @@ static void CalcDecompressedAnimation( const mstudiocompressedikerror_t *pCompre
 //-----------------------------------------------------------------------------
 static void CalcLocalHierarchyAnimation( 
 	const CStudioHdr *pStudioHdr,
-	matrix3x4_t *boneToWorld,
+	bonematrix_t *boneToWorld,
 	CBoneBitList &boneComputed,
 	Vector *pos, 
 	Quaternion *q,
@@ -688,7 +694,7 @@ static void CalcLocalHierarchyAnimation(
 	Quaternion localQ;
 
 	// make fake root transform
-	static ALIGN16 matrix3x4_t rootXform ALIGN16_POST ( 1.0f, 0, 0, 0,   0, 1.0f, 0, 0,  0, 0, 1.0f, 0 );
+	static ALIGN16 bonematrix_t rootXform ALIGN16_POST ( 1.0f, 0, 0, 0,   0, 1.0f, 0, 0,  0, 0, 1.0f, 0 );
 
 	// FIXME: missing check to see if seq has a weight for this bone
 	float weight = 1.0f;
@@ -722,13 +728,13 @@ static void CalcLocalHierarchyAnimation(
 
 	BuildBoneChain( pStudioHdr, rootXform, pos, q, iBone, boneToWorld, boneComputed );
 
-	matrix3x4_t localXform;
+	bonematrix_t localXform;
 	AngleMatrix( localQ, localPos, localXform );
 
 	if ( iNewParent != -1 )
 	{
 		BuildBoneChain( pStudioHdr, rootXform, pos, q, iNewParent, boneToWorld, boneComputed );
-		ConcatTransforms( boneToWorld[iNewParent], localXform, boneToWorld[iBone] );
+		ConcatBoneTransforms( boneToWorld[iNewParent], localXform, boneToWorld[iBone] );
 	}
 	else
 	{
@@ -754,11 +760,11 @@ static void CalcLocalHierarchyAnimation(
 	}
 	else
 	{
-		matrix3x4_t worldToBone;
+		bonematrix_t worldToBone;
 		MatrixInvert( boneToWorld[n], worldToBone );
 
-		matrix3x4_t local;
-		ConcatTransforms( worldToBone, boneToWorld[iBone], local );
+		bonematrix_t local;
+		ConcatBoneTransforms( worldToBone, boneToWorld[iBone], local );
 		if (weight == 1.0f)
 		{
 			MatrixAngles( local, q[iBone], pos[iBone] );
@@ -994,7 +1000,7 @@ static void CalcVirtualAnimation( virtualmodel_t *pVModel, const CStudioHdr *pSt
 	// calculate a local hierarchy override
 	if (animdesc.numlocalhierarchy)
 	{
-		matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+		matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 		CBoneBitList boneComputed;
 
 		for (int l = 0; i < animdesc.numlocalhierarchy; i++)
@@ -1137,7 +1143,7 @@ static void CalcAnimation( const CStudioHdr *pStudioHdr,	Vector *pos, Quaternion
 
 	if (animdesc.numlocalhierarchy)
 	{
-		matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+		matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 		CBoneBitList boneComputed;
 
 		for (int j = 0; j < animdesc.numlocalhierarchy; j++)
@@ -1265,17 +1271,17 @@ void WorldSpaceSlerp(
 	float		s2; // weight for q2, pos2
 
 	// make fake root transform
-	matrix3x4_t rootXform;
+	matrix3x4a_t rootXform;
 	SetIdentityMatrix( rootXform );
 
 	// matrices for q2, pos2
-	matrix3x4_t *srcBoneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *srcBoneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList srcBoneComputed;
 
-	matrix3x4_t *destBoneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *destBoneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList destBoneComputed;
 
-	matrix3x4_t *targetBoneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *targetBoneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList targetBoneComputed;
 
 	virtualmodel_t *pVModel = pStudioHdr->GetVirtualModel();
@@ -1351,11 +1357,11 @@ void WorldSpaceSlerp(
 			}
 			else
 			{
-				matrix3x4_t worldToBone;
+				matrix3x4a_t worldToBone;
 				MatrixInvert( targetBoneToWorld[n], worldToBone );
 
-				matrix3x4_t local;
-				ConcatTransforms( worldToBone, targetBoneToWorld[i], local );
+				matrix3x4a_t local;
+				ConcatTransforms_Aligned( worldToBone, targetBoneToWorld[i], local );
 				MatrixAngles( local, q1[i], tmp );
 
 				// blend bone lengths (local space)
@@ -3243,7 +3249,7 @@ void CIKContext::Init( const CStudioHdr *pStudioHdr, const QAngle &angles, const
 	{
 		m_target.SetSize( 0 );
 	}
-	AngleMatrix( angles, pos, m_rootxform );
+	AngleMatrix( angles, pos, m_rootxform[0]);
 	m_iFramecounter = iFramecounter;
 	m_flTime = flTime;
 	m_boneMask = boneMask;
@@ -3347,7 +3353,7 @@ void CIKContext::AddAutoplayLocks( Vector pos[], Quaternion q[] )
 		return;
 	}
 
-	matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList boneComputed;
 
 	int ikOffset = m_ikLock.AddMultipleToTail( m_pStudioHdr->GetNumIKAutoplayLocks() );
@@ -3406,7 +3412,7 @@ void CIKContext::AddSequenceLocks( mstudioseqdesc_t &seqdesc, Vector pos[], Quat
 		return;
 	}
 
-	matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList boneComputed;
 
 	int ikOffset = m_ikLock.AddMultipleToTail( seqdesc.numiklocks );
@@ -3452,11 +3458,11 @@ void CIKContext::BuildBoneChain(
 	const Vector pos[], 
 	const Quaternion q[], 
 	int	iBone,
-	matrix3x4_t *pBoneToWorld,
+	bonematrix_t*pBoneToWorld,
 	CBoneBitList &boneComputed )
 {
 	Assert( m_pStudioHdr->boneFlags( iBone ) & m_boneMask );
-	::BuildBoneChain( m_pStudioHdr, m_rootxform, pos, q, iBone, pBoneToWorld, boneComputed );
+	::BuildBoneChain( m_pStudioHdr, m_rootxform[0], pos, q, iBone, pBoneToWorld, boneComputed );
 }
 
 
@@ -3466,29 +3472,29 @@ void CIKContext::BuildBoneChain(
 //-----------------------------------------------------------------------------
 void BuildBoneChain(
 	const CStudioHdr *pStudioHdr,
-	const matrix3x4_t &rootxform,
+	const bonematrix_t &rootxform,
 	const Vector pos[], 
 	const Quaternion q[], 
 	int	iBone,
-	matrix3x4_t *pBoneToWorld,
+	bonematrix_t *pBoneToWorld,
 	CBoneBitList &boneComputed )
 {
 	if ( boneComputed.IsBoneMarked(iBone) )
 		return;
 
-	matrix3x4_t bonematrix;
+	bonematrix_t bonematrix;
 	QuaternionMatrix( q[iBone], pos[iBone], bonematrix );
 
 	int parent = pStudioHdr->boneParent( iBone );
 	if (parent == -1) 
 	{
-		ConcatTransforms( rootxform, bonematrix, pBoneToWorld[iBone] );
+		ConcatBoneTransforms( rootxform, bonematrix, pBoneToWorld[iBone] );
 	}
 	else
 	{
 		// evil recursive!!!
 		BuildBoneChain( pStudioHdr, rootxform, pos, q, parent, pBoneToWorld, boneComputed );
-		ConcatTransforms( pBoneToWorld[parent], bonematrix, pBoneToWorld[iBone]);
+		ConcatBoneTransforms( pBoneToWorld[parent], bonematrix, pBoneToWorld[iBone]);
 	}
 	boneComputed.MarkBone(iBone);
 }
@@ -3500,18 +3506,18 @@ void BuildBoneChain(
 void SolveBone( 
 	const CStudioHdr *pStudioHdr,
 	int	iBone,
-	matrix3x4_t *pBoneToWorld,
+	bonematrix_t *pBoneToWorld,
 	Vector pos[], 
 	Quaternion q[]
 	)
 {
 	int iParent = pStudioHdr->boneParent( iBone );
 
-	matrix3x4_t worldToBone;
+	bonematrix_t worldToBone;
 	MatrixInvert( pBoneToWorld[iParent], worldToBone );
 
-	matrix3x4_t local;
-	ConcatTransforms( worldToBone, pBoneToWorld[iBone], local );
+	bonematrix_t local;
+	ConcatBoneTransforms( worldToBone, pBoneToWorld[iBone], local );
 
 	MatrixAngles( local, q[iBone], pos[iBone] );
 }
@@ -3555,14 +3561,14 @@ void CIKTarget::UpdateOwner( int entindex, const Vector &pos, const QAngle &angl
 	if (pos == latched.absOrigin && angles == latched.absAngles)
 		return;
 
-	matrix3x4_t in, out;
+	matrix3x4a_t in, out;
 	AngleMatrix( angles, pos, in );
 	AngleIMatrix( latched.absAngles, latched.absOrigin, out );
 
-	matrix3x4_t tmp1, tmp2;
+	matrix3x4a_t tmp1, tmp2;
 	QuaternionMatrix( latched.q, latched.pos, tmp1 );
-	ConcatTransforms( out, tmp1, tmp2 );
-	ConcatTransforms( in, tmp2, tmp1 );
+	ConcatTransforms_Aligned( out, tmp1, tmp2 );
+	ConcatTransforms_Aligned( in, tmp2, tmp1 );
 	MatrixAngles( tmp1, latched.q, latched.pos );
 }
 
@@ -3710,7 +3716,7 @@ void CIKContext::ClearTargets( void )
 //			transform into a pos and q in parents bonespace
 //-----------------------------------------------------------------------------
 
-void CIKContext::UpdateTargets( Vector pos[], Quaternion q[], matrix3x4_t boneToWorld[], CBoneBitList &boneComputed )
+void CIKContext::UpdateTargets( Vector pos[], Quaternion q[], bonematrix_t boneToWorld[], CBoneBitList &boneComputed )
 {
 	int i, j;
 
@@ -3783,7 +3789,7 @@ void CIKContext::UpdateTargets( Vector pos[], Quaternion q[], matrix3x4_t boneTo
 					if ( pRule->type == IK_GROUND )
 					{
 						pTarget->latched.deltaPos.z = 0;
-						pTarget->est.pos.z = pTarget->est.floor + m_rootxform[2][3];
+						pTarget->est.pos.z = pTarget->est.floor + m_rootxform[0][2][3];
 					}
 				}
 			break;
@@ -3824,11 +3830,11 @@ void CIKContext::UpdateTargets( Vector pos[], Quaternion q[], matrix3x4_t boneTo
 			BuildBoneChain( pos, q, bone, boneToWorld, boneComputed );
 
 			// xform IK target error into world space
-			matrix3x4_t local;
-			matrix3x4_t worldFootpad;
+			bonematrix_t local;
+			bonematrix_t worldFootpad;
 			QuaternionMatrix( pTarget->offset.q, pTarget->offset.pos, local );
 			MatrixInvert( local, local );
-			ConcatTransforms( boneToWorld[bone], local, worldFootpad );
+			ConcatBoneTransforms( boneToWorld[bone], local, worldFootpad );
 
 			if (pTarget->est.latched == 1.0)
 			{
@@ -4044,11 +4050,11 @@ void CIKContext::AutoIKRelease( void )
 
 
 
-void CIKContext::SolveDependencies( Vector pos[], Quaternion q[], matrix3x4_t boneToWorld[], CBoneBitList &boneComputed	)
+void CIKContext::SolveDependencies( Vector pos[], Quaternion q[], bonematrix_t boneToWorld[], CBoneBitList &boneComputed	)
 {
 //	ASSERT_NO_REENTRY();
 	
-	matrix3x4_t worldTarget;
+	matrix3x4a_t worldTarget;
 	int i, j;
 
 	ikchainresult_t chainResult[32]; // allocate!!!
@@ -4087,17 +4093,17 @@ void CIKContext::SolveDependencies( Vector pos[], Quaternion q[], matrix3x4_t bo
 			case IK_SELF:
 				{
 					// xform IK target error into world space
-					matrix3x4_t local;
+					matrix3x4a_t local;
 					QuaternionMatrix( pRule->q, pRule->pos, local );
 					// eval target bone space
 					if (pRule->bone != -1)
 					{
 						BuildBoneChain( pos, q, pRule->bone, boneToWorld, boneComputed );
-						ConcatTransforms( boneToWorld[pRule->bone], local, worldTarget );
+						ConcatBoneTransforms( boneToWorld[pRule->bone], local, worldTarget );
 					}
 					else
 					{
-						ConcatTransforms( m_rootxform, local, worldTarget );
+						ConcatTransforms_Aligned( m_rootxform[0], local, worldTarget );
 					}
 			
 					float flWeight = pRule->flWeight * pRule->flRuleWeight;
@@ -4164,8 +4170,8 @@ void CIKContext::SolveDependencies( Vector pos[], Quaternion q[], matrix3x4_t bo
 
 		if (m_target[i].est.flWeight > 0.0)
 		{
-			matrix3x4_t worldFootpad;
-			matrix3x4_t local;
+			matrix3x4a_t worldFootpad;
+			matrix3x4a_t local;
 			//mstudioikchain_t *pchain = m_pStudioHdr->pIKChain( m_target[i].chain );
 			ikchainresult_t *pChainResult = &chainResult[ pTarget->chain ];
 
@@ -4173,7 +4179,7 @@ void CIKContext::SolveDependencies( Vector pos[], Quaternion q[], matrix3x4_t bo
 
 			AngleMatrix( pTarget->est.q, pTarget->est.pos, worldFootpad );
 
-			ConcatTransforms( worldFootpad, local, worldTarget );
+			ConcatTransforms_Aligned( worldFootpad, local, worldTarget );
 
 			Vector p2;
 			Quaternion q2;
@@ -4275,7 +4281,7 @@ void CIKContext::SolveAutoplayLocks(
 	Quaternion q[]
 	)
 {
-	matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList boneComputed;
 	int i;
 
@@ -4299,7 +4305,7 @@ void CIKContext::SolveSequenceLocks(
 	Quaternion q[]
 	)
 {
-	matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList boneComputed;
 	int i;
 
@@ -4324,7 +4330,7 @@ void CIKContext::AddAllLocks( Vector pos[], Quaternion q[] )
 		return;
 	}
 
-	matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList boneComputed;
 
 	int ikOffset = m_ikLock.AddMultipleToTail( m_pStudioHdr->GetNumIKChains() );
@@ -4376,7 +4382,7 @@ void CIKContext::SolveAllLocks(
 	Quaternion q[]
 	)
 {
-	matrix3x4_t *boneToWorld = g_MatrixPool.Alloc();
+	matrix3x4a_t *boneToWorld = g_MatrixPool.Alloc();
 	CBoneBitList boneComputed;
 	int i;
 
@@ -4405,7 +4411,7 @@ void CIKContext::SolveLock(
 	int i,
 	Vector pos[], 
 	Quaternion q[],
-	matrix3x4_t boneToWorld[], 
+	bonematrix_t boneToWorld[],
 	CBoneBitList &boneComputed
 	)
 {
@@ -4505,7 +4511,7 @@ void Studio_BuildMatrices(
 	const Quaternion q[],
 	int iBone,
 	float flScale,
-	matrix3x4_t bonetoworld[MAXSTUDIOBONES],
+	bonematrix_t bonetoworld[MAXSTUDIOBONES],
 	int boneMask
 	)
 {
@@ -4538,8 +4544,8 @@ void Studio_BuildMatrices(
 		}
 	}
 
-	matrix3x4_t bonematrix;
-	matrix3x4_t rotationmatrix; // model to world transformation
+	bonematrix_t bonematrix;
+	bonematrix_t rotationmatrix; // model to world transformation
 	AngleMatrix( angles, origin, rotationmatrix );
 
 	// Account for a change in scale
@@ -4567,34 +4573,32 @@ void Studio_BuildMatrices(
 
 			if (pStudioHdr->boneParent(i) == -1) 
 			{
-				ConcatTransforms (rotationmatrix, bonematrix, bonetoworld[i]);
+				ConcatBoneTransforms (rotationmatrix, bonematrix, bonetoworld[i]);
 			} 
 			else 
 			{
-				ConcatTransforms (bonetoworld[pStudioHdr->boneParent(i)], bonematrix, bonetoworld[i]);
+				ConcatBoneTransforms (bonetoworld[pStudioHdr->boneParent(i)], bonematrix, bonetoworld[i]);
 			}
 		}
 	}
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: look at single column vector of another bones local transformation 
 //			and generate a procedural transformation based on how that column 
 //			points down the 6 cardinal axis (all negative weights are clamped to 0).
 //-----------------------------------------------------------------------------
-
 void DoAxisInterpBone(
 	mstudiobone_t		*pbones,
 	int	ibone,
 	CBoneAccessor &bonetoworld
 	)
 {
-	matrix3x4_t			bonematrix;
+	bonematrix_t		bonematrix;
 	Vector				control;
 
 	mstudioaxisinterpbone_t *pProc = (mstudioaxisinterpbone_t *)pbones[ibone].pProcedure( );
-	const matrix3x4_t &controlBone = bonetoworld.GetBone( pProc->control );
+	const bonematrix_t &controlBone = bonetoworld.GetBone( pProc->control );
 	if (pProc && pbones[pProc->control].parent != -1)
 	{
 		Vector tmp;
@@ -4689,7 +4693,7 @@ void DoAxisInterpBone(
 
 	QuaternionMatrix( v, p, bonematrix );
 
-	ConcatTransforms (bonetoworld.GetBone( pbones[ibone].parent ), bonematrix, bonetoworld.GetBoneForWrite( ibone ));
+	ConcatBoneTransforms(bonetoworld.GetBone( pbones[ibone].parent ), bonematrix, bonetoworld.GetBoneForWrite( ibone ));
 }
 
 
@@ -4704,7 +4708,7 @@ void DoQuatInterpBone(
 	CBoneAccessor &bonetoworld
 	)
 {
-	matrix3x4_t			bonematrix;
+	bonematrix_t		bonematrix;
 	Vector				control;
 
 	mstudioquatinterpbone_t *pProc = (mstudioquatinterpbone_t *)pbones[ibone].pProcedure( );
@@ -4716,10 +4720,10 @@ void DoQuatInterpBone(
 		Quaternion	quat;
 		Vector		pos;
 
-		matrix3x4_t	tmpmatrix;
-		matrix3x4_t	controlmatrix;
+		bonematrix_t tmpmatrix;
+		bonematrix_t controlmatrix;
 		MatrixInvert( bonetoworld.GetBone( pbones[pProc->control].parent), tmpmatrix );
-		ConcatTransforms( tmpmatrix, bonetoworld.GetBone( pProc->control ), controlmatrix );
+		ConcatBoneTransforms( tmpmatrix, bonetoworld.GetBone( pProc->control ), controlmatrix );
 
 		MatrixAngles( controlmatrix, src, pos ); // FIXME: make a version without pos
 
@@ -4737,7 +4741,7 @@ void DoQuatInterpBone(
 		if (scale <= 0.001)  // EPSILON?
 		{
 			AngleMatrix( pProc->pTrigger( 0 )->quat, pProc->pTrigger( 0 )->pos, bonematrix );
-			ConcatTransforms ( bonetoworld.GetBone( pbones[ibone].parent ), bonematrix, bonetoworld.GetBoneForWrite( ibone ) );
+			ConcatBoneTransforms( bonetoworld.GetBone( pbones[ibone].parent ), bonematrix, bonetoworld.GetBoneForWrite( ibone ) );
 			return;
 		}
 
@@ -4768,7 +4772,7 @@ void DoQuatInterpBone(
 		QuaternionMatrix( quat, pos, bonematrix );
 	}
 
-	ConcatTransforms (bonetoworld.GetBone( pbones[ibone].parent ), bonematrix, bonetoworld.GetBoneForWrite( ibone ));
+	ConcatBoneTransforms(bonetoworld.GetBone( pbones[ibone].parent ), bonematrix, bonetoworld.GetBoneForWrite( ibone ));
 }
 
 /*
@@ -4820,7 +4824,7 @@ void DoAimAtBone(
 	*/
 
 	// The world matrix of the bone to change
-	matrix3x4_t boneMatrix;
+	//matrix3x4_t boneMatrix;
 
 	// Guaranteed to be unit length
 	const Vector &userAimVector( pProc->aimvector );
@@ -4861,9 +4865,9 @@ void DoAimAtBone(
 	Assert( pProc->basepos.DistToSqr( pBones[iBone].pos ) < 0.1 );
 
 	// The aim and up data is relative to this bone, not the parent bone
-	matrix3x4_t bonematrix, boneLocalToWorld;
+	bonematrix_t bonematrix, boneLocalToWorld;
 	AngleMatrix( pBones[iBone].quat, pProc->basepos, bonematrix );
-	ConcatTransforms( bonetoworld.GetBone( pProc->parent ), bonematrix, boneLocalToWorld );
+	ConcatBoneTransforms( bonetoworld.GetBone( pProc->parent ), bonematrix, boneLocalToWorld );
 
 	Vector aimVector;
 	VectorSubtract( aimAtWorldPosition, aimWorldPosition, aimVector );
@@ -4916,14 +4920,12 @@ void DoAimAtBone(
 
 		Quaternion boneRotation;
 		QuaternionMult( upRotation, aimRotation, boneRotation );
-		QuaternionMatrix( boneRotation, aimWorldPosition, boneMatrix );
+		QuaternionMatrix( boneRotation, aimWorldPosition, bonetoworld.GetBoneForWrite(iBone));
 	}
 	else
 	{
-		QuaternionMatrix( aimRotation, aimWorldPosition, boneMatrix );
+		QuaternionMatrix( aimRotation, aimWorldPosition, bonetoworld.GetBoneForWrite(iBone));
 	}
-
-	MatrixCopy( boneMatrix, bonetoworld.GetBoneForWrite( iBone ) );
 }
 
 
