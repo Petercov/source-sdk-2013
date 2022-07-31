@@ -4302,6 +4302,8 @@ void CNPC_PlayerCompanion::Event_KilledOther( CBaseEntity *pVictim, const CTakeD
 				modifiers.AppendCriteria( "oneshot", "0" );
 			}
 
+			ModifyOrAppendDamageCriteria(modifiers, info);
+
 			SetPotentialSpeechTarget( pVictim );
 			SetSpeechTarget( pVictim );
 			SpeakIfAllowed( TLK_ENEMY_DEAD, modifiers );

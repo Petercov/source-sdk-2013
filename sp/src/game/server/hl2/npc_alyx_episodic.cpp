@@ -2603,10 +2603,14 @@ void CNPC_Alyx::PainSound( const CTakeDamageInfo &info )
 	// Alex has specific sounds for when attacked in the dark
 	if ( !HasCondition( COND_ALYX_IN_DARK ) )
 	{
+#ifndef MAPBASE
 		// set up the speech modifiers
-		CFmtStrN<128> modifiers( "damageammo:%s", info.GetAmmoName() );
+		CFmtStrN<128> modifiers("damageammo:%s", info.GetAmmoName());
 
-		SpeakIfAllowed( TLK_WOUND, modifiers );
+		SpeakIfAllowed(TLK_WOUND, modifiers);
+#else
+		BaseClass::PainSound(info);
+#endif // !MAPBASE
 	}
 }
 

@@ -1277,8 +1277,15 @@ void CAI_PlayerAlly::TraceAttack( const CTakeDamageInfo &info, const Vector &vec
 		pszHitLocCriterion = "shotloc:gut";
 	}
 
+#ifdef MAPBASE
+	AI_CriteriaSet modifiers;
+	ModifyOrAppendDamageCriteria(modifiers, info);
+	if (pszHitLocCriterion)
+		modifiers.AppendCriteria("shotloc", pszHitLocCriterion + 8);
+#else
 	// set up the speech modifiers
 	CFmtStrN<128> modifiers( "%s,damageammo:%s", pszHitLocCriterion, info.GetAmmoName() );
+#endif
 
 	SpeakIfAllowed( TLK_SHOT, modifiers );
 
@@ -1385,7 +1392,13 @@ bool CAI_PlayerAlly::CreateVPhysics()
 //-----------------------------------------------------------------------------
 void CAI_PlayerAlly::PainSound( const CTakeDamageInfo &info )
 {
+#ifdef MAPBASE
+	AI_CriteriaSet set;
+	ModifyOrAppendDamageCriteria(set, info);
+	SpeakIfAllowed(TLK_WOUND, set);
+#else
 	SpeakIfAllowed( TLK_WOUND );
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -16360,7 +16360,17 @@ void CAI_BaseNPC::ModifyOrAppendDamageCriteria( AI_CriteriaSet& set, const CTake
 	else
 		set.AppendCriteria("attacker", "");
 
+	if (info.GetInflictor())
+	{
+		CBaseEntity* pInflictor = info.GetInflictor();
+		set.AppendCriteria("inflictor", pInflictor->GetClassname());
+		set.AppendCriteria("inflictor_is_physics", pInflictor->GetMoveType() == MOVETYPE_VPHYSICS ? "1" : "0");
+	}
+
+	set.AppendCriteria("damage", info.GetDamage());
 	set.AppendCriteria("damagetype", UTIL_VarArgs("%i", info.GetDamageType()));
+	set.AppendCriteria("damageammo", info.GetAmmoName());
+	set.AppendCriteria("damagecustom", UTIL_VarArgs("%i", info.GetDamageCustom()));
 }
 
 /*
