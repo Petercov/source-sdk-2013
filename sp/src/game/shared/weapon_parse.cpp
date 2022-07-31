@@ -444,10 +444,10 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	i360Position = pKeyValuesData->GetInt("bucket_position_360", iPosition);
 	
 	// Use the console (X360) buckets if hud_fastswitch is set to 2.
-#ifdef CLIENT_DLL
+#if defined(CLIENT_DLL) && !defined(MAPBASE)
 	if ( hud_fastswitch.GetInt() == 2 )
 #else
-	if ( IsX360() )
+	if ( IsConsole() )
 #endif
 	{
 		iSlot = i360Slot;
