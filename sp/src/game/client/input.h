@@ -110,7 +110,7 @@ public:
 	virtual		void		CAM_SetCameraThirdData( CameraThirdData_t *pCameraData, const QAngle &vecCameraOffset );
 	virtual		void		CAM_CameraThirdThink( void );	
 
-	virtual	bool		EnableJoystickMode();
+	virtual	bool		ControllerModeActive();
 
 // Private Implementation
 private:
@@ -198,6 +198,9 @@ private:
 	bool		m_fJoystickAdvancedInit;
 	// Used to support hotplugging by reinitializing the advanced joystick system when we toggle between some/none joysticks.
 	bool		m_fHadJoysticks;
+	// Whether last input came from a controller or not.
+	bool		m_bControllerMode;
+	float		m_fAccumulatedMouseMove;
 
 	// Accumulated mouse deltas
 	float		m_flAccumulatedMouseXMovement;

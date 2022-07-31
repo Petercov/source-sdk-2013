@@ -129,9 +129,9 @@ extern ConVar thirdperson_screenspace;
 //-----------------------------------------------------------------
 // Purpose: Returns true if there's an active joystick connected.
 //-----------------------------------------------------------------
-bool CInput::EnableJoystickMode()
+bool CInput::ControllerModeActive()
 {
-	return IsConsole() || in_joystick.GetBool();
+	return IsConsole() || (in_joystick.GetBool() && m_bControllerMode);
 }
 
 
@@ -772,6 +772,14 @@ void CInput::JoyStickMove( float frametime, CUserCmd *cmd )
 	if ( joy_inverty.GetBool() )
 	{
 		m_flPreviousJoystickPitch *= -1.0f;
+	}
+
+	if (!m_bControllerMode)
+	{
+		if (fabsf(m_flPreviousJoystickForward) > 0.1f || fabsf(m_flPreviousJoystickSide) > 0.1f || fabsf(m_flPreviousJoystickPitch) > 0.1f || fabsf(m_flPreviousJoystickYaw) > 0.1f)
+		{
+			m_bControllerMode = true;
+		}
 	}
 
 	// drive yaw, pitch and move like a screen relative platformer game

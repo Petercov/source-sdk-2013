@@ -556,17 +556,17 @@ int CBaseCombatWeapon::GetWeaponFlags( void ) const
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-int CBaseCombatWeapon::GetSlot( void ) const
+int CBaseCombatWeapon::GetSlot(bool b360) const
 {
-	return GetWpnData().iSlot;
+	return b360 ? GetWpnData().i360Slot : GetWpnData().iSlot;
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-int CBaseCombatWeapon::GetPosition( void ) const
+int CBaseCombatWeapon::GetPosition(bool b360) const
 {
-	return GetWpnData().iPosition;
+	return b360 ? GetWpnData().i360Position : GetWpnData().iPosition;
 }
 
 //-----------------------------------------------------------------------------

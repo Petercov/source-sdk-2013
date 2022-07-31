@@ -17,9 +17,12 @@
 #include "c_baseplayer.h"
 #include "IGameUIFuncs.h"
 #include "inputsystem/iinputsystem.h"
+#include "iinput.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+ConVar cl_joy_glyphs_ps3("cl_joy_glyphs_ps3", "0", FCVAR_ARCHIVE);
 
 //-----------------------------------------------------------------------------
 // Purpose: Displays hints across the center of the screen
@@ -365,6 +368,7 @@ protected:
 private:
 	CUtlVector<vgui::Label *> m_Labels;
 	vgui::HFont m_hSmallFont, m_hLargeFont;
+	vgui::HFont m_hButtonFont, m_hButtonFontPS3;
 	int		m_iBaseY;
 
 	CPanelAnimationVarAliasType( float, m_iTextX, "text_xpos", "8", "proportional_float" );
@@ -412,6 +416,9 @@ void CHudHintKeyDisplay::ApplySchemeSettings( vgui::IScheme *pScheme )
 {
 	m_hSmallFont = pScheme->GetFont( "HudHintTextSmall", true );
 	m_hLargeFont = pScheme->GetFont( "HudHintTextLarge", true );
+
+	m_hButtonFont = pScheme->GetFont("HudHintButtons", true);
+	m_hButtonFontPS3 = pScheme->GetFont("HudHintButtonsPS3", true);
 
 	BaseClass::ApplySchemeSettings( pScheme );
 }
@@ -530,14 +537,14 @@ bool CHudHintKeyDisplay::SetHintText( const char *text )
 			//!! change some key names into better names
 			char friendlyName[64];
 
-			if ( IsX360() )
+			if ( ::input->ControllerModeActive() )
 			{
 				int iNumBinds = 0;
 
 				char szBuff[ 512 ];
 				wchar_t szWideBuff[ 64 ];
 
-				for ( int iCode = 0; iCode < BUTTON_CODE_LAST; ++iCode )
+				for (int iCode = JOYSTICK_FIRST; iCode <= JOYSTICK_LAST; ++iCode)
 				{
 					ButtonCode_t code = static_cast<ButtonCode_t>( iCode );
 
@@ -593,6 +600,7 @@ bool CHudHintKeyDisplay::SetHintText( const char *text )
 				{
 					// 360 always uses bitmaps
 					bIsBitmap = true;
+					label->SetFont(cl_joy_glyphs_ps3.GetBool() ? m_hButtonFontPS3 : m_hButtonFont);
 					label->SetText( friendlyName );
 				}
 			}

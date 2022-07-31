@@ -411,8 +411,8 @@ public:
 	virtual bool			AllowsAutoSwitchTo( void ) const;
 	virtual bool			AllowsAutoSwitchFrom( void ) const;
 	virtual int				GetWeaponFlags( void ) const;
-	virtual int				GetSlot( void ) const;
-	virtual int				GetPosition( void ) const;
+	virtual int				GetSlot( bool b360 = false ) const;
+	virtual int				GetPosition( bool b360 = false ) const;
 	virtual char const		*GetName( void ) const;
 	virtual char const		*GetPrintName( void ) const;
 	virtual char const		*GetShootSound( int iIndex ) const;

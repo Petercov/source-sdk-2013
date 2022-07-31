@@ -33,7 +33,7 @@
 #define ICON_GAP			5		// Number of pixels between the icon and the text
 
 #define OFFSCREEN_ICON_POSITION_RADIUS 100
-#define BUTTON_FONT_HANDLE				m_hCaptionFont
+#define BUTTON_FONT_HANDLE (BUsePS3Glyphset() ? m_hButtonFontPS3 : m_hButtonFont)
 
 #define ICON_DIST_TOO_FAR	(60.0f * 12.0f)
 
@@ -89,6 +89,11 @@ ConVar locator_split_len( "locator_split_len", "0.5f", FCVAR_CHEAT );
 extern ConVar gameinstructor_default_bindingcolor;
 #endif
 
+extern ConVar cl_joy_glyphs_ps3;
+inline bool BUsePS3Glyphset()
+{
+	return cl_joy_glyphs_ps3.GetBool();
+}
 
 //------------------------------------
 CLocatorTarget::CLocatorTarget( void )
@@ -487,11 +492,11 @@ void CLocatorTarget::SetBinding( const char *pszBinding )
 {
 	int iAllowJoystick = -1;
 
-	/*if ( !IsX360() )
+	if ( !IsX360() )
 	{
 		// Only show joystick binds if it's enabled and non-joystick if it's disabled
 		iAllowJoystick = input->ControllerModeActive();
-	}*/
+	}
 
 	bool bIsControllerNow = ( iAllowJoystick != 0 );
 
@@ -575,7 +580,7 @@ const char *CLocatorTarget::UseBindingImage( char *pchIconTextureName, size_t bu
 		return pchBinding;
 	}
 
-	/*if ( input->ControllerModeActive() && 
+	if ( input->ControllerModeActive() && 
 		 ( Q_strcmp( pchBinding, "A_BUTTON" ) == 0 || 
 		   Q_strcmp( pchBinding, "B_BUTTON" ) == 0 || 
 		   Q_strcmp( pchBinding, "X_BUTTON" ) == 0 || 
@@ -596,7 +601,7 @@ const char *CLocatorTarget::UseBindingImage( char *pchIconTextureName, size_t bu
 		// Use a blank background for the button icons
 		Q_strncpy( pchIconTextureName, "icon_blank", bufSize );
 		return pchBinding;
-	}*/
+	}
 
 	if ( Q_strcmp( pchBinding, "MOUSE1" ) == 0 )
 	{
@@ -744,8 +749,9 @@ private:
 	CPanelAnimationVar( vgui::HFont, m_hCaptionGlowFont_ss, "font", "InstructorTitleGlow_ss" );
 	
 	CPanelAnimationVar( vgui::HFont, m_hButtonFont, "font", "InstructorButtons" );
+	CPanelAnimationVar(vgui::HFont, m_hButtonFontPS3, "font", "InstructorButtonsPS3");
 
-	CPanelAnimationVar( vgui::HFont, m_hButtonFont_ss, "font", "InstructorButtons_ss" );
+	//CPanelAnimationVar( vgui::HFont, m_hButtonFont_ss, "font", "InstructorButtons_ss" );
 	CPanelAnimationVar( vgui::HFont, m_hKeysFont, "font", "InstructorKeyBindings" );
 
 	

@@ -778,7 +778,7 @@ void CIconLesson::TakePlaceOf( CBaseLesson *pLesson )
 
 void CIconLesson::SetLocatorBinding( CLocatorTarget * pLocatorTarget )
 {
-	if ( IsX360() /*|| input->ControllerModeActive()*/ )
+	if ( IsX360() || input->ControllerModeActive() )
 	{
 		// Try to use gamepad bindings first
 		if ( m_szGamepadBinding.String()[ 0 ] != '\0' )
@@ -1523,10 +1523,10 @@ void CScriptedIconLesson::FireGameEvent( IGameEvent *event )
 		return;
 
 	// Check that this lesson is allowed for the current input device
-	if( m_bOnlyKeyboard /*&& input->ControllerModeActive()*/ )
+	if( m_bOnlyKeyboard && input->ControllerModeActive() )
 		return;
 
-	if( m_bOnlyGamepad /*&& !input->ControllerModeActive()*/ )
+	if( m_bOnlyGamepad && !input->ControllerModeActive() )
 		return;
 
 	// Check that this lesson is for the proper team

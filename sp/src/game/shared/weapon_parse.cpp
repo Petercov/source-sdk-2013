@@ -440,6 +440,8 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	Q_strncpy( szAnimationPrefix, pKeyValuesData->GetString( "anim_prefix" ), MAX_WEAPON_PREFIX );
 	iSlot = pKeyValuesData->GetInt( "bucket", 0 );
 	iPosition = pKeyValuesData->GetInt( "bucket_position", 0 );
+	i360Slot = pKeyValuesData->GetInt("bucket_360", iSlot);
+	i360Position = pKeyValuesData->GetInt("bucket_position_360", iPosition);
 	
 	// Use the console (X360) buckets if hud_fastswitch is set to 2.
 #ifdef CLIENT_DLL
@@ -448,8 +450,8 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 	if ( IsX360() )
 #endif
 	{
-		iSlot = pKeyValuesData->GetInt( "bucket_360", iSlot );
-		iPosition = pKeyValuesData->GetInt( "bucket_position_360", iPosition );
+		iSlot = i360Slot;
+		iPosition = i360Position;
 	}
 	iMaxClip1 = pKeyValuesData->GetInt( "clip_size", WEAPON_NOCLIP );					// Max primary clips gun can hold (assume they don't use clips by default)
 	iMaxClip2 = pKeyValuesData->GetInt( "clip2_size", WEAPON_NOCLIP );					// Max secondary clips gun can hold (assume they don't use clips by default)

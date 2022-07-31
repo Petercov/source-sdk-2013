@@ -110,7 +110,7 @@ public:
 	virtual	void		CAM_SetCameraThirdData( CameraThirdData_t *pCameraData, const QAngle &vecCameraOffset ) = 0;
 	virtual void		CAM_CameraThirdThink( void ) = 0;
 
-	virtual	bool		EnableJoystickMode() = 0;
+	virtual	bool		ControllerModeActive() = 0;
 };
 
 extern ::IInput *input;

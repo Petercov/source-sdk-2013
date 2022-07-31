@@ -16,6 +16,7 @@ class C_BaseCombatWeapon;
 class C_BasePlayer;
 
 extern ConVar hud_fastswitch;
+extern ConVar hud_fastswitch360;
 
 // weapon switch types for Convar hud_fastswitch
 #define HUDTYPE_BUCKETS					0	// PC buckets
@@ -26,7 +27,7 @@ extern ConVar hud_fastswitch;
 //-----------------------------------------------------------------------------
 // Purpose: Base class for tf2 & hl2 weapon selection hud elements
 //-----------------------------------------------------------------------------
-abstract_class CBaseHudWeaponSelection : public CHudElement
+class CBaseHudWeaponSelection : public CHudElement
 {
 	DECLARE_CLASS( CBaseHudWeaponSelection, CHudElement );
 
@@ -47,7 +48,7 @@ public:
 	virtual void CycleToNextWeapon( void ) = 0;
 	virtual void CycleToPrevWeapon( void ) = 0;
 	virtual void SwitchToLastWeapon( void );
-	virtual C_BaseCombatWeapon *GetWeaponInSlot( int iSlot, int iSlotPos ) = 0;
+	virtual C_BaseCombatWeapon *GetWeaponInSlot( int iSlot, int iSlotPos, bool b360 = false ) = 0;
 	virtual void SelectWeaponSlot( int iSlot ) = 0;
 	virtual C_BaseCombatWeapon	*GetFirstPos( int iSlot );
 	virtual C_BaseCombatWeapon	*GetNextActivePos( int iSlot, int iSlotPos );
@@ -94,6 +95,7 @@ public:
 protected:
 	// returns true if there is a weapon currently visible to select
 	virtual bool IsWeaponSelectable()	{ return IsInSelectionMode(); }
+	int		GetFastSwitchMode();
 
 	bool	CanBeSelectedInHUD( C_BaseCombatWeapon *pWeapon );
 
