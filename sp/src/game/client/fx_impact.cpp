@@ -21,7 +21,10 @@
 #include "tier0/memdbgon.h"
 
 static ConVar  r_drawflecks( "r_drawflecks", "1" );
+static ConVar  r_impacts_alt_orientation("r_impacts_alt_orientation", "1");
 extern ConVar r_drawmodeldecals;
+
+ConVar asw_burst_pipe_chance("asw_burst_pipe_chance", "0.25f");
 
 ImpactSoundRouteFn g_pImpactSoundRouteFn = NULL;
 
@@ -293,7 +296,7 @@ char const *GetImpactDecal( C_BaseEntity *pEntity, int iMaterial, int iDamageTyp
 //-----------------------------------------------------------------------------
 // Purpose: Perform custom effects based on the Decal index
 //-----------------------------------------------------------------------------
-static ConVar cl_new_impact_effects( "cl_new_impact_effects", "0" );
+static ConVar cl_new_impact_effects( "cl_new_impact_effects", "0", FCVAR_ARCHIVE );
 
 struct ImpactEffect_t
 {
@@ -309,7 +312,7 @@ static ImpactEffect_t s_pImpactEffect[26] =
 	{ "impact_dirt",		NULL },							// CHAR_TEX_DIRT			
 	{ NULL,					NULL },							// CHAR_TEX_EGGSHELL		
 	{ NULL,					NULL },							// CHAR_TEX_FLESH			
-	{ NULL,					NULL },							// CHAR_TEX_GRATE			
+	{ "impact_metal",		"impact_metal" },				// CHAR_TEX_GRATE			
 	{ NULL,					NULL },							// CHAR_TEX_ALIENFLESH		
 	{ NULL,					NULL },							// CHAR_TEX_CLIP			
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
@@ -331,6 +334,47 @@ static ImpactEffect_t s_pImpactEffect[26] =
 	{ "warp_shield_impact", NULL },							// CHAR_TEX_WARPSHIELD		
 };
 
+static ImpactEffect_t s_pImpactEffect2[12] =
+{
+	{ "impact_clay",		"impact_clay" },		// CHAR_TEX_CLAY
+	{ "impact_plaster",		"impact_plaster" },		// CHAR_TEX_PLASTER
+	{ "impact_rock",		"impact_rock" },		// CHAR_TEX_ROCK
+	{ "impact_rubber",		"impact_rubber" },		// CHAR_TEX_RUBBER
+	{ "impact_sheetrock",	"impact_sheetrock" },	// CHAR_TEX_SHEETROCK
+	{ "impact_cloth",		"impact_cloth" },		// CHAR_TEX_CLOTH
+	{ "impact_carpet",		"impact_carpet" },		// CHAR_TEX_CARPET
+	{ "impact_paper",		"impact_paper" },		// CHAR_TEX_PAPER
+	{ "impact_upholstery",	"impact_upholstery" },	// CHAR_TEX_UPHOLSTERY
+	{ "impact_puddle",		"impact_puddle" },		// CHAR_TEX_PUDDLE
+	{ "impact_metal",		"impact_metal" },		// CHAR_TEX_STEAM_PIPE
+	{ "impact_sandbarrel",	"impact_sandbarrel" },	// CHAR_TEX_SANDBARREL
+};
+
+const char* s_pszBurstPipeEffects[] =
+{
+	"impact_steam",
+	"impact_steam_small",
+	"impact_steam_short"
+};
+
+void FX_ASW_Potential_Burst_Pipe(const Vector& vecImpactPoint, const Vector& vecReflect, const Vector& vecShotBackward, const Vector& vecNormal)
+{
+	if (RandomFloat() > asw_burst_pipe_chance.GetFloat())
+		return;
+
+	const char* szEffectName = s_pszBurstPipeEffects[RandomInt(0, NELEMS(s_pszBurstPipeEffects) - 1)];
+	CSmartPtr<CNewParticleEffect> pSteamEffect = CNewParticleEffect::Create(NULL, szEffectName);
+	if (pSteamEffect.IsValid())
+	{
+		Vector vecImpactY, vecImpactZ;
+		VectorVectors(vecNormal, vecImpactY, vecImpactZ);
+		vecImpactY *= -1.0f;
+
+		pSteamEffect->SetControlPoint(0, vecImpactPoint);
+		pSteamEffect->SetControlPointOrientation(0, vecImpactZ, vecImpactY, vecNormal);
+	}
+}
+
 static void SetImpactControlPoint( CNewParticleEffect *pEffect, int nPoint, const Vector &vecImpactPoint, const Vector &vecForward, C_BaseEntity *pEntity )
 {
 	Vector vecImpactY, vecImpactZ;
@@ -338,11 +382,14 @@ static void SetImpactControlPoint( CNewParticleEffect *pEffect, int nPoint, cons
 	vecImpactY *= -1.0f;
 
 	pEffect->SetControlPoint( nPoint, vecImpactPoint );
-	pEffect->SetControlPointOrientation( nPoint, vecForward, vecImpactY, vecImpactZ );
+	if (r_impacts_alt_orientation.GetBool())
+		pEffect->SetControlPointOrientation(nPoint, vecImpactZ, vecImpactY, vecForward);
+	else
+		pEffect->SetControlPointOrientation(nPoint, vecForward, vecImpactY, vecImpactZ);
 	pEffect->SetControlPointEntity( nPoint, pEntity );
 }
 
-static void PerformNewCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &shotDir, int iMaterial, int iScale, int nFlags )
+static bool PerformNewCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &shotDir, int iMaterial, int iScale, int nFlags )
 {
 	bool bNoFlecks = !r_drawflecks.GetBool();
 	if ( !bNoFlecks )
@@ -350,29 +397,53 @@ static void PerformNewCustomEffects( const Vector &vecOrigin, trace_t &tr, const
 		bNoFlecks = ( ( nFlags & FLAGS_CUSTIOM_EFFECTS_NOFLECKS ) != 0  );
 	}
 
+	int nOffset;
+	ImpactEffect_t* pEffectList;
+	if (iMaterial >= FIRST_L4D_CHAR_TEX && iMaterial <= LAST_L4D_CHAR_TEX)
+	{
+		pEffectList = s_pImpactEffect2;
+		nOffset = 1;
+		//pEffectIndex = s_pImpactEffect2Index[iMaterial - nOffset];
+	}
+	else if ((iMaterial >= FIRST_CHAR_TEX) && (iMaterial <= LAST_CHAR_TEX))
+	{
+		pEffectList = s_pImpactEffect;
+		nOffset = FIRST_CHAR_TEX;
+		//pEffectIndex = s_pImpactEffectIndex[iMaterial - nOffset];
+	}
+	else
+	{
+		DevMsg("Invalid surface property.  Double-check surfaceproperties_manifest.txt\n");
+		return false;
+	}
+
 	// Compute the impact effect name
-	const ImpactEffect_t &effect = s_pImpactEffect[ iMaterial - 'A' ];
+	const ImpactEffect_t &effect = pEffectList[iMaterial - nOffset];
 	const char *pImpactName = effect.m_pName;
 	if ( bNoFlecks && effect.m_pNameNoFlecks )
 	{
 		pImpactName = effect.m_pNameNoFlecks;
 	}
 	if ( !pImpactName )
-		return;
+		return false;
+
+	Vector	vecReflect;
+	VectorMA(shotDir, -2.0f * DotProduct(shotDir, tr.plane.normal), tr.plane.normal, vecReflect);
+
+	Vector vecShotBackward;
+	VectorMultiply(shotDir, -1.0f, vecShotBackward);
+
+	const Vector& vecImpactPoint = (tr.fraction != 1.0f) ? tr.endpos : vecOrigin;
+	Assert( VectorsAreEqual( vecOrigin, tr.endpos, 1e-1 ) );
+
+	if (iMaterial == CHAR_TEX_STEAM_PIPE)
+	{
+		FX_ASW_Potential_Burst_Pipe(vecImpactPoint, vecReflect, vecShotBackward, tr.plane.normal);
+	}
 
 	CSmartPtr<CNewParticleEffect> pEffect = CNewParticleEffect::Create( NULL, pImpactName );
 	if ( !pEffect->IsValid() )
-		return;
-
-	Vector	vecReflect;
-	float	flDot = DotProduct( shotDir, tr.plane.normal );
-	VectorMA( shotDir, -2.0f * flDot, tr.plane.normal, vecReflect );
-
-	Vector vecShotBackward;
-	VectorMultiply( shotDir, -1.0f, vecShotBackward );
-
-	Vector vecImpactPoint = ( tr.fraction != 1.0f ) ? tr.endpos : vecOrigin;
-	Assert( VectorsAreEqual( vecOrigin, tr.endpos, 1e-1 ) );
+		return false;
 
 	SetImpactControlPoint( pEffect.GetObject(), 0, vecImpactPoint, tr.plane.normal, tr.m_pEnt ); 
 	SetImpactControlPoint( pEffect.GetObject(), 1, vecImpactPoint, vecReflect,		tr.m_pEnt ); 
@@ -384,6 +455,7 @@ static void PerformNewCustomEffects( const Vector &vecOrigin, trace_t &tr, const
 		GetColorForSurface( &tr, &vecColor );
 		pEffect->SetControlPoint( 4, vecColor );
 	}
+	return true;
 }
 
 void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &shotDir, int iMaterial, int iScale, int nFlags )
@@ -392,11 +464,8 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 	if ( tr.surface.flags & (SURF_SKY|SURF_NODRAW|SURF_HINT|SURF_SKIP) )
 		return;
 
-	if ( cl_new_impact_effects.GetInt() )
-	{
-		PerformNewCustomEffects( vecOrigin, tr, shotDir, iMaterial, iScale, nFlags );
+	if (cl_new_impact_effects.GetBool() && PerformNewCustomEffects(vecOrigin, tr, shotDir, iMaterial, iScale, nFlags))
 		return;
-	}
 
 	bool bNoFlecks = !r_drawflecks.GetBool();
 	if ( !bNoFlecks )
@@ -404,8 +473,12 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 		bNoFlecks = ( ( nFlags & FLAGS_CUSTIOM_EFFECTS_NOFLECKS ) != 0  );
 	}
 
+	if (iMaterial >= FIRST_L4D_CHAR_TEX && iMaterial <= LAST_L4D_CHAR_TEX)
+	{
+		PerformNewCustomEffects(vecOrigin, tr, shotDir, iMaterial, iScale, nFlags);
+	}
 	// Cement and wood have dust and flecks
-	if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
+	else if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
 	{
 		FX_DebrisFlecks( vecOrigin, &tr, iMaterial, iScale, bNoFlecks );
 	}

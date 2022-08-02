@@ -39,6 +39,27 @@
 #define CHAR_TEX_GLASS			'Y'
 #define CHAR_TEX_WARPSHIELD		'Z' ///< wierd-looking jello effect for advisor shield.
 
+#define FIRST_CHAR_TEX			CHAR_TEX_ANTLION
+#define LAST_CHAR_TEX			CHAR_TEX_WARPSHIELD
+
+#define CHAR_TEX_CLAY			1 	// L4D addition
+#define CHAR_TEX_PLASTER		2	// L4D addition
+#define CHAR_TEX_ROCK			3	// L4D addition
+#define CHAR_TEX_RUBBER			4	// L4D addition
+#define CHAR_TEX_SHEETROCK		5	// L4D addition
+#define CHAR_TEX_CLOTH			6	// L4D addition
+#define CHAR_TEX_CARPET			7	// L4D addition
+#define CHAR_TEX_PAPER			8	// L4D addition
+#define CHAR_TEX_UPHOLSTERY		9	// L4D addition
+#define CHAR_TEX_PUDDLE			10	// L4D addition
+
+#define CHAR_TEX_STEAM_PIPE		11 // ASW addition
+
+#define CHAR_TEX_SANDBARREL		12	// CSGO addition (no penetration) - sand filled barrel
+
+#define FIRST_L4D_CHAR_TEX		CHAR_TEX_CLAY
+#define LAST_L4D_CHAR_TEX		CHAR_TEX_SANDBARREL
+
 abstract_class IDecalEmitterSystem
 {
 public:

@@ -265,7 +265,21 @@ void CDecalEmitterSystem::LoadDecalsFromScript( char const *filename )
 				int idx = m_Decals.Find( sub->GetString() );
 				if ( idx != m_Decals.InvalidIndex() )
 				{
-					m_GameMaterialTranslation.Insert( sub->GetName(), idx );
+					const char* value = sub->GetName();
+					int gameMaterial;
+					if (!isdigit(value[0]))
+					{
+						gameMaterial = toupper(value[0]);
+					}
+					else
+					{
+						gameMaterial = atoi(value);
+					}
+
+					char gm[2];
+					gm[0] = gameMaterial;
+					gm[1] = 0;
+					m_GameMaterialTranslation.Insert(gm, idx);
 				}
 				else
 				{

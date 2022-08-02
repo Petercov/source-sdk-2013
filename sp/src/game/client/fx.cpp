@@ -48,6 +48,11 @@ CLIENTEFFECT_MATERIAL( "effects/combinemuzzle1" )
 CLIENTEFFECT_MATERIAL( "effects/combinemuzzle2" )
 CLIENTEFFECT_MATERIAL( "effects/combinemuzzle2_nocull" )
 #endif
+#ifdef MAPBASE
+CLIENTEFFECT_MATERIAL("effects/strider_tracer")
+CLIENTEFFECT_MATERIAL("effects/combinemuzzle1_dark")
+CLIENTEFFECT_MATERIAL("effects/combinemuzzle2_dark")
+#endif // MAPBASE
 CLIENTEFFECT_REGISTER_END()
 #endif
 
@@ -938,6 +943,38 @@ void FX_StriderTracer( Vector& start, Vector& end, int velocity, bool makeWhiz )
 	}
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : start - 
+//			end - 
+//			velocity - 
+//			makeWhiz - 
+//-----------------------------------------------------------------------------
+void FX_StriderTracerNew(Vector& start, Vector& end, int velocity, bool makeWhiz)
+{
+	VPROF_BUDGET("FX_StriderTracerNew", VPROF_BUDGETGROUP_PARTICLE_RENDERING);
+	Vector	vNear, dStart, dEnd, shotDir;
+	float	totalDist;
+
+	//Get out shot direction and length
+	VectorSubtract(end, start, shotDir);
+	totalDist = VectorNormalize(shotDir);
+
+	//Don't make small tracers
+	if (totalDist <= 256)
+		return;
+
+	float length = random->RandomFloat(64.0f, 128.0f);
+	float life = (totalDist + length) / velocity;	//NOTENOTE: We want the tail to finish its run as well
+
+	//Add it
+	FX_AddDiscreetLine(start, shotDir, velocity, length, totalDist, 2.5f, life, "effects/strider_tracer");
+
+	if (makeWhiz)
+	{
+		FX_TracerSound(start, end, TRACER_TYPE_STRIDER);
+	}
+}
 	
 //-----------------------------------------------------------------------------
 // Purpose: 
