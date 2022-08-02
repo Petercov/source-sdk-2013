@@ -14,9 +14,24 @@
 #include "tier1/KeyValues.h"
 #include "toolframework_client.h"
 #include "tier0/vprof.h"
+#ifdef MAPBASE_VSCRIPT
+#include "vscript_client.h"
+#endif // MAPBASE_VSCRIPT
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+#ifdef MAPBASE_VSCRIPT
+static ScriptHook_t g_Hook_DispatchEffect;
+
+void RegisterDispatchEffectHook()
+{
+	BEGIN_SCRIPTHOOK(g_Hook_DispatchEffect, "DispatchEffect", FIELD_BOOLEAN, "Called to handle DispatchEffect events. Return true if you handled it.")
+		DEFINE_SCRIPTHOOK_PARAM("EffectName", FIELD_CSTRING)
+		DEFINE_SCRIPTHOOK_PARAM("EffectData", FIELD_HSCRIPT)
+	END_SCRIPTHOOK_STATIC(g_pScriptVM);
+}
+#endif // MAPBASE_VSCRIPT
 
 //-----------------------------------------------------------------------------
 // CClientEffectRegistration registration
@@ -70,6 +85,37 @@ C_TEEffectDispatch::~C_TEEffectDispatch( void )
 //-----------------------------------------------------------------------------
 void DispatchEffectToCallback( const char *pEffectName, const CEffectData &m_EffectData )
 {
+#ifdef MAPBASE_VSCRIPT
+	if (GetScriptHookManager().IsEventHooked("DispatchEffect"))
+	{
+		ScriptVariant_t hData;
+		g_pScriptVM->CreateTable(hData);
+		g_pScriptVM->SetValue(hData, "origin", m_EffectData.m_vOrigin);
+		g_pScriptVM->SetValue(hData, "start", m_EffectData.m_vStart);
+		g_pScriptVM->SetValue(hData, "normal", m_EffectData.m_vNormal);
+		g_pScriptVM->SetValue(hData, "angles", m_EffectData.m_vAngles);
+		g_pScriptVM->SetValue(hData, "flags", m_EffectData.m_fFlags);
+		g_pScriptVM->SetValue(hData, "scale", m_EffectData.m_flScale);
+		g_pScriptVM->SetValue(hData, "magnitude", m_EffectData.m_flMagnitude);
+		g_pScriptVM->SetValue(hData, "radius", m_EffectData.m_flRadius);
+		g_pScriptVM->SetValue(hData, "attachment", m_EffectData.m_nAttachmentIndex);
+		g_pScriptVM->SetValue(hData, "surfaceprop", m_EffectData.m_nSurfaceProp);
+		g_pScriptVM->SetValue(hData, "material", m_EffectData.m_nMaterial);
+		g_pScriptVM->SetValue(hData, "damagetype", m_EffectData.m_nDamageType);
+		g_pScriptVM->SetValue(hData, "hitbox", m_EffectData.m_nHitBox);
+		g_pScriptVM->SetValue(hData, "color", m_EffectData.m_nColor);
+		g_pScriptVM->SetValue(hData, "entindex", m_EffectData.entindex());
+
+		ScriptVariant_t args[] = { pEffectName, hData };
+		ScriptVariant_t returnValue = false;
+		g_Hook_DispatchEffect.Call(NULL, &returnValue, args);
+		g_pScriptVM->ReleaseValue(hData);
+
+		if (returnValue.m_bool)
+			return;
+	}
+#endif // MAPBASE_VSCRIPT
+
 	// Look through all the registered callbacks
 	for ( CClientEffectRegistration *pReg = CClientEffectRegistration::s_pHead; pReg; pReg = pReg->m_pNext )
 	{

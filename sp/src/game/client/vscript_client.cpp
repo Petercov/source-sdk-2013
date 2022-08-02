@@ -42,6 +42,8 @@ extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
 #endif // VMPROFILE
 
 #ifdef MAPBASE_VSCRIPT
+void RegisterDispatchEffectHook();
+
 static ScriptHook_t g_Hook_OnEntityCreated;
 static ScriptHook_t g_Hook_OnEntityDeleted;
 
@@ -679,8 +681,8 @@ bool VScriptClientInit()
 				ScriptRegisterFunction( g_pScriptVM, CreateProp, "Create an animating prop" );
 #endif
 
-
 				if ( GameRules() )
+
 				{
 					GameRules()->RegisterScriptFunctions();
 				}
@@ -695,6 +697,7 @@ bool VScriptClientInit()
 
 				RegisterSharedScriptConstants();
 				RegisterSharedScriptFunctions();
+				RegisterDispatchEffectHook();
 #else
 				//g_pScriptVM->RegisterInstance( &g_ScriptEntityIterator, "Entities" );
 #endif
