@@ -46,11 +46,17 @@ DECLARE_CLIENT_EFFECT( "GunshipTracer", GunshipTracerCallback );
 //-----------------------------------------------------------------------------
 // Purpose: Strider's Tracer
 //-----------------------------------------------------------------------------
-void StriderTracerCallback( const CEffectData &data )
+void StriderTracerCallback(const CEffectData& data)
 {
 	float flVelocity = data.m_flScale;
 	bool bWhiz = (data.m_fFlags & TRACER_FLAG_WHIZ);
-	FX_StriderTracer( (Vector&)data.m_vStart, (Vector&)data.m_vOrigin, flVelocity, bWhiz );
+#ifdef MAPBASE
+	static ConVarRef var("cl_strider_blue_effects");
+	if (var.GetBool())
+		FX_StriderTracerNew((Vector&)data.m_vStart, (Vector&)data.m_vOrigin, flVelocity, bWhiz);
+	else
+#endif // MAPBASE
+		FX_StriderTracer((Vector&)data.m_vStart, (Vector&)data.m_vOrigin, flVelocity, bWhiz);
 }
 
 DECLARE_CLIENT_EFFECT( "StriderTracer", StriderTracerCallback );

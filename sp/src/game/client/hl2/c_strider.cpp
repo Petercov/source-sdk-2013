@@ -36,6 +36,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar cl_strider_blue_effects("cl_strider_blue_effects", "1", FCVAR_ARCHIVE);
+
 #define STRIDER_MSG_BIG_SHOT			1
 #define STRIDER_MSG_STREAKS				2
 #define STRIDER_MSG_DEAD				3
@@ -768,6 +770,8 @@ void MuzzleFlash_Strider( ClientEntityHandle_t hEntity, int attachmentIndex )
 	SimpleParticle *pParticle;
 	Vector			forward(1,0,0), offset; //NOTENOTE: All coords are in local space
 
+	const char* pszEffectFmt = cl_strider_blue_effects.GetBool() ? "effects/combinemuzzle%d_dark" : "effects/combinemuzzle%d";
+
 	float flScale = random->RandomFloat( 3.0f, 4.0f );
 
 	float burstSpeed = random->RandomFloat( 400.0f, 600.0f );
@@ -779,7 +783,7 @@ void MuzzleFlash_Strider( ClientEntityHandle_t hEntity, int attachmentIndex )
 	{
 		offset = (forward * (i*2.0f*flScale));
 
-		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs( "effects/combinemuzzle%d", random->RandomInt(1,2) ) ), offset );
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs(pszEffectFmt, random->RandomInt(1,2) ) ), offset );
 			
 		if ( pParticle == NULL )
 			return;
@@ -814,7 +818,7 @@ void MuzzleFlash_Strider( ClientEntityHandle_t hEntity, int attachmentIndex )
 	{
 		offset = (dir * (i*flScale));
 
-		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs( "effects/combinemuzzle%d", random->RandomInt(1,2) ) ), offset );
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs(pszEffectFmt, random->RandomInt(1,2) ) ), offset );
 			
 		if ( pParticle == NULL )
 			return;
@@ -845,7 +849,7 @@ void MuzzleFlash_Strider( ClientEntityHandle_t hEntity, int attachmentIndex )
 	{
 		offset = (-dir * (i*flScale));
 
-		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs( "effects/combinemuzzle%d", random->RandomInt(1,2) ) ), offset );
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs(pszEffectFmt, random->RandomInt(1,2) ) ), offset );
 			
 		if ( pParticle == NULL )
 			return;
@@ -876,7 +880,7 @@ void MuzzleFlash_Strider( ClientEntityHandle_t hEntity, int attachmentIndex )
 	{
 		offset = (dir * (i*flScale));
 
-		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs( "effects/combinemuzzle%d", random->RandomInt(1,2) ) ), offset );
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs(pszEffectFmt, random->RandomInt(1,2) ) ), offset );
 			
 		if ( pParticle == NULL )
 			return;
