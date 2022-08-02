@@ -132,7 +132,7 @@ DECLARE_CLIENT_EFFECT( "RagdollImpact", RagdollImpactCallback );
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-bool Impact( Vector &vecOrigin, Vector &vecStart, int iMaterial, int iDamageType, int iHitbox, C_BaseEntity *pEntity, trace_t &tr, int nFlags, int maxLODToDecal )
+bool Impact( Vector &vecOrigin, Vector &vecStart, int &iMaterial, int iDamageType, int iHitbox, C_BaseEntity *pEntity, trace_t &tr, int nFlags, int maxLODToDecal )
 {
 	VPROF( "Impact" );
 
