@@ -881,14 +881,33 @@ void UTIL_BloodDecalTrace( trace_t *pTrace, int bloodColor )
 {
 	if ( UTIL_ShouldShowBlood( bloodColor ) )
 	{
-		if ( bloodColor == BLOOD_COLOR_RED )
+#ifndef MAPBASE
+		if (bloodColor == BLOOD_COLOR_RED)
 		{
-			UTIL_DecalTrace( pTrace, "Blood" );
+			UTIL_DecalTrace(pTrace, "Blood");
 		}
 		else
 		{
-			UTIL_DecalTrace( pTrace, "YellowBlood" );
+			UTIL_DecalTrace(pTrace, "YellowBlood");
 		}
+#else
+		switch (bloodColor)
+		{
+		case BLOOD_COLOR_RED:
+			UTIL_DecalTrace(pTrace, "Blood");
+			break;
+		default:
+			UTIL_DecalTrace(pTrace, "YellowBlood");
+			break;
+		case BLOOD_COLOR_GREEN:
+#ifdef HL2_EPISODIC
+		case BLOOD_COLOR_ANTLION_WORKER:
+#endif
+			UTIL_DecalTrace(pTrace, "GreenBlood");
+			break;
+		}
+#endif // !MAPBASE
+
 	}
 }
 
