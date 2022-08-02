@@ -298,7 +298,7 @@ void AR2ImpactCallback(const CEffectData& data)
 	}
 
 	// If we hit, perform our custom effects and play the sound
-	if (Impact(vecOrigin, vecStart, iMaterial, iDamageType, iHitbox, pEntity, tr))
+	if (Impact(vecOrigin, vecStart, iMaterial, iDamageType, iHitbox, pEntity, tr, IMPACT_REPORT_RAGDOLL_IMPACTS))
 	{
 		// Check for custom effects based on the Decal index
 		PerformCustomEffects(vecOrigin, tr, vecShotDir, iMaterial, 1.0);
