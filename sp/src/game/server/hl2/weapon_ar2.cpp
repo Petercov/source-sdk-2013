@@ -283,6 +283,10 @@ Activity CWeaponAR2::GetPrimaryAttackActivity( void )
 //-----------------------------------------------------------------------------
 void CWeaponAR2::DoImpactEffect( trace_t &tr, int nDamageType )
 {
+#ifdef MAPBASE
+	// give shooter a chance to do a custom impact.
+	UTIL_ImpactTrace(&tr, nDamageType, "AR2Impact");
+#else
 	CEffectData data;
 
 	data.m_vOrigin = tr.endpos + ( tr.plane.normal * 1.0f );
@@ -291,6 +295,7 @@ void CWeaponAR2::DoImpactEffect( trace_t &tr, int nDamageType )
 	DispatchEffect( "AR2Impact", data );
 
 	BaseClass::DoImpactEffect( tr, nDamageType );
+#endif
 }
 
 //-----------------------------------------------------------------------------

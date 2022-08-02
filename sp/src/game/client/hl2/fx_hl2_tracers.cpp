@@ -378,29 +378,31 @@ void AR2ExplosionCallback( const CEffectData &data )
 
 DECLARE_CLIENT_EFFECT( "AR2Explosion", AR2ExplosionCallback );
 
+#ifndef MAPBASE
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : &data - 
 //-----------------------------------------------------------------------------
-void AR2ImpactCallback( const CEffectData &data )
+void AR2ImpactCallback(const CEffectData& data)
 {
-	FX_AddQuad( data.m_vOrigin, 
-				data.m_vNormal, 
-				random->RandomFloat( 24, 32 ),
-				0,
-				0.75f, 
-				1.0f,
-				0.0f,
-				0.4f,
-				random->RandomInt( 0, 360 ), 
-				0,
-				Vector( 1.0f, 1.0f, 1.0f ), 
-				0.25f, 
-				"effects/combinemuzzle2_nocull",
-				(FXQUAD_BIAS_SCALE|FXQUAD_BIAS_ALPHA) );
+	FX_AddQuad(data.m_vOrigin,
+		data.m_vNormal,
+		random->RandomFloat(24, 32),
+		0,
+		0.75f,
+		1.0f,
+		0.0f,
+		0.4f,
+		random->RandomInt(0, 360),
+		0,
+		Vector(1.0f, 1.0f, 1.0f),
+		0.25f,
+		"effects/combinemuzzle2_nocull",
+		(FXQUAD_BIAS_SCALE | FXQUAD_BIAS_ALPHA));
 }
 
-DECLARE_CLIENT_EFFECT( "AR2Impact", AR2ImpactCallback );
+DECLARE_CLIENT_EFFECT("AR2Impact", AR2ImpactCallback);
+#endif // !MAPBASE
 
 //-----------------------------------------------------------------------------
 // Creates a muzzleflash elight
