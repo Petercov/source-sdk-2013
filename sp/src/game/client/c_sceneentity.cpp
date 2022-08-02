@@ -843,7 +843,7 @@ CChoreoScene *C_SceneEntity::LoadScene( const char *filename )
 			}
 		}
 	}
-	else if (filesystem->ReadFileEx( loadfile, "MOD", &pBuffer, true ))
+	else if (filesystem->ReadFileEx( loadfile, "SCENES", &pBuffer, true ))
 	{
 		// Not in scenes.image, but it's a raw file
 		g_TokenProcessor.SetBuffer((char*)pBuffer);

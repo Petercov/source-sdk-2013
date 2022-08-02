@@ -601,7 +601,7 @@ void C_PointCommentaryNode::StartSceneCommentary( const char *pszCommentaryFile,
 			}
 		}
 	}
-	else if (filesystem->ReadFileEx( loadfile, "MOD", &pBuffer, true ))
+	else if (filesystem->ReadFileEx( loadfile, "SCENES", &pBuffer, true ))
 	{
 		// Not in scenes.image, but it's a raw file
 		g_TokenProcessor.SetBuffer((char*)pBuffer);

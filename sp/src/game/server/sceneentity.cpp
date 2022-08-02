@@ -3809,7 +3809,7 @@ CChoreoScene *CSceneEntity::LoadScene( const char *filename, IChoreoEventCallbac
 		}
 	}
 	// Next, check if it's a loose file...
-	else if (filesystem->ReadFileEx( loadfile, "MOD", &pBuffer, true ))
+	else if (filesystem->ReadFileEx( loadfile, "SCENES", &pBuffer, true ))
 	{
 		g_TokenProcessor.SetBuffer((char*)pBuffer);
 		pScene = ChoreoLoadScene( loadfile, NULL, &g_TokenProcessor, LocalScene_Printf );
@@ -4353,7 +4353,7 @@ const char *GetFirstSoundInScene(const char *pszScene)
 	else
 	{
 		void *pBuffer = NULL;
-		if (filesystem->ReadFileEx( pszScene, "MOD", &pBuffer, true ))
+		if (filesystem->ReadFileEx( pszScene, "SCENES", &pBuffer, true ))
 		{
 			g_TokenProcessor.SetBuffer((char*)pBuffer);
 			CChoreoScene *pScene = ChoreoLoadScene( pszScene, NULL, &g_TokenProcessor, LocalScene_Printf );
@@ -4370,6 +4370,8 @@ const char *GetFirstSoundInScene(const char *pszScene)
 						break;
 					}
 				}
+
+				delete pScene;
 			}
 		}
 		FreeSceneFileMemory( pBuffer );
@@ -5360,7 +5362,7 @@ int GetSceneSpeechCount( char const *pszScene )
 	{
 		void *pBuffer = NULL;
 		int iNumSounds = 0;
-		if (filesystem->ReadFileEx( pszScene, "MOD", &pBuffer, true ))
+		if (filesystem->ReadFileEx( pszScene, "SCENES", &pBuffer, true ))
 		{
 			g_TokenProcessor.SetBuffer((char*)pBuffer);
 			CChoreoScene *pScene = ChoreoLoadScene( pszScene, NULL, &g_TokenProcessor, LocalScene_Printf );
@@ -5374,6 +5376,8 @@ int GetSceneSpeechCount( char const *pszScene )
 					if (pEvent->GetType() == CChoreoEvent::SPEAK)
 						iNumSounds++;
 				}
+
+				delete pScene;
 			}
 		}
 
@@ -5436,13 +5440,14 @@ void PrecacheInstancedScene( char const *pszScene )
 
 		// Attempt to precache manually
 		void *pBuffer = NULL;
-		if (filesystem->ReadFileEx( loadfile, "MOD", &pBuffer, true ))
+		if (filesystem->ReadFileEx( loadfile, "SCENES", &pBuffer, true ))
 		{
 			g_TokenProcessor.SetBuffer((char*)pBuffer);
 			CChoreoScene *pScene = ChoreoLoadScene( loadfile, NULL, &g_TokenProcessor, LocalScene_Printf );
 			if (pScene)
 			{
 				PrecacheChoreoScene(pScene);
+				delete pScene;
 			}
 			g_TokenProcessor.SetBuffer(NULL);
 		}
