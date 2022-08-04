@@ -4217,7 +4217,7 @@ void CNPC_PlayerCompanion::OnPlayerKilledOther( CBaseEntity *pVictim, const CTak
 #endif
 
 #ifdef MAPBASE
-	ModifyOrAppendEnemyCriteria(modifiers, pVictim);
+	ModifyOrAppendDamageCriteria(modifiers, info);
 #else
 	// set up the speech modifiers
 	CFmtStrN<512> modifiers( "num_barrels:%d,distancetoplayerenemy:%f,playerAmmo:%s,consecutive_player_kills:%d,"
