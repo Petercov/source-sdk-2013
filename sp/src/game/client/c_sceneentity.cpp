@@ -20,6 +20,10 @@
 
 #include "c_sceneentity.h"
 
+#ifdef MAPBASE_SCENECACHE
+#include "scenefilecache/INewSceneCache.h"
+#endif // MAPBASE_SCENECACHE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -787,20 +791,23 @@ void C_SceneEntity::EndEvent( float currenttime, CChoreoScene *scene, CChoreoEve
 	}
 }
 
-bool CChoreoStringPool::GetString( short stringId, char *buff, int buffSize )
+#ifndef MAPBASE_SCENECACHE
+bool CChoreoStringPool::GetString(short stringId, char* buff, int buffSize)
 {
 	// fetch from compiled pool
-	const char *pString = scenefilecache->GetSceneString( stringId );
-	if ( !pString )
+	const char* pString = scenefilecache->GetSceneString(stringId);
+	if (!pString)
 	{
-		V_strncpy( buff, "", buffSize );
+		V_strncpy(buff, "", buffSize);
 		return false;
 	}
-	V_strncpy( buff, pString, buffSize );
+	V_strncpy(buff, pString, buffSize);
 	return true;
-} 	
+}
 
 CChoreoStringPool g_ChoreoStringPool;
+#endif // !MAPBASE_SCENECACHE
+
 
 CChoreoScene *C_SceneEntity::LoadScene( const char *filename )
 {
@@ -813,7 +820,44 @@ CChoreoScene *C_SceneEntity::LoadScene( const char *filename )
 	Q_SetExtension( loadfile, ".vcd", sizeof( loadfile ) );
 	Q_FixSlashes( loadfile );
 
-#ifdef MAPBASE
+#ifdef MAPBASE_SCENECACHE
+	void* pBuffer = NULL;
+	size_t bufsize = scenefilecache2->GetSceneBufferSize(loadfile);
+	if (bufsize <= 0)
+		return NULL;
+
+	pBuffer = malloc(bufsize);
+	if (!scenefilecache2->GetSceneData(loadfile, (byte*)pBuffer, bufsize))
+	{
+		free(pBuffer);
+		return NULL;
+	}
+
+	CChoreoScene* pScene;
+	if (IsBufferBinaryVCD((char *)pBuffer, bufsize))
+	{
+		IChoreoStringPool* pStrings = scenefilecache2->GetSceneStringPool(loadfile);
+		pScene = new CChoreoScene(this);
+		CUtlBuffer buf(pBuffer, bufsize, CUtlBuffer::READ_ONLY);
+		if (!pScene->RestoreFromBinaryBuffer(buf, loadfile, pStrings))
+		{
+			Warning("Unable to restore binary scene '%s'\n", loadfile);
+			delete pScene;
+			pScene = NULL;
+		}
+		else
+		{
+			pScene->SetPrintFunc(Scene_Printf);
+			pScene->SetEventCallbackInterface(this);
+		}
+	}
+	else
+	{
+		g_TokenProcessor.SetBuffer((char*)pBuffer);
+		pScene = ChoreoLoadScene(loadfile, this, &g_TokenProcessor, Scene_Printf);
+		g_TokenProcessor.SetBuffer(NULL);
+	}
+#elif defined(MAPBASE)
 	// 
 	// Raw scene file support
 	// 
@@ -824,7 +868,7 @@ CChoreoScene *C_SceneEntity::LoadScene( const char *filename )
 	{
 		// Definitely in scenes.image
 		pBuffer = malloc( bufsize );
-		if ( !scenefilecache->GetSceneData( filename, (byte *)pBuffer, bufsize ) )
+		if ( !scenefilecache->GetSceneData(loadfile, (byte *)pBuffer, bufsize ) )
 		{
 			free( pBuffer );
 			return NULL;
@@ -901,6 +945,9 @@ CChoreoScene *C_SceneEntity::LoadScene( const char *filename )
 	return pScene;
 }
 
+#ifdef MAPBASE_SCENECACHE
+extern "C" void _stdcall Sleep(unsigned long dwMilliseconds);
+#endif // MAPBASE_SCENECACHE
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -909,6 +956,20 @@ CChoreoScene *C_SceneEntity::LoadScene( const char *filename )
 void C_SceneEntity::LoadSceneFromFile( const char *filename )
 {
 	UnloadScene();
+#ifdef MAPBASE_SCENECACHE
+	int sleepCount = 0;
+	while (scenefilecache2->IsStillAsyncLoading(filename))
+	{
+		::Sleep(10);
+		++sleepCount;
+
+		if (sleepCount > 10)
+		{
+			Assert(0);
+			break;
+		}
+	}
+#endif // MAPBASE_SCENECACHE
 	m_pScene = LoadScene( filename );
 }
 

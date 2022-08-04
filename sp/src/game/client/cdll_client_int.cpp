@@ -151,6 +151,10 @@
 #include "vscript_client.h"
 #endif
 
+#ifdef MAPBASE_SCENECACHE
+#include "scenefilecache/INewSceneCache.h"
+#endif // MAPBASE_SCENECACHE
+
 extern vgui::IInputInternal *g_InputInternal;
 
 //=============================================================================
@@ -203,7 +207,12 @@ IGameUIFuncs *gameuifuncs = NULL;
 IGameEventManager2 *gameeventmanager = NULL;
 ISoundEmitterSystemBase *soundemitterbase = NULL;
 IInputSystem *inputsystem = NULL;
-ISceneFileCache *scenefilecache = NULL;
+#ifndef MAPBASE_SCENECACHE
+ISceneFileCache* scenefilecache = NULL;
+#else
+CSysModule* scenefilecache_module = NULL;
+INewSceneCache* scenefilecache2 = NULL;
+#endif // !MAPBASE_SCENECACHE
 IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
 IMatchmaking *matchmaking = NULL;
 IUploadGameStats *gamestatsuploader = NULL;
@@ -458,7 +467,9 @@ public:
 	CClientDLLSharedAppSystems()
 	{
 		AddAppSystem( "soundemittersystem" DLL_EXT_STRING, SOUNDEMITTERSYSTEM_INTERFACE_VERSION );
-		AddAppSystem( "scenefilecache" DLL_EXT_STRING, SCENE_FILE_CACHE_INTERFACE_VERSION );
+#ifndef MAPBASE_SCENECACHE
+		AddAppSystem("scenefilecache" DLL_EXT_STRING, SCENE_FILE_CACHE_INTERFACE_VERSION);
+#endif // !MAPBASE_SCENECACHE
 	}
 
 	virtual int	Count()
@@ -937,8 +948,19 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 		return false;
 	if ( (inputsystem = (IInputSystem *)appSystemFactory(INPUTSYSTEM_INTERFACE_VERSION, NULL)) == NULL )
 		return false;
-	if ( (scenefilecache = (ISceneFileCache *)appSystemFactory( SCENE_FILE_CACHE_INTERFACE_VERSION, NULL )) == NULL )
+#ifndef MAPBASE_SCENECACHE
+	if ((scenefilecache = (ISceneFileCache*)appSystemFactory(SCENE_FILE_CACHE_INTERFACE_VERSION, NULL)) == NULL)
 		return false;
+#else
+	if ((scenefilecache_module = filesystem->LoadModule("scenecache" DLL_EXT_STRING, "GAMEBIN")) == NULL)
+		return false;
+
+	if ((scenefilecache2 = (INewSceneCache*)Sys_GetFactory(scenefilecache_module)(NEW_SCENE_CACHE_INTERFACE_VERSION, NULL)) == NULL)
+		return false;
+
+	if (!scenefilecache2->Connect(appSystemFactory))
+		return false;
+#endif // !MAPBASE_SCENECACHE
 	if ( IsX360() && (xboxsystem = (IXboxSystem *)appSystemFactory( XBOXSYSTEM_INTERFACE_VERSION, NULL )) == NULL )
 		return false;
 	if ( IsX360() && (matchmaking = (IMatchmaking *)appSystemFactory( VENGINE_MATCHMAKING_VERSION, NULL )) == NULL )
@@ -998,6 +1020,11 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	{
 		return false;
 	}
+
+#ifdef MAPBASE_SCENECACHE
+	if (scenefilecache2->Init() != INIT_OK)
+		return false;
+#endif // MAPBASE_SCENECACHE
 
 	if ( CommandLine()->FindParm( "-textmode" ) )
 		g_bTextMode = true;
@@ -1267,6 +1294,12 @@ void CHLClient::Shutdown( void )
 #ifdef MAPBASE_RPC
 	MapbaseRPC_Shutdown();
 #endif
+
+#ifdef MAPBASE_SCENECACHE
+	scenefilecache2->Shutdown();
+	scenefilecache2->Disconnect();
+	filesystem->UnloadModule(scenefilecache_module);
+#endif // MAPBASE_SCENECACHE
 	
 	// This call disconnects the VGui libraries which we rely on later in the shutdown path, so don't do it
 //	DisconnectTier3Libraries( );

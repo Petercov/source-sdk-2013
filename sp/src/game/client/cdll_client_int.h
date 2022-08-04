@@ -59,6 +59,9 @@ class IEngineReplay;
 class IEngineClientReplay;
 class IReplayScreenshotManager;
 class CSteamID;
+#ifdef MAPBASE_SCENECACHE
+class INewSceneCache;
+#endif // MAPBASE_SCENECACHE
 
 //=============================================================================
 // HPE_BEGIN
@@ -98,7 +101,11 @@ extern IPhysicsGameTrace *physgametrace;
 extern CGlobalVarsBase *gpGlobals;
 extern IClientTools *clienttools;
 extern IInputSystem *inputsystem;
-extern ISceneFileCache *scenefilecache;
+#ifndef MAPBASE_SCENECACHE
+extern ISceneFileCache* scenefilecache;
+#else
+extern INewSceneCache* scenefilecache2;
+#endif // !MAPBASE_SCENECACHE
 extern IXboxSystem *xboxsystem;	// Xbox 360 only
 extern IMatchmaking *matchmaking;
 extern IVideoServices *g_pVideo;

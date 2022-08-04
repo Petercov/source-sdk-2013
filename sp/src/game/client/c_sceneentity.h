@@ -115,20 +115,22 @@ private:
 	CUtlVector< QueuedEvents_t > m_QueuedEvents;
 };
 
+#ifndef MAPBASE_SCENECACHE
 //-----------------------------------------------------------------------------
 // Binary compiled VCDs get their strings from a pool
 //-----------------------------------------------------------------------------
 class CChoreoStringPool : public IChoreoStringPool
 {
 public:
-	short FindOrAddString( const char *pString )
+	short FindOrAddString(const char* pString)
 	{
 		// huh?, no compilation at run time, only fetches
-		Assert( 0 );
+		Assert(0);
 		return -1;
 	}
 
-	bool GetString( short stringId, char *buff, int buffSize );
+	bool GetString(short stringId, char* buff, int buffSize);
 };
+#endif // !MAPBASE_SCENECACHE
 
 #endif // C_SCENEENTITY_H

@@ -135,6 +135,10 @@ extern ConVar tf_mm_servermode;
 #include "replay/ireplaysystem.h"
 #endif
 
+#ifdef MAPBASE_SCENECACHE
+#include "scenefilecache/INewSceneCache.h"
+#endif // MAPBASE_SCENECACHE
+
 extern IToolFrameworkServer *g_pToolFrameworkServer;
 extern IParticleSystemQuery *g_pParticleSystemQuery;
 
@@ -185,7 +189,12 @@ IVDebugOverlay * debugoverlay = NULL;
 ISoundEmitterSystemBase *soundemitterbase = NULL;
 IServerPluginHelpers *serverpluginhelpers = NULL;
 IServerEngineTools *serverenginetools = NULL;
-ISceneFileCache *scenefilecache = NULL;
+#ifndef MAPBASE_SCENECACHE
+ISceneFileCache* scenefilecache = NULL;
+#else
+CSysModule* scenefilecache_module = NULL;
+INewSceneCache* scenefilecache2 = NULL;
+#endif // !MAPBASE_SCENECACHE
 IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
 IMatchmaking *matchmaking = NULL;	// Xbox 360 only
 IScriptManager *scriptmanager = NULL;
@@ -624,8 +633,20 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 		return false;
 	if ( (serverpluginhelpers = (IServerPluginHelpers *)appSystemFactory(INTERFACEVERSION_ISERVERPLUGINHELPERS, NULL)) == NULL )
 		return false;
-	if ( (scenefilecache = (ISceneFileCache *)appSystemFactory( SCENE_FILE_CACHE_INTERFACE_VERSION, NULL )) == NULL )
+#ifndef MAPBASE_SCENECACHE
+	if ((scenefilecache = (ISceneFileCache*)appSystemFactory(SCENE_FILE_CACHE_INTERFACE_VERSION, NULL)) == NULL)
 		return false;
+#else
+	if ((scenefilecache_module = filesystem->LoadModule("scenecache" DLL_EXT_STRING, "GAMEBIN")) == NULL)
+		return false;
+
+	if ((scenefilecache2 = (INewSceneCache*)Sys_GetFactory(scenefilecache_module)(NEW_SCENE_CACHE_INTERFACE_VERSION, NULL)) == NULL)
+		return false;
+
+	if (!scenefilecache2->Connect(appSystemFactory))
+		return false;
+#endif // !MAPBASE_SCENECACHE
+
 	if ( IsX360() && (xboxsystem = (IXboxSystem *)appSystemFactory( XBOXSYSTEM_INTERFACE_VERSION, NULL )) == NULL )
 		return false;
 	if ( IsX360() && (matchmaking = (IMatchmaking *)appSystemFactory( VENGINE_MATCHMAKING_VERSION, NULL )) == NULL )
@@ -653,6 +674,11 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	// Yes, both the client and game .dlls will try to Connect, the soundemittersystem.dll will handle this gracefully
 	if ( !soundemitterbase->Connect( appSystemFactory ) )
 		return false;
+
+#ifdef MAPBASE_SCENECACHE
+	if (scenefilecache2->Init() != INIT_OK)
+		return false;
+#endif // MAPBASE_SCENECACHE
 
 	// cache the globals
 	gpGlobals = pGlobals;
@@ -819,6 +845,12 @@ void CServerGameDLL::DLLShutdown( void )
 #endif	
 
 	gameeventmanager = NULL;
+
+#ifdef MAPBASE_SCENECACHE
+	scenefilecache2->Shutdown();
+	scenefilecache2->Disconnect();
+	filesystem->UnloadModule(scenefilecache_module);
+#endif // MAPBASE_SCENECACHE
 	
 	DisconnectTier3Libraries();
 	DisconnectTier2Libraries();
@@ -3540,7 +3572,9 @@ public:
 	CServerDLLSharedAppSystems()
 	{
 		AddAppSystem( "soundemittersystem" DLL_EXT_STRING, SOUNDEMITTERSYSTEM_INTERFACE_VERSION );
-		AddAppSystem( "scenefilecache" DLL_EXT_STRING, SCENE_FILE_CACHE_INTERFACE_VERSION );
+#ifndef MAPBASE_SCENECACHE
+		AddAppSystem("scenefilecache" DLL_EXT_STRING, SCENE_FILE_CACHE_INTERFACE_VERSION);
+#endif // !MAPBASE_SCENECACHE
 	}
 
 	virtual int	Count()

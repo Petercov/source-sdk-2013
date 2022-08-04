@@ -15,11 +15,13 @@ CChoreoScene *BlockingLoadScene( const char *filename );
 CSceneCache::CSceneCache()
 {
 	msecs = 0;
+	lastspeech_msecs = 0;
 }
 
 CSceneCache::CSceneCache( const CSceneCache& src )
 {
 	msecs  = src.msecs;
+	lastspeech_msecs = src.lastspeech_msecs;
 	sounds = src.sounds;
 }
 
@@ -36,6 +38,7 @@ char const *CSceneCache::GetSoundName( int index )
 void CSceneCache::Save( CUtlBuffer& buf  )
 {
 	buf.PutUnsignedInt( msecs );
+	buf.PutUnsignedInt(lastspeech_msecs);
 
 	unsigned short c = GetSoundCount();
 	buf.PutShort( c );
@@ -53,6 +56,7 @@ void CSceneCache::Restore( CUtlBuffer& buf  )
 	MEM_ALLOC_CREDIT();
 
 	msecs = buf.GetUnsignedInt();
+	lastspeech_msecs = buf.GetUnsignedInt();
 
 	unsigned short c = (unsigned short)buf.GetShort();
 
@@ -80,36 +84,69 @@ void CSceneCache::Restore( CUtlBuffer& buf  )
 //-----------------------------------------------------------------------------
 void CSceneCache::PrecacheSceneEvent( CChoreoEvent *event, CUtlVector< unsigned short >& soundlist )
 {
-	if ( !event || event->GetType() != CChoreoEvent::SPEAK )
+	if ( !event /*|| event->GetType() != CChoreoEvent::SPEAK*/ )
 		return;
 
-	int idx = soundemitterbase->GetSoundIndex( event->GetParameters() );
-	if ( idx != -1 )
+	switch (event->GetType())
 	{
-		MEM_ALLOC_CREDIT();
-		Assert( idx <= 65535 );
-		soundlist.AddToTail( (unsigned short)idx );
-	}
-
-	if ( event->GetCloseCaptionType() == CChoreoEvent::CC_MASTER )
+	case CChoreoEvent::SPEAK:
 	{
-		char tok[ CChoreoEvent::MAX_CCTOKEN_STRING ];
-		if ( event->GetPlaybackCloseCaptionToken( tok, sizeof( tok ) ) )
+		int idx = soundemitterbase->GetSoundIndex(event->GetParameters());
+		if (idx != -1)
 		{
-			int idx = soundemitterbase->GetSoundIndex( tok );
-			if ( idx != -1 && soundlist.Find( idx ) == soundlist.InvalidIndex() )
+			MEM_ALLOC_CREDIT();
+			Assert(idx <= 65535);
+			soundlist.AddToTail((unsigned short)idx);
+		}
+
+		if (event->GetCloseCaptionType() == CChoreoEvent::CC_MASTER)
+		{
+			char tok[CChoreoEvent::MAX_CCTOKEN_STRING];
+			if (event->GetPlaybackCloseCaptionToken(tok, sizeof(tok)))
 			{
-				MEM_ALLOC_CREDIT();
-				Assert( idx <= 65535 );
-				soundlist.AddToTail( (unsigned short)idx );
+				int idx = soundemitterbase->GetSoundIndex(tok);
+				if (idx != -1 && soundlist.Find(idx) == soundlist.InvalidIndex())
+				{
+					MEM_ALLOC_CREDIT();
+					Assert(idx <= 65535);
+					soundlist.AddToTail((unsigned short)idx);
+				}
 			}
 		}
+	}
+	break;
+	case CChoreoEvent::SUBSCENE:
+	{
+		if (!event->GetScene()->IsSubScene())
+		{
+			CChoreoScene* subscene = event->GetSubScene();
+			if (!subscene)
+			{
+				subscene = BlockingLoadScene(event->GetParameters());
+				subscene->SetSubScene(true);
+				event->SetSubScene(subscene);
+
+				// Now precache it's resources, if any
+				CChoreoEvent* subEvent;
+				int c = subscene->GetNumEvents();
+				for (int i = 0; i < c; ++i)
+				{
+					subEvent = subscene->GetEvent(i);
+					PrecacheSceneEvent(subEvent, soundlist);
+				}
+			}
+		}
+	}
+	break;
+	default:
+		break;
 	}
 }
 
 void CSceneCache::Rebuild( char const *filename )
 {
 	msecs = 0;
+	lastspeech_msecs = 0;
 	sounds.RemoveAll();
 
 	CChoreoScene *scene = BlockingLoadScene( filename );
@@ -126,6 +163,18 @@ void CSceneCache::Rebuild( char const *filename )
 
 		// Update scene duration, too
 		msecs = (int)( scene->FindStopTime() * 1000.0f + 0.5f );
+
+		for (int i = scene->GetNumEvents() - 1; i >= 0; i--)
+		{
+			CChoreoEvent* pEvent = scene->GetEvent(i);
+
+			if (pEvent->GetType() == CChoreoEvent::SPEAK)
+			{
+				float flSecs = pEvent->GetStartTime() + pEvent->GetDuration();
+				lastspeech_msecs = (int)(flSecs * 1000.0f + 0.5f);
+				break;
+			}
+		}
 
 		delete scene;
 	}

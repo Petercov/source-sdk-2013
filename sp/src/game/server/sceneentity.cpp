@@ -41,11 +41,19 @@
 #include "npc_alyx_episodic.h"
 #endif // HL2_EPISODIC
 
+#ifdef MAPBASE_SCENECACHE
+#include "scenefilecache/INewSceneCache.h"
+#endif // MAPBASE_SCENECACHE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 extern ISoundEmitterSystemBase *soundemitterbase;
-extern ISceneFileCache *scenefilecache;
+#ifndef MAPBASE_SCENECACHE
+extern ISceneFileCache* scenefilecache;
+#else
+extern INewSceneCache* scenefilecache2;
+#endif // !MAPBASE_SCENECACHE
 
 class CSceneEntity;
 class CBaseFlex;
@@ -83,6 +91,8 @@ static int  speechListIndex = 0;
 #define ChoreoMsg1( lvl, msg, a ) 				DevMsg( lvl, msg, a )
 #define ChoreoMsg2( lvl, msg, a, b ) 			DevMsg( lvl, msg, a, b )
 #endif
+
+CChoreoScene* BlockingLoadScene(const char* filename);
 
 //===========================================================================================================
 // SCENE LIST MANAGER
@@ -222,20 +232,21 @@ void LocalScene_Printf( const char *pFormat, ... )
 }
 #endif
 
+#ifndef MAPBASE_SCENECACHE
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *filename - 
 //			**buffer - 
 // Output : Returns true on success, false on failure.
 //-----------------------------------------------------------------------------
-bool CopySceneFileIntoMemory( char const *pFilename, void **pBuffer, int *pSize )
+bool CopySceneFileIntoMemory(char const* pFilename, void** pBuffer, int* pSize)
 {
-	size_t bufSize = scenefilecache->GetSceneBufferSize( pFilename );
-	if ( bufSize > 0 )
+	size_t bufSize = scenefilecache->GetSceneBufferSize(pFilename);
+	if (bufSize > 0)
 	{
 		*pBuffer = new byte[bufSize];
 		*pSize = bufSize;
-		return scenefilecache->GetSceneData( pFilename, (byte *)(*pBuffer), bufSize );
+		return scenefilecache->GetSceneData(pFilename, (byte*)(*pBuffer), bufSize);
 	}
 
 	*pBuffer = 0;
@@ -246,9 +257,9 @@ bool CopySceneFileIntoMemory( char const *pFilename, void **pBuffer, int *pSize 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void FreeSceneFileMemory( void *buffer )
+void FreeSceneFileMemory(void* buffer)
 {
-	delete[] (byte*) buffer;
+	delete[](byte*) buffer;
 }
 
 //-----------------------------------------------------------------------------
@@ -257,27 +268,29 @@ void FreeSceneFileMemory( void *buffer )
 class CChoreoStringPool : public IChoreoStringPool
 {
 public:
-	short FindOrAddString( const char *pString )
+	short FindOrAddString(const char* pString)
 	{
 		// huh?, no compilation at run time, only fetches
-		Assert( 0 );
+		Assert(0);
 		return -1;
 	}
 
-	bool GetString( short stringId, char *buff, int buffSize )
+	bool GetString(short stringId, char* buff, int buffSize)
 	{
 		// fetch from compiled pool
-		const char *pString = scenefilecache->GetSceneString( stringId );
-		if ( !pString )
+		const char* pString = scenefilecache->GetSceneString(stringId);
+		if (!pString)
 		{
-			V_strncpy( buff, "", buffSize );
+			V_strncpy(buff, "", buffSize);
 			return false;
 		}
-		V_strncpy( buff, pString, buffSize );
+		V_strncpy(buff, pString, buffSize);
 		return true;
-	} 	
+	}
 };
 CChoreoStringPool g_ChoreoStringPool;
+#endif // !MAPBASE_SCENECACHE
+
 
 //-----------------------------------------------------------------------------
 // Purpose: Singleton scene manager.  Created by first placed scene or recreated it it's deleted for some unknown reason
@@ -319,6 +332,9 @@ void SceneManager_ClientActive( CBasePlayer *player )
 // Purpose: FIXME, need to deal with save/restore
 //-----------------------------------------------------------------------------
 class CSceneEntity : public CPointEntity, public IChoreoEventCallback
+#ifdef MAPBASE_SCENECACHE
+	, public ISceneFileCacheCallback
+#endif // MAPBASE_SCENECACHE
 {
 	friend class CInstancedSceneEntity;
 public:
@@ -380,6 +396,9 @@ public:
 	bool					IsPlayingBack() const			{ return m_bIsPlayingBack; }
 	bool					IsPaused() const				{ return m_bPaused; }
 	bool					IsMultiplayer() const			{ return m_bMultiplayer; }
+#ifdef MAPBASE_SCENECACHE
+	bool					IsAsyncLoadPending() const { return m_bAsyncVCDLoadPending; }
+#endif // MAPBASE_SCENECACHE
 
 	bool					IsInterruptable();
 	virtual void			ClearInterrupt();
@@ -425,6 +444,9 @@ public:
 	static CChoreoScene			*LoadScene( const char *filename, IChoreoEventCallback *pCallback );
 
 	void					UnloadScene( void );
+#ifdef MAPBASE_SCENECACHE
+	virtual void			FinishAsyncLoading(char const* pszScene, IChoreoStringPool* pStringPool, size_t buflen, char const* buffer);
+#endif // MAPBASE_SCENECACHE
 
 	struct SpeakEventSound_t
 	{
@@ -595,11 +617,20 @@ private:
 
 	CChoreoScene			*GenerateSceneForSound( CBaseFlex *pFlexActor, const char *soundname );
 
+#ifdef MAPBASE_SCENECACHE
+	void					PollForAsyncLoading(char const* pszScene);
+#endif // MAPBASE_SCENECACHE
+
 	bool					CheckActors();
 
 	void					PrefetchAnimBlocks( CChoreoScene *scene );
 
 	bool					ShouldNetwork() const;
+
+#ifdef MAPBASE_SCENECACHE
+	// The underlying scene we are playing
+	bool					m_bAsyncVCDLoadPending;
+#endif // MAPBASE_SCENECACHE
 	// Set if we tried to async the scene but the FS returned that the data was not loadable
 	bool					m_bSceneMissing;
 
@@ -738,6 +769,10 @@ BEGIN_DATADESC( CSceneEntity )
 	DEFINE_FIELD( m_hActor, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_hActivator, FIELD_EHANDLE ),
 
+#ifdef MAPBASE_SCENECACHE
+	DEFINE_FIELD(m_bAsyncVCDLoadPending, FIELD_BOOLEAN),
+#endif // MAPBASE_SCENECACHE
+
 	// DEFINE_FIELD( m_bSceneMissing, FIELD_BOOLEAN ),
 	DEFINE_UTLVECTOR( m_hNotifySceneCompletion, FIELD_EHANDLE ),
 	DEFINE_UTLVECTOR( m_hListManagers, FIELD_EHANDLE ),
@@ -812,6 +847,9 @@ const ConVar	*CSceneEntity::m_pcvSndMixahead = NULL;
 //-----------------------------------------------------------------------------
 CSceneEntity::CSceneEntity( void )
 {
+#ifdef MAPBASE_SCENECACHE
+	m_bAsyncVCDLoadPending = false;
+#endif // MAPBASE_SCENECACHE
 	m_bWaitingForActor	= false;
 	m_bWaitingForInterrupt = false;
 	m_bInterruptedActorsScenes = false;
@@ -1033,7 +1071,7 @@ void PrecacheChoreoScene( CChoreoScene *scene )
 					CChoreoScene *subscene = event->GetSubScene();
 					if ( !subscene )
 					{
-						subscene = ChoreoLoadScene( event->GetParameters(), NULL, &g_TokenProcessor, LocalScene_Printf );
+						subscene = BlockingLoadScene(event->GetParameters());
 						subscene->SetSubScene( true );
 						event->SetSubScene( subscene );
 
@@ -1231,6 +1269,7 @@ void CSceneEntity::OnRestore()
 
 	if ( !m_pScene )
 	{
+		// It's okay to do a blocking load at this point, since we are in the process of restoring a saved game, we need the data to load right away if we don't have it already.
 		m_pScene = LoadScene( STRING( m_iszSceneFile ), this );
 		if ( !m_pScene )
 		{
@@ -2096,6 +2135,10 @@ void CSceneEntity::DispatchEndPermitResponses( CChoreoScene *scene, CBaseFlex *a
 	actor->SetPermitResponse( 0 );
 }
 
+#ifdef MAPBASE_SCENECACHE
+#define ASYNC_AVG_DELAY 0.075f
+#endif // MAPBASE_SCENECACHE
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2103,7 +2146,11 @@ float CSceneEntity::EstimateLength( void )
 {
 	if ( !m_pScene )
 	{
-		return GetSceneDuration( STRING( m_iszSceneFile ) );
+#ifdef MAPBASE_SCENECACHE
+		return ASYNC_AVG_DELAY + GetSceneDuration( STRING( m_iszSceneFile ) );
+#else
+		return GetSceneDuration(STRING(m_iszSceneFile));
+#endif
 	}
 	return m_pScene->FindStopTime();
 }
@@ -2112,13 +2159,24 @@ float CSceneEntity::EstimateLength( void )
 // Purpose: 
 // NOTE: returns false if scene hasn't loaded yet
 //-----------------------------------------------------------------------------
-void CSceneEntity::CancelIfSceneInvolvesActor( CBaseEntity *pActor )
+void CSceneEntity::CancelIfSceneInvolvesActor(CBaseEntity* pActor)
 {
-	if ( InvolvesActor( pActor ) )
+#ifdef MAPBASE_SCENECACHE
+	if (!m_bAsyncVCDLoadPending)
 	{
-		LocalScene_Printf( "%s : cancelled for '%s'\n", STRING( m_iszSceneFile ), pActor->GetDebugName() );
-		CancelPlayback();
+#endif // MAPBASE_SCENECACHE
+		if (InvolvesActor(pActor))
+		{
+			LocalScene_Printf("%s : cancelled for '%s'\n", STRING(m_iszSceneFile), pActor->GetDebugName());
+			CancelPlayback();
+		}
+#ifdef MAPBASE_SCENECACHE
+		return;
 	}
+
+	LocalScene_Printf("%s : requesting cancel during async load for '%s'\n", STRING(m_iszSceneFile), pActor ? pActor->GetDebugName() : "NULL");
+	m_hRemoveActorList.AddToTail(pActor);
+#endif // MAPBASE_SCENECACHE
 }
 
 //-----------------------------------------------------------------------------
@@ -2149,6 +2207,14 @@ bool CSceneEntity::InvolvesActor( CBaseEntity *pActor )
 void CSceneEntity::DoThink( float frametime )
 {
 	CheckInterruptCompletion();
+
+#ifdef MAPBASE_SCENECACHE
+	if (m_bAsyncVCDLoadPending)
+	{
+		PollForAsyncLoading(STRING(m_iszSceneFile));
+		return;
+	}
+#endif // MAPBASE_SCENECACHE
 
 	if ( m_bWaitingForActor || m_bWaitingForInterrupt )
 	{
@@ -2822,6 +2888,10 @@ void CSceneEntity::StartPlayback( void )
 		if ( m_bSceneMissing )
 			return;
 
+#ifdef MAPBASE_SCENECACHE
+		PollForAsyncLoading(STRING(m_iszSceneFile));
+		return;
+#else
 		m_pScene = LoadScene( STRING( m_iszSceneFile ), this );
 		if ( !m_pScene )
 		{
@@ -2838,6 +2908,7 @@ void CSceneEntity::StartPlayback( void )
 		}
 
 		UpdateTransmitState();
+#endif
 	}
 
 	if ( m_bIsPlayingBack )
@@ -3040,9 +3111,16 @@ void CSceneEntity::ResumePlayback( void )
 //-----------------------------------------------------------------------------
 void CSceneEntity::CancelPlayback( void )
 {
-	if ( !m_bIsPlayingBack )
+	if ( !m_bIsPlayingBack
+#ifdef MAPBASE_SCENECACHE
+		&& !m_bAsyncVCDLoadPending
+#endif // MAPBASE_SCENECACHE
+		)
 		return;
 
+#ifdef MAPBASE_SCENECACHE
+	m_bAsyncVCDLoadPending = false;
+#endif
     m_bIsPlayingBack		= false;
 	m_bPaused				= false;
 
@@ -3111,7 +3189,7 @@ void CSceneEntity::QueueResumePlayback( void )
 #ifdef NEW_RESPONSE_SYSTEM
 					AI_Response response;
 					CAI_Concept concept(STRING(m_iszResumeSceneFile));
-					bool result = pBaseActor->FindResponse( response, concept, NULL );
+					bool result = pBaseActor->SpeakFindResponse( response, concept );
 					if ( result )
 					{
 						const char* szResponse = response.GetResponsePtr();
@@ -3778,6 +3856,81 @@ bool CSceneEntity::ShouldNetwork() const
 	return false;
 }
 
+#ifdef MAPBASE_SCENECACHE
+void CSceneEntity::FinishAsyncLoading(char const* pszScene, IChoreoStringPool* pStringPool, size_t buflen, char const* buffer)
+{
+	int i, j;
+	bool shouldStart = m_bAsyncVCDLoadPending;
+
+	m_bAsyncVCDLoadPending = false;
+
+	if (buflen == 0 || !buffer)
+	{
+		m_bSceneMissing = true;
+		return;
+	}
+
+	m_bSceneMissing = false;
+	if (IsBufferBinaryVCD((char*)buffer, buflen))
+	{
+		m_pScene = new CChoreoScene(this);
+		CUtlBuffer buf(buffer, buflen, CUtlBuffer::READ_ONLY);
+		if (!m_pScene->RestoreFromBinaryBuffer(buf, pszScene, pStringPool))
+		{
+			Warning("Unable to restore binary scene '%s'\n", pszScene);
+			delete m_pScene;
+			m_pScene = NULL;
+		}
+		else
+		{
+			m_pScene->SetPrintFunc(LocalScene_Printf);
+			m_pScene->SetEventCallbackInterface(this);
+		}
+	}
+	else
+	{
+		g_TokenProcessor.SetBuffer((char*)buffer);
+		m_pScene = ChoreoLoadScene(pszScene, this, &g_TokenProcessor, LocalScene_Printf);
+		g_TokenProcessor.SetBuffer(NULL);
+	}
+
+	OnLoaded();
+
+	if (ShouldNetwork())
+	{
+		m_nSceneStringIndex = g_pStringTableClientSideChoreoScenes->AddString(CBaseEntity::IsServer(), STRING(m_iszSceneFile));
+	}
+
+	UpdateTransmitState();
+
+	// check if any of the actors were marked for removal from the scene
+	for (i = 0; i < m_hRemoveActorList.Count(); i++)
+	{
+		CBaseEntity* pRemoveActor = m_hRemoveActorList[i];
+		if (!pRemoveActor)
+			continue;
+
+		for (j = 0; j < m_pScene->GetNumActors(); j++)
+		{
+			CBaseFlex* pTestActor = FindNamedActor(j);
+			if (pTestActor == pRemoveActor)
+			{
+				shouldStart = false;
+				LocalScene_Printf("%s : cancelled after async load for '%s'\n", STRING(m_iszSceneFile), pRemoveActor->GetDebugName());
+				break;
+			}
+		}
+	}
+
+	m_hRemoveActorList.Purge();
+
+	if (shouldStart)
+	{
+		StartPlayback();
+	}
+}
+#endif // MAPBASE_SCENECACHE
+
 CChoreoScene *CSceneEntity::LoadScene( const char *filename, IChoreoEventCallback *pCallback )
 {
 	ChoreoMsg1( 2, "Blocking load of scene from '%s'\n", filename );
@@ -3789,7 +3942,46 @@ CChoreoScene *CSceneEntity::LoadScene( const char *filename, IChoreoEventCallbac
 
 	// binary compiled vcd
 	void *pBuffer = NULL;
-#ifdef MAPBASE
+#ifdef MAPBASE_SCENECACHE
+	size_t bufsize = scenefilecache2->GetSceneBufferSize(loadfile);
+	if (bufsize <= 0)
+		return NULL;
+
+	pBuffer = malloc(bufsize);
+	if (!scenefilecache2->GetSceneData(loadfile, (byte*)pBuffer, bufsize))
+	{
+		free(pBuffer);
+		return NULL;
+	}
+
+	CChoreoScene* pScene;
+	if (IsBufferBinaryVCD((char*)pBuffer, bufsize))
+	{
+		IChoreoStringPool* pStrings = scenefilecache2->GetSceneStringPool(loadfile);
+		pScene = new CChoreoScene(pCallback);
+		CUtlBuffer buf(pBuffer, bufsize, CUtlBuffer::READ_ONLY);
+		if (!pScene->RestoreFromBinaryBuffer(buf, loadfile, pStrings))
+		{
+			Warning("Unable to restore binary scene '%s'\n", loadfile);
+			delete pScene;
+			pScene = NULL;
+		}
+		else
+		{
+			pScene->SetPrintFunc(Scene_Printf);
+			pScene->SetEventCallbackInterface(pCallback);
+		}
+	}
+	else
+	{
+		g_TokenProcessor.SetBuffer((char*)pBuffer);
+		pScene = ChoreoLoadScene(loadfile, pCallback, &g_TokenProcessor, Scene_Printf);
+		g_TokenProcessor.SetBuffer(NULL);
+	}
+
+	free(pBuffer);
+#else
+#if defined(MAPBASE)
 	// 
 	// Raw scene file support
 	// 
@@ -3851,6 +4043,7 @@ CChoreoScene *CSceneEntity::LoadScene( const char *filename, IChoreoEventCallbac
 #endif
 
 	FreeSceneFileMemory( pBuffer );
+#endif
 	return pScene;
 }
 
@@ -4338,6 +4531,25 @@ CBaseEntity *CSceneEntity::FindNamedEntity( const char *name, CBaseEntity *pActo
 const char *GetFirstSoundInScene(const char *pszScene)
 {
 	const char *soundName = NULL;
+
+#ifdef MAPBASE_SCENECACHE
+	CChoreoScene* pScene = BlockingLoadScene(pszScene);
+	if (pScene)
+	{
+		for (int i = 0; i < pScene->GetNumEvents(); i++)
+		{
+			CChoreoEvent* pEvent = pScene->GetEvent(i);
+
+			if (pEvent->GetType() == CChoreoEvent::SPEAK)
+			{
+				soundName = pEvent->GetParameters();
+				break;
+			}
+		}
+
+		delete pScene;
+	}
+#else
 	SceneCachedData_t sceneData;
 	if ( scenefilecache->GetSceneCachedData( pszScene, &sceneData ) )
 	{
@@ -4376,6 +4588,7 @@ const char *GetFirstSoundInScene(const char *pszScene)
 		}
 		FreeSceneFileMemory( pBuffer );
 	}
+#endif
 
 	return soundName;
 }
@@ -5286,6 +5499,71 @@ void StopScriptedScene( CBaseFlex *pActor, EHANDLE hSceneEnt )
 	}
 }
 
+#ifdef MAPBASE_SCENECACHE
+static CUtlCachedFileData< CSceneCache >	g_SceneCache("scene.cache", SCENECACHE_VERSION, 0, UTL_CACHED_FILE_USE_FILESIZE
+#if defined( COMPILED_VCDS )
+	// On the xbox, the scene.cache is rebuild using makexvcd.exe, 
+	// so don't need to get file sizes from disk subsystem at all.
+	// file should be considered read only
+	, true, true
+#else
+	, false
+#endif
+);
+
+void ResetPrecacheInstancedSceneDictionary()
+{
+	// Reload the cache
+	g_SceneCache.Reload();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Output : Returns true on success, false on failure.
+//-----------------------------------------------------------------------------
+bool SceneCacheInit()
+{
+	// We're not going to be editing .vcds, so we can precompute the .vcd durations, etc.
+	CChoreoScene::s_bEditingDisabled = true;
+
+	return g_SceneCache.Init();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void SceneCacheShutdown()
+{
+	g_SceneCache.Shutdown();
+}
+
+
+class CSceneCacheSaver : public CAutoGameSystem
+{
+public:
+	CSceneCacheSaver(char const* name) : CAutoGameSystem(name)
+	{
+	}
+
+	virtual void LevelInitPostEntity()
+	{
+		if (g_SceneCache.IsDirty())
+		{
+			g_SceneCache.Save();
+		}
+	}
+	virtual void LevelShutdownPostEntity()
+	{
+		if (g_SceneCache.IsDirty())
+		{
+			g_SceneCache.Save();
+		}
+	}
+};
+
+CSceneCacheSaver g_SceneCacheSaver("CSceneCacheSaver");
+#endif // MAPBASE_SCENECACHE
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *pszScene - 
@@ -5293,7 +5571,12 @@ void StopScriptedScene( CBaseFlex *pActor, EHANDLE hSceneEnt )
 //-----------------------------------------------------------------------------
 float GetSceneDuration( char const *pszScene )
 {
-#ifndef MAPBASE
+#ifdef MAPBASE_SCENECACHE
+	CSceneCache* entry = g_SceneCache.Get(pszScene);
+	if (!entry)
+		return 0;
+	return (float)entry->msecs * 0.001f;
+#elif !defined(MAPBASE)
 	unsigned int msecs = 0;
 
 	SceneCachedData_t cachedData;
@@ -5324,6 +5607,12 @@ float GetSceneDuration( char const *pszScene )
 //-----------------------------------------------------------------------------
 float GetSceneSpeechDuration( char const* pszScene )
 {
+#ifdef MAPBASE_SCENECACHE
+	CSceneCache* entry = g_SceneCache.Get(pszScene);
+	if (!entry)
+		return 0;
+	return (float)entry->lastspeech_msecs * 0.001f;
+#else
 	float flSecs = 0.0f;
 
 	CChoreoScene* pScene = CSceneEntity::LoadScene( pszScene, nullptr );
@@ -5343,6 +5632,7 @@ float GetSceneSpeechDuration( char const* pszScene )
 	}
 
 	return flSecs;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -5352,6 +5642,12 @@ float GetSceneSpeechDuration( char const* pszScene )
 //-----------------------------------------------------------------------------
 int GetSceneSpeechCount( char const *pszScene )
 {
+#ifdef MAPBASE_SCENECACHE
+	CSceneCache* entry = g_SceneCache.Get(pszScene);
+	if (!entry)
+		return 0;
+	return entry->GetSoundCount();
+#else
 	SceneCachedData_t cachedData;
 	if ( scenefilecache->GetSceneCachedData( pszScene, &cachedData ) )
 	{
@@ -5387,6 +5683,7 @@ int GetSceneSpeechCount( char const *pszScene )
 	}
 #endif
 	return 0;
+#endif
 }
 
 HSCRIPT ScriptCreateSceneEntity( const char* pszScene )
@@ -5428,6 +5725,32 @@ void PrecacheInstancedScene( char const *pszScene )
 		g_pFullFileSystem->Size( pszScene );
 	}
 
+#ifdef MAPBASE_SCENECACHE
+	if (!g_SceneCache.EntryExists(pszScene))
+	{
+		if (!CBaseEntity::IsPrecacheAllowed())
+		{
+			Assert(!"PrecacheInstancedScene:  too late");
+#if defined( COMPILED_VCDS )
+			Error("Late precache of %s, need to rebuild hl2x/scene.cache using makexvcd.exe!!!\n", pszScene);
+#else
+			DevMsg(2, "Late precache of %s\n", pszScene);
+#endif
+		}
+	}
+
+	// The g_SceneCache doesn't require loading the .vcds, it just reads the soundnames
+	//  out of the vcd
+	CSceneCache* entry = g_SceneCache.Get(pszScene);
+	Assert(entry);
+	scenefilecache2->StartAsyncLoading(pszScene);
+
+	int c = entry->GetSoundCount();
+	for (int i = 0; i < c; ++i)
+	{
+		CBaseEntity::PrecacheScriptSound(entry->GetSoundName(i));
+	}
+#else
 	// verify existence, cache is pre-populated, should be there
 	SceneCachedData_t sceneData;
 	if ( !scenefilecache->GetSceneCachedData( pszScene, &sceneData ) )
@@ -5469,15 +5792,76 @@ void PrecacheInstancedScene( char const *pszScene )
 			CBaseEntity::PrecacheScriptSound( scenefilecache->GetSceneString( stringId ) );
 		}
 	}
+#endif
 
 	g_pStringTableClientSideChoreoScenes->AddString( CBaseEntity::IsServer(), pszScene );
 }
+
+#ifdef MAPBASE_SCENECACHE
+//-----------------------------------------------------------------------------
+// Purpose: This manages the instanced scene memory handles.  We essentially grow a handle list by scene filename where
+//  the handle is a pointer to a SceneData_t defined above.  If the resource manager uncaches the handle, we reload the
+//  .vcd from disk.  Precaching a .vcd calls into FindOrAddScene which moves the .vcd to the head of the LRU if it's in memory
+//  or it reloads it from disk otherwise.
+//-----------------------------------------------------------------------------
+class CInstancedSceneResourceManager : public CAutoGameSystem
+{
+public:
+	CInstancedSceneResourceManager() : CAutoGameSystem("CInstancedSceneResourceManager")
+	{
+	}
+	//-----------------------------------------------------------------------------
+	// Purpose: Spew a cache summary to the console
+	//-----------------------------------------------------------------------------
+	virtual void LevelInitPostEntity()
+	{
+		scenefilecache2->OutputStatus();
+	}
+};
+
+
+CInstancedSceneResourceManager g_InstancedSceneResourceManager;
+
+CON_COMMAND(scene_flush, "Flush all .vcds from the cache and reload from disk.")
+{
+	if (!UTIL_IsCommandIssuedByServerAdmin())
+		return;
+
+	Msg("Flushing\n");
+	scenefilecache2->OutputStatus();
+	scenefilecache2->Reload();
+	Msg("   done\n");
+	scenefilecache2->OutputStatus();
+}
+
+CON_COMMAND(scene_mem, "Spew memory usage for .vcds in the instanced scene resource manager.")
+{
+	scenefilecache2->OutputStatus();
+}
+
+void CSceneEntity::PollForAsyncLoading(char const* pszScene)
+{
+	m_bAsyncVCDLoadPending = true;
+	scenefilecache2->PollForAsyncLoading(this, pszScene);
+}
+#endif // MAPBASE_SCENECACHE
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CInstancedSceneEntity::StartPlayback( void )
 {
+#ifdef MAPBASE_SCENECACHE
+	if (!m_pScene)
+	{
+		if (m_bSceneMissing)
+			return;
+
+		PollForAsyncLoading(STRING(m_iszSceneFile));
+		return;
+	}
+#endif
+
 	// Wait until our pre delay is over
 	if ( GetPreDelay() )
 		return;
@@ -5493,6 +5877,14 @@ void CInstancedSceneEntity::StartPlayback( void )
 void CInstancedSceneEntity::DoThink( float frametime )
 {
 	CheckInterruptCompletion();
+
+#ifdef MAPBASE_SCENECACHE
+	if (m_bAsyncVCDLoadPending)
+	{
+		PollForAsyncLoading(STRING(m_iszSceneFile));
+		return;
+	}
+#endif
 
 	if ( m_flPreDelay > 0 )
 	{
@@ -5814,6 +6206,15 @@ void CSceneManager::RemoveScenesInvolvingActor( CBaseFlex *pActor )
 			continue;
 		}
 
+#ifdef MAPBASE_SCENECACHE
+		// if the scene hasn't loaded yet, we can't 
+		if (pScene->IsAsyncLoadPending())
+		{
+			LocalScene_Printf("%s : removed during async load for '%s'\n", STRING(pScene->m_iszSceneFile), pActor ? pActor->GetDebugName() : "NULL");
+			pScene->CancelIfSceneInvolvesActor(pActor);
+		}
+		else
+#endif // MAPBASE_SCENECACHE
 		if ( pScene->InvolvesActor( pActor ) ) // NOTE: returns false if scene hasn't loaded yet
 		{
 			LocalScene_Printf( "%s : removed for '%s'\n", STRING( pScene->m_iszSceneFile ), pActor ? pActor->GetDebugName() : "NULL" );
@@ -5863,6 +6264,21 @@ void CSceneManager::RemoveActorFromScenes( CBaseFlex *pActor, bool bInstancedOnl
 		if ( bNonIdleOnly && !pScene->ShouldBreakOnNonIdle() )
 			continue;
 
+#ifdef MAPBASE_SCENECACHE
+		// if the scene hasn't loaded yet, we can't 
+		if (pScene->IsAsyncLoadPending())
+		{
+			if (pszThisSceneOnly && pszThisSceneOnly[0])
+			{
+				if (Q_strcmp(pszThisSceneOnly, STRING(pScene->m_iszSceneFile)))
+					continue;
+			}
+
+			LocalScene_Printf("%s : removed during async load for '%s'\n", STRING(pScene->m_iszSceneFile), pActor ? pActor->GetDebugName() : "NULL");
+			pScene->CancelIfSceneInvolvesActor(pActor);
+		}
+		else
+#endif // MAPBASE_SCENECACHE
 		if ( pScene->InvolvesActor( pActor ) )
 		{
 			if ( pszThisSceneOnly && pszThisSceneOnly[0] )
@@ -6560,12 +6976,15 @@ static void ListRecentNPCSpeech( void )
 
 static ConCommand ListRecentNPCSpeechCmd( "listRecentNPCSpeech", ListRecentNPCSpeech, "Displays a list of the last 5 lines of speech from NPCs.", FCVAR_DONTRECORD|FCVAR_GAMEDLL );
 
-CON_COMMAND( scene_flush, "Flush all .vcds from the cache and reload from disk." )
+#ifndef MAPBASE_SCENECACHE
+CON_COMMAND(scene_flush, "Flush all .vcds from the cache and reload from disk.")
 {
-	if ( !UTIL_IsCommandIssuedByServerAdmin() )
+	if (!UTIL_IsCommandIssuedByServerAdmin())
 		return;
 
-	Msg( "Reloading\n" );
+	Msg("Reloading\n");
 	scenefilecache->Reload();
-	Msg( "   done\n" );
+	Msg("   done\n");
 }
+#endif // !MAPBASE_SCENECACHE
+

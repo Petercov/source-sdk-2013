@@ -76,6 +76,11 @@ $Project "qc_eyes"
 	"utils\qc_eyes\qc_eyes.vpc" [$WIN32 && !($VS2015||$VS2017||$VS2019||$VS2022)] // Not currently working with newer toolsets; might be fixed by having C++ MFC for v141 build tools and/or C++ ATL for v141 build tools installed
 }
 
+$Project "scenecache"
+{
+	"game\scenecache\scenecache.vpc"
+}
+
 $Project "serverplugin_empty"
 {
 	"utils\serverplugin_sample\serverplugin_empty.vpc" [$WIN32||$POSIX]

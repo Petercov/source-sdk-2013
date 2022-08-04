@@ -35,12 +35,11 @@ enum ConGroupID_t
 	CON_GROUP_VSCRIPT_PRINT,     // "VScript print"
 
 	//--------------------------
-
 	// 
 	// Mod groups can be inserted here
 	// 
-
 	//--------------------------
+	CON_GROUP_SCENE_CACHE,
 
 	CON_GROUP_MAX, // Keep this at the end
 };

@@ -15,13 +15,14 @@
 
 class CChoreoEvent;
 
-#define SCENECACHE_VERSION		7
+#define SCENECACHE_VERSION		8
 
 #pragma pack(1)
 class CSceneCache : public IBaseCacheInfo
 {
 public:
 	unsigned int		msecs;
+	unsigned int		lastspeech_msecs; ///< milliseconds from beginning of vcd to end of last speak event. 
 	CUtlVector< unsigned short > sounds;
 
 	CSceneCache();

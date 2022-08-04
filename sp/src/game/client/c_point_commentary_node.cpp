@@ -28,6 +28,10 @@
 #include "choreoscene.h"
 #include "c_sceneentity.h"
 #endif
+#ifdef MAPBASE_SCENECACHE
+#include "scenefilecache/INewSceneCache.h"
+#endif // MAPBASE_SCENECACHE
+
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -562,7 +566,9 @@ void C_PointCommentaryNode::StartImageCommentary( const char *pszCommentaryFile,
 	pHudCommentary->StartImageCommentary( this, pszCommentaryFile, m_iszSpeakers, m_iNodeNumber, m_iNodeNumberMax, m_flStartTime, m_flStartTime + flDuration );
 }
 
+#ifndef MAPBASE_SCENECACHE
 extern CChoreoStringPool g_ChoreoStringPool;
+#endif // !MAPBASE_SCENECACHE
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -574,6 +580,39 @@ void C_PointCommentaryNode::StartSceneCommentary( const char *pszCommentaryFile,
 	Q_SetExtension( loadfile, ".vcd", sizeof( loadfile ) );
 	Q_FixSlashes( loadfile );
 
+#ifdef MAPBASE_SCENECACHE
+	void* pBuffer = 0;
+	size_t bufsize = scenefilecache2->GetSceneBufferSize(loadfile);
+	if (bufsize > 0)
+	{
+		// Definitely in scenes.image
+		pBuffer = malloc(bufsize);
+		if (scenefilecache2->GetSceneData(loadfile, (byte*)pBuffer, bufsize))
+		{
+			if (IsBufferBinaryVCD((char*)pBuffer, bufsize))
+			{
+				IChoreoStringPool* pStrings = scenefilecache2->GetSceneStringPool(loadfile);
+
+				m_pScene = new CChoreoScene(NULL);
+				CUtlBuffer buf(pBuffer, bufsize, CUtlBuffer::READ_ONLY);
+				if (!m_pScene->RestoreFromBinaryBuffer(buf, loadfile, pStrings))
+				{
+					Warning("Unable to restore scene '%s'\n", loadfile);
+					delete m_pScene;
+					m_pScene = NULL;
+				}
+			}
+			else
+			{
+				g_TokenProcessor.SetBuffer((char*)pBuffer);
+				m_pScene = ChoreoLoadScene(loadfile, this, &g_TokenProcessor, Scene_Printf);
+				g_TokenProcessor.SetBuffer(NULL);
+			}
+		}
+	}
+
+	free(pBuffer);
+#else
 	// 
 	// Raw scene file support
 	// 
@@ -609,6 +648,7 @@ void C_PointCommentaryNode::StartSceneCommentary( const char *pszCommentaryFile,
 	}
 
 	free( pBuffer );
+#endif
 
 	if( m_pScene )
 	{

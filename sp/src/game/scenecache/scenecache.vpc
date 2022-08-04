@@ -1,0 +1,70 @@
+//-----------------------------------------------------------------------------
+//	VTEX_DLL.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		"..\.."
+$Macro OUTBINNAME	"scenecache"
+$Macro OUTBINDIR	"$SRCDIR\..\game\mod_episodic\bin"
+
+$Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories		"$BASE,$SRCDIR\public\scenefilecache"
+		$PreprocessorDefinitions			"$BASE"
+	}
+
+	$Linker
+	{
+		$AdditionalDependencies				"$BASE WSock32.lib" [$WIN32]
+	}
+}
+
+$Configuration	"Debug"
+{
+	$General
+	{
+		$OutputDirectory			".\Debug_dll"			[$WIN32]
+		$IntermediateDirectory		".\Debug_dll"			[$WIN32]
+	}
+}
+
+$Configuration	"Release"
+{
+	$General
+	{
+		$OutputDirectory			".\Release_dll"			[$WIN32]
+		$IntermediateDirectory		".\Release_dll"			[$WIN32]
+	}
+}
+
+$Project "Scene Cache"
+{
+	$Folder	"Source Files"
+	{
+		$File	"scenecache.cpp"
+		$File	"$SRCDIR\public\interpolatortypes.cpp"
+
+		$File	"$SRCDIR\public\filesystem_helpers.cpp"
+	}
+
+	$Folder	"Header Files"
+	{
+		$File	"$SRCDIR\public\scenefilecache\INewSceneCache.h"
+		$File	"$SRCDIR\public\scenefilecache\SceneImageFile.h"
+	}
+
+	$Folder	"Link Libraries"
+	{
+		$Lib	choreoobjects
+		$Lib	tier0
+		$Lib	tier1
+		$Lib	tier2
+		$Lib	tier3
+		$Lib	mathlib
+	}
+}

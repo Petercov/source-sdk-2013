@@ -67,6 +67,9 @@ ConGroup_t g_ConGroups[CON_GROUP_MAX] = {
 	DEFINE_CON_GROUP( CON_GROUP_VSCRIPT, "VScript", "Internal messages from VScript not produced by actual scripts." ),
 	DEFINE_CON_GROUP( CON_GROUP_VSCRIPT_PRINT, "VScript print", "Messages from VScript's 'print' function." ),
 
+	// Scene Cache
+	DEFINE_CON_GROUP(CON_GROUP_SCENE_CACHE, "Scene cache", "Messages from the scene cache module."),
+
 };
 
 int FindConGroup( const char *pszName )
@@ -114,7 +117,7 @@ void LoadConsoleGroupsFromFile( IBaseFileSystem *filesystem, const char *pszFile
 
 void InitConsoleGroups( IBaseFileSystem *filesystem )
 {
-	LoadConsoleGroupsFromFile( filesystem, "scripts/mapbase_con_groups.txt", "MOD" );
+	LoadConsoleGroupsFromFile( filesystem, "scripts/mapbase_con_groups.txt", "GAME" );
 	LoadConsoleGroupsFromFile( filesystem, "scripts/mod_con_groups.txt", "MOD" );
 }
 
