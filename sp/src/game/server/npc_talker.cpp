@@ -794,22 +794,25 @@ int CNPCSimpleTalker::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 {
 	CTakeDamageInfo subInfo = info;
 
+#ifndef MAPBASE
 	// if player damaged this entity, have other friends talk about it.
-	if (subInfo.GetAttacker() && (subInfo.GetAttacker()->GetFlags() & FL_CLIENT) && subInfo.GetDamage() < GetHealth() )
+	if (subInfo.GetAttacker() && (subInfo.GetAttacker()->GetFlags() & FL_CLIENT) && subInfo.GetDamage() < GetHealth())
 	{
-		CBaseEntity *pFriend = FindNearestFriend(false);
+		CBaseEntity* pFriend = FindNearestFriend(false);
 
 		if (pFriend && pFriend->IsAlive())
 		{
 			// only if not dead or dying!
-			CNPCSimpleTalker *pTalkNPC = (CNPCSimpleTalker *)pFriend;
+			CNPCSimpleTalker* pTalkNPC = (CNPCSimpleTalker*)pFriend;
 
 			if (pTalkNPC && pTalkNPC->IsOkToCombatSpeak())
 			{
-				pTalkNPC->Speak( TLK_NOSHOOT );
+				pTalkNPC->Speak(TLK_NOSHOOT);
 			}
 		}
 	}
+#endif // !MAPBASE
+
 	return BaseClass::OnTakeDamage_Alive( subInfo );
 }
 

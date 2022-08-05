@@ -599,7 +599,7 @@ int CAI_PlayerAlly::SelectSchedule( void )
 			PainSound( info );
 		}
 		// sustained heavy wounds?
-		else if ( m_iHealth <= m_iMaxHealth * 0.5 && IsAllowedToSpeak( TLK_MORTAL) )
+		else if ( m_iHealth <= m_iMaxHealth * 0.5 && IsAllowedToSpeak(TLK_MORTAL) )
 		{
 			Speak( TLK_MORTAL );
 		}
@@ -1282,12 +1282,19 @@ void CAI_PlayerAlly::TraceAttack( const CTakeDamageInfo &info, const Vector &vec
 	ModifyOrAppendDamageCriteria(modifiers, info);
 	if (pszHitLocCriterion)
 		modifiers.AppendCriteria("shotloc", pszHitLocCriterion + 8);
+
+	// if player damaged this entity, talk about it.
+	if (!info.GetAttacker() 
+		|| !info.GetAttacker()->IsPlayer()
+		|| info.GetDamage() >= GetHealth()
+		|| !IsPlayerAlly(ToBasePlayer(info.GetAttacker()))
+		|| !SpeakIfAllowed(TLK_NOSHOOT, modifiers)
+		)
 #else
 	// set up the speech modifiers
 	CFmtStrN<128> modifiers( "%s,damageammo:%s", pszHitLocCriterion, info.GetAmmoName() );
 #endif
-
-	SpeakIfAllowed( TLK_SHOT, modifiers );
+	SpeakIfAllowed(TLK_SHOT, modifiers);
 
 	BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
 }
@@ -1313,6 +1320,16 @@ int CAI_PlayerAlly::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 		}
 	}
 #endif
+
+#if 0
+	// if player damaged this entity, talk about it.
+	if (subInfo.GetAttacker() && subInfo.GetAttacker()->IsPlayer() && subInfo.GetDamage() < GetHealth() && IsPlayerAlly(ToBasePlayer(subInfo.GetAttacker())))
+	{
+		AI_CriteriaSet set;
+		ModifyOrAppendDamageCriteria(set, subInfo);
+		SpeakIfAllowed(TLK_NOSHOOT, set, true);
+	}
+#endif // MAPBASE
 
 	return BaseClass::OnTakeDamage_Alive( subInfo );
 }
@@ -1366,10 +1383,22 @@ void CAI_PlayerAlly::Event_Killed( const CTakeDamageInfo &info )
 	if ( pMourner )
 	{
 #ifdef MAPBASE
+		AI_CriteriaSet set;
+		ModifyOrAppendDamageCriteria(set, info);
 		pMourner->m_hPotentialSpeechTarget = this;
 		pMourner->SetSpeechTarget(this);
+
+		if (info.GetAttacker() && info.GetAttacker()->IsPlayer() && IsPlayerAlly(ToBasePlayer(info.GetAttacker())))
+		{
+			pMourner->SpeakIfAllowed(TLK_BETRAYED, set, true);
+		}
+		else
+		{
+			pMourner->SpeakIfAllowed(TLK_ALLY_KILLED, set);
+		}
+#else
+		pMourner->SpeakIfAllowed(TLK_ALLY_KILLED);
 #endif
-		pMourner->SpeakIfAllowed( TLK_ALLY_KILLED );
 	}
 
 	SetTarget( NULL );

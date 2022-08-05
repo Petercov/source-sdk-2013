@@ -4956,154 +4956,19 @@ float CNPC_Citizen::GetHitgroupDamageMultiplier(int iHitGroup, const CTakeDamage
 	return BaseClass::GetHitgroupDamageMultiplier(iHitGroup, info);
 }
 
-#define SNEAK_ATTACK_DIST	360.0f // 30 feet
 //=========================================================
 // TraceAttack is overridden here for jump rebel purposes.
 //=========================================================
 void CNPC_Citizen::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator)
 {
-	m_fNoDamageDecal = false;
-	if (m_takedamage == DAMAGE_NO)
-		return;
-
-	bool bSneakAttacked = false;
-
-	if (ptr->hitgroup == HITGROUP_HEAD)
-	{
-		if (info.GetAttacker() && info.GetAttacker()->IsPlayer() && info.GetAttacker() != GetEnemy() && !IsInAScript())
-		{
-			// Shot in the head by a player I've never seen. In this case the player 
-			// has gotten the drop on this enemy and such an attack is always lethal (at close range)
-			bSneakAttacked = true;
-
-			AIEnemiesIter_t	iter;
-			for (AI_EnemyInfo_t* pMemory = GetEnemies()->GetFirst(&iter); pMemory != NULL; pMemory = GetEnemies()->GetNext(&iter))
-			{
-				if (pMemory->hEnemy == info.GetAttacker())
-				{
-					bSneakAttacked = false;
-					break;
-				}
-			}
-
-			float flDist;
-
-			flDist = (info.GetAttacker()->GetAbsOrigin() - GetAbsOrigin()).Length();
-
-			if (flDist > SNEAK_ATTACK_DIST)
-			{
-				bSneakAttacked = false;
-			}
-		}
-	}
-
 	CTakeDamageInfo subInfo = info;
-	if (bSneakAttacked)
-		subInfo.SetDamage(GetHealth());
-
-	SetLastHitGroup(ptr->hitgroup);
-	m_nForceBone = ptr->physicsbone;		// save this bone for physics forces
-
-	Assert(m_nForceBone > -255 && m_nForceBone < 256);
-
-	bool bDebug = showhitlocation.GetBool();
-
-	switch (ptr->hitgroup)
+	if (m_Type == CT_LONGFALL && ptr->hitgroup == HITGROUP_GEAR)
 	{
-	case HITGROUP_GENERIC:
-		if (bDebug) DevMsg("Hit Location: Generic\n");
-		break;
-
-	case HITGROUP_GEAR:
-		// Blixibon - Allows jump rebels to use gear hitgroup as a weak point
-		if (m_Type == CT_LONGFALL)
-			subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
-		else
-		{
-			subInfo.SetDamage(0.01);
-			ptr->hitgroup = HITGROUP_GENERIC;
-		}
-		if (bDebug) DevMsg("Hit Location: Gear\n");
-		break;
-
-	case HITGROUP_HEAD:
-		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
-		if (bDebug) DevMsg("Hit Location: Head\n");
-		break;
-
-	case HITGROUP_CHEST:
-		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
-		if (bDebug) DevMsg("Hit Location: Chest\n");
-		break;
-
-	case HITGROUP_STOMACH:
-		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
-		if (bDebug) DevMsg("Hit Location: Stomach\n");
-		break;
-
-	case HITGROUP_LEFTARM:
-	case HITGROUP_RIGHTARM:
-		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
-		if (bDebug) DevMsg("Hit Location: Left/Right Arm\n");
-		break
-			;
-	case HITGROUP_LEFTLEG:
-	case HITGROUP_RIGHTLEG:
-		subInfo.ScaleDamage(GetHitgroupDamageMultiplier(ptr->hitgroup, info));
-		if (bDebug) DevMsg("Hit Location: Left/Right Leg\n");
-		break;
-
-	default:
-		if (bDebug) DevMsg("Hit Location: UNKNOWN\n");
-		break;
+		subInfo.ScaleDamage(sk_citizen_longfall_gear.GetFloat());
+		ptr->hitgroup = HITGROUP_GENERIC;
 	}
 
-	bool bBloodAllowed = DamageFilterAllowsBlood(info);
-	if (subInfo.GetDamage() >= 1.0 && !(subInfo.GetDamageType() & DMG_SHOCK) && bBloodAllowed)
-	{
-		if (ptr->hitgroup == HITGROUP_GEAR)
-		{
-			// Blixibon - Jump rebels have weak sparks in response to gear damage
-			g_pEffects->Sparks(ptr->endpos, 2, 2);
-		}
-		else
-			SpawnBlood(ptr->endpos, vecDir, BloodColor(), subInfo.GetDamage());// a little surface blood.
-
-		TraceBleed(subInfo.GetDamage(), vecDir, ptr, subInfo.GetDamageType());
-
-		if (ptr->hitgroup == HITGROUP_HEAD && m_iHealth - subInfo.GetDamage() > 0)
-		{
-			m_fNoDamageDecal = true;
-		}
-	}
-	else if (!bBloodAllowed)
-	{
-		m_fNoDamageDecal = true;
-	}
-
-	// Airboat gun will impart major force if it's about to kill him....
-	if (info.GetDamageType() & DMG_AIRBOAT)
-	{
-		if (subInfo.GetDamage() >= GetHealth())
-		{
-			float flMagnitude = subInfo.GetDamageForce().Length();
-			if ((flMagnitude != 0.0f) && (flMagnitude < 400.0f * 65.0f))
-			{
-				subInfo.ScaleDamageForce(400.0f * 65.0f / flMagnitude);
-			}
-		}
-	}
-
-	if (info.GetInflictor())
-	{
-		subInfo.SetInflictor(info.GetInflictor());
-	}
-	else
-	{
-		subInfo.SetInflictor(info.GetAttacker());
-	}
-
-	AddMultiDamage(subInfo, this);
+	BaseClass::TraceAttack(subInfo, vecDir, ptr, pAccumulator);
 }
 
 //-----------------------------------------------------------------------------
