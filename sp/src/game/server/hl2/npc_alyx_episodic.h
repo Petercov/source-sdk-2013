@@ -244,7 +244,7 @@ private:
 
 	bool	RunningPassengerBehavior( void );
 
-	WeaponType_t ComputeWeaponType( CBaseEntity *pWeapon = NULL );
+	WeaponType_t ComputeWeaponType( CBaseCombatWeapon *pWeapon = NULL );
 	WeaponType_t GetWeaponType() { return (WeaponType_t)m_WeaponType; }
 	bool HasShotgun()	{ Assert( m_WeaponType == ComputeWeaponType() ); return ( m_WeaponType == WT_SHOTGUN ); }
 	bool HasAlyxgun()	{ Assert( m_WeaponType == ComputeWeaponType() ); return ( m_WeaponType == WT_ALYXGUN ); }

@@ -1684,12 +1684,14 @@ Activity CNPC_Alyx::NPC_TranslateActivity( Activity activity )
 
 	switch ( activity )
 	{
+#ifndef MAPBASE
 		// !!!HACK - Alyx doesn't have the required animations for shotguns, 
-		// so trick her into using the rifle counterparts for now (sjb)
-		case ACT_RUN_AIM_SHOTGUN:			return ACT_RUN_AIM_RIFLE;
-		case ACT_WALK_AIM_SHOTGUN:			return ACT_WALK_AIM_RIFLE;
-		case ACT_IDLE_ANGRY_SHOTGUN:		return ACT_IDLE_ANGRY_SMG1;
-		case ACT_RANGE_ATTACK_SHOTGUN_LOW:	return ACT_RANGE_ATTACK_SMG1_LOW;
+// so trick her into using the rifle counterparts for now (sjb)
+	case ACT_RUN_AIM_SHOTGUN:			return ACT_RUN_AIM_RIFLE;
+	case ACT_WALK_AIM_SHOTGUN:			return ACT_WALK_AIM_RIFLE;
+	case ACT_IDLE_ANGRY_SHOTGUN:		return ACT_IDLE_ANGRY_SMG1;
+	case ACT_RANGE_ATTACK_SHOTGUN_LOW:	return ACT_RANGE_ATTACK_SMG1_LOW;
+#endif // !MAPBASE
 
 		case ACT_PICKUP_RACK:				return (Activity)ACT_ALYX_PICKUP_RACK;
 		case ACT_DROP_WEAPON:				if ( HasShotgun() ) return (Activity)ACT_DROP_WEAPON_SHOTGUN;
@@ -3431,7 +3433,7 @@ bool CNPC_Alyx::ForceVehicleInteraction( const char *lpszInteractionName, CBaseC
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-CNPC_Alyx::WeaponType_t CNPC_Alyx::ComputeWeaponType( CBaseEntity *pWeapon )
+CNPC_Alyx::WeaponType_t CNPC_Alyx::ComputeWeaponType(CBaseCombatWeapon*pWeapon )
 {
 	if ( !pWeapon )
 	{
@@ -3443,25 +3445,34 @@ CNPC_Alyx::WeaponType_t CNPC_Alyx::ComputeWeaponType( CBaseEntity *pWeapon )
 		return WT_NONE;
 	}
 
-	if ( pWeapon->ClassMatches( CLASSNAME_ALYXGUN ) )
+#ifndef MAPBASE
+	if (pWeapon->ClassMatches(CLASSNAME_ALYXGUN))
 	{
 		return WT_ALYXGUN;
 	}
 
-	if ( pWeapon->ClassMatches( CLASSNAME_SMG1 ) )
+	if (pWeapon->ClassMatches(CLASSNAME_SMG1))
 	{
 		return WT_SMG1;
 	}
 
-	if ( pWeapon->ClassMatches( CLASSNAME_SHOTGUN ) )
+	if (pWeapon->ClassMatches(CLASSNAME_SHOTGUN))
 	{
 		return WT_SHOTGUN;
 	}
 
-	if ( pWeapon->ClassMatches( CLASSNAME_AR2 ) )
+	if (pWeapon->ClassMatches(CLASSNAME_AR2))
 	{
 		return WT_AR2;
 	}
+#else
+	switch (pWeapon->WeaponClassify())
+	{
+	case WEPCLASS_HANDGUN:	return WT_ALYXGUN;
+	case WEPCLASS_SHOTGUN:	return WT_SHOTGUN;
+	case WEPCLASS_RIFLE:	return WT_AR2;
+	}
+#endif // !MAPBASE
 
 	return WT_OTHER;
 }
