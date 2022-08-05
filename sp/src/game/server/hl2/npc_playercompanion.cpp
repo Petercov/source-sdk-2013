@@ -200,6 +200,10 @@ CNPC_PlayerCompanion::CNPC_PlayerCompanion()
 
 bool CNPC_PlayerCompanion::CreateBehaviors()
 {
+#ifdef MAPBASE
+	AddBehavior(&m_FuncTankBehavior);
+#endif
+
 #ifdef HL2_EPISODIC
 	AddBehavior( &m_FearBehavior );
 	AddBehavior( &m_PassengerBehavior );
@@ -219,10 +223,6 @@ bool CNPC_PlayerCompanion::CreateBehaviors()
 	AddBehavior( &m_FollowBehavior );
 	AddBehavior( &m_LeadBehavior );
 #endif//HL2_EPISODIC
-
-#ifdef MAPBASE
-	AddBehavior( &m_FuncTankBehavior );
-#endif
 	
 	return BaseClass::CreateBehaviors();
 }
