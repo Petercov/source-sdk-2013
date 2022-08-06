@@ -12,6 +12,10 @@
 #include "lzmaDecoder.h"
 #include "mapbase_con_groups.h"
 
+#include "valve_minmax_off.h"
+#include <unordered_map>
+#include "valve_minmax_on.h"
+
 #include "tier0/memdbgon.h"
 
 #define SCENE_IMAGE_PATHID "GAME"
@@ -585,6 +589,7 @@ private:
 
 	CUtlHash<SceneFileEntry_t> m_Scenes;
 	CUtlHash<SceneFileHash_t> m_SceneToImage;
+	std::unordered_map<FileNameHandle_t, DataCacheHandle_t> m_ImageHandles;
 
 	typedef CTier1AppSystem<INewSceneCache> BaseClass;
 };
@@ -606,6 +611,7 @@ void CSceneCache::OutputStatus()
 void CSceneCache::Reload()
 {
 	m_Scenes.RemoveAll();
+	m_ImageHandles.clear();
 	g_SceneImageCache.CacheFlush();
 	g_SceneFileCache.CacheFlush();
 	ScanSceneImages();
@@ -668,6 +674,7 @@ void CSceneCache::Shutdown()
 	if (m_nInitCount == 0)
 	{
 		m_Scenes.Purge();
+		m_ImageHandles.clear();
 		m_SceneToImage.Purge();
 		g_SceneImageCache.Shutdown();
 		g_SceneFileCache.Shutdown();
@@ -748,6 +755,9 @@ bool CSceneCache::FindScene(const char* pszScene, SceneFileEntry_t& entry)
 
 		entry.bFromImage = true;
 		entry.hContainingFileName = hashEntry.hContainingFileName;
+		if (m_ImageHandles.count(entry.hContainingFileName))
+			entry.hCacheHandle = m_ImageHandles.at(entry.hContainingFileName);
+		
 		return true;
 	}
 
@@ -768,7 +778,7 @@ void CSceneCache::LoadSceneImage(SceneFileEntry_t& entry)
 	SceneCacheParams_t params;
 	params.pszFileName = imagePath;
 	params.nFileSize = filesystem->Size(imagePath);
-	entry.hCacheHandle = g_SceneImageCache.CacheCreate(params);
+	m_ImageHandles[entry.hContainingFileName] = entry.hCacheHandle = g_SceneImageCache.CacheCreate(params);
 }
 
 void CSceneCache::LoadVCDScene(SceneFileEntry_t& entry)
