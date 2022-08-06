@@ -1,16 +1,22 @@
 
 #include "dbg.h"
 #include "tier1.h"
+#include "ISceneFileCache.h"
 #include "INewSceneCache.h"
 #include "SceneImageFile.h"
 #include "datacache/idatacache.h"
 #include "filesystem.h"
+#include "utlrbtree.h"
+#include "utlbuffer.h"
+#include "UtlSortVector.h"
+#include "tier1/strtools.h"
 #include "../game/shared/choreoscene.h"
 #include "utlsymbol.h"
 #include "checksum_crc.h"
 #include "utlhash.h"
 #include "lzmaDecoder.h"
 #include "mapbase_con_groups.h"
+#include "tier3/scenetokenprocessor.h"
 
 #include "valve_minmax_off.h"
 #include <unordered_map>
@@ -68,6 +74,32 @@ inline CRC32_t GetPathCRC(const char* pszScenePath)
 }
 
 CUtlFilenameSymbolTable g_ScenePathTable;
+CUtlSymbolTable g_SceneSoundTable(0, 16, true);
+
+class CSoundStringPool : public IChoreoStringPool
+{
+public:
+	CSoundStringPool()
+	{}
+
+	short FindOrAddString(const char* pString)
+	{
+		return g_SceneSoundTable.AddString(pString);
+	}
+
+	bool GetString(short stringId, char* buff, int buffSize)
+	{
+		// fetch from compiled pool
+		const char* pString = g_SceneSoundTable.String(stringId);
+		if (!pString)
+		{
+			V_strncpy(buff, "", buffSize);
+			return false;
+		}
+		V_strncpy(buff, pString, buffSize);
+		return true;
+	}
+} g_SoundTableStringPool;
 
 struct SceneCacheParams_t
 {
@@ -80,6 +112,8 @@ struct SceneFileResource_t
 	FileNameHandle_t m_hFileName;
 	unsigned int m_nFileSize;
 	byte* m_pFileData;
+	unsigned int	msecs;
+	CUtlVector< UtlSymId_t > soundList;
 
 	FSAsyncControl_t	m_hAsyncControl;
 
@@ -98,15 +132,51 @@ struct SceneFileResource_t
 	SceneFileResource_t* GetData() { return this; }
 	unsigned int	Size()
 	{
-		return sizeof(*this) + m_nFileSize;
+		return sizeof(*this) + m_nFileSize + (sizeof(UtlSymId_t) * soundList.Count());
 	}
 
 	static void AsyncLoaderCallback(const FileAsyncRequest_t& request, int numReadBytes, FSAsyncStatus_t asyncStatus)
 	{
 		// get our preserved data
 		SceneFileResource_t* pData = (SceneFileResource_t*)request.pContext;
-
 		Assert(pData);
+
+		SetTokenProcessorBuffer((char *)pData->m_pFileData);
+		CChoreoScene* pScene = ChoreoLoadScene(request.pszFilename, nullptr, GetTokenProcessor(), nullptr);
+		SetTokenProcessorBuffer(NULL);
+
+		// Walk all events looking for SPEAK events
+		int c = pScene->GetNumEvents();
+		for (int i = 0; i < c; ++i)
+		{
+			CChoreoEvent* pEvent = pScene->GetEvent(i);
+			if (pEvent->GetType() == CChoreoEvent::SPEAK)
+			{
+				unsigned short stringId = g_SceneSoundTable.AddString(pEvent->GetParameters());
+				if (pData->soundList.Find(stringId) == pData->soundList.InvalidIndex())
+				{
+					pData->soundList.AddToTail(stringId);
+				}
+
+				if (pEvent->GetCloseCaptionType() == CChoreoEvent::CC_MASTER)
+				{
+					char tok[CChoreoEvent::MAX_CCTOKEN_STRING];
+					if (pEvent->GetPlaybackCloseCaptionToken(tok, sizeof(tok)))
+					{
+						stringId = g_SceneSoundTable.AddString(tok);
+						if (pData->soundList.Find(stringId) == pData->soundList.InvalidIndex())
+						{
+							pData->soundList.AddToTail(stringId);
+						}
+					}
+				}
+			}
+		}
+
+		// Update scene duration, too
+		pData->msecs = (int)(pScene->FindStopTime() * 1000.0f + 0.5f);
+
+		delete pScene;
 
 		// mark as completed in single atomic operation
 		pData->m_bLoadCompleted = true;
@@ -300,6 +370,8 @@ public:
 	int FindSceneInImage(CRC32_t crcFilename);
 	bool GetSceneDataFromImage(int iScene, CUtlBuffer &buf);
 	bool GetSceneDataFromImage(int iScene, byte* pData, size_t* pLength);
+	bool GetSceneCachedData(int iScene, SceneCachedData_t* pData);
+	short GetSceneCachedSound(int iScene, int iSound);
 
 private:
 	SceneImageHeader_t* GetImage() { return (SceneImageHeader_t*)m_pFileData; }
@@ -451,6 +523,76 @@ bool CSceneImageResource::GetSceneDataFromImage(int iScene, byte* pSceneData, si
 	return true;
 }
 
+bool CSceneImageResource::GetSceneCachedData(int iScene, SceneCachedData_t* pData)
+{
+	if (!m_bLoadCompleted || iScene < 0 || iScene >= GetImage()->nNumScenes)
+	{
+		return false;
+	}
+
+	if (pData)
+	{
+		SceneImageEntry_t* pEntries = (SceneImageEntry_t*)((byte*)GetImage() + GetImage()->nSceneEntryOffset);
+		void* pUnknown = (unsigned char*)GetImage() + pEntries[iScene].nSceneSummaryOffset;
+		switch (GetImage()->nVersion)
+		{
+		case 2:
+		{
+			const SceneImageSummary_t* pSummary = (SceneImageSummary_t*)pUnknown;
+			pData->msecs = pSummary->msecs;
+			pData->numSounds = pSummary->numSounds;
+		}
+		break;
+		case 3:
+		{
+			const SceneImageSummaryV3_t* pSummary = (SceneImageSummaryV3_t*)pUnknown;
+			pData->msecs = pSummary->msecs;
+			pData->numSounds = pSummary->numSounds;
+		}
+		break;
+		default:
+			return false;
+			break;
+		}
+	}
+
+	return true;
+}
+
+short CSceneImageResource::GetSceneCachedSound(int iScene, int iSound)
+{
+	if (!m_bLoadCompleted || iScene < 0 || iSound < 0 || iScene >= GetImage()->nNumScenes)
+	{
+		return -1;
+	}
+
+	SceneImageEntry_t* pEntries = (SceneImageEntry_t*)((byte*)GetImage() + GetImage()->nSceneEntryOffset);
+	void* pUnknown = (unsigned char*)GetImage() + pEntries[iScene].nSceneSummaryOffset;
+	switch (GetImage()->nVersion)
+	{
+	case 2:
+	{
+		const SceneImageSummary_t* pSummary = (SceneImageSummary_t*)pUnknown;
+		if (iSound >= pSummary->numSounds)
+			return -1;
+
+		return pSummary->soundStrings[iSound];
+	}
+	break;
+	case 3:
+	{
+		const SceneImageSummaryV3_t* pSummary = (SceneImageSummaryV3_t*)pUnknown;
+		if (iSound >= pSummary->numSounds)
+			return -1;
+
+		return pSummary->soundStrings[iSound];
+	}
+	break;
+	}
+
+	return -1;
+}
+
 class CSceneImageCache : public CManagedDataCacheClient<CSceneImageResource, SceneCacheParams_t>
 {
 public:
@@ -570,12 +712,17 @@ public:
 	virtual void PollForAsyncLoading(ISceneFileCacheCallback* entity, char const* pszScene);
 	virtual bool IsStillAsyncLoading(char const* filename);
 
+	// persisted scene data, returns true if valid, false otherwise
+	virtual bool		GetSceneCachedData(char const* pFilename, SceneCachedData_t* pData);
+	virtual short		GetSceneCachedSound(int iScene, int iSound);
+
 	// sync
 	virtual size_t		GetSceneBufferSize(char const* filename);
 	virtual bool		GetSceneData(char const* filename, byte* buf, size_t bufsize);
 
 	// Blocking
-	IChoreoStringPool* GetSceneStringPool(const char* filename);
+	virtual IChoreoStringPool* GetSceneStringPool(const char* filename);
+	virtual IChoreoStringPool* GetSceneStringPool(int iScene);
 
 	bool GetSceneFilePath(const char* pszScene, char* pszPath, int nMaxLen);
 private:
@@ -614,6 +761,7 @@ void CSceneCache::Reload()
 	m_ImageHandles.clear();
 	g_SceneImageCache.CacheFlush();
 	g_SceneFileCache.CacheFlush();
+	g_SceneSoundTable.RemoveAll();
 	ScanSceneImages();
 }
 
@@ -678,6 +826,7 @@ void CSceneCache::Shutdown()
 		m_SceneToImage.Purge();
 		g_SceneImageCache.Shutdown();
 		g_SceneFileCache.Shutdown();
+		g_SceneSoundTable.RemoveAll();
 		BaseClass::Shutdown();
 	}
 }
@@ -957,6 +1106,113 @@ bool CSceneCache::IsStillAsyncLoading(char const* filename)
 	return bRet;
 }
 
+bool CSceneCache::GetSceneCachedData(char const* pFilename, SceneCachedData_t* pData)
+{
+	SceneFileEntry_t key;
+	key.crcScene = GetPathCRC(pFilename);
+	UtlHashHandle_t hScene = m_Scenes.Find(key);
+	if (!m_Scenes.IsValidHandle(hScene))
+	{
+		if (!FindScene(pFilename, key))
+		{
+			pData->sceneId = -1;
+			pData->msecs = 0;
+			pData->numSounds = 0;
+			return false;
+		}
+
+		hScene = m_Scenes.Insert(key);
+	}
+
+	pData->sceneId = hScene;
+	bool bRet = false;
+	auto& entry = m_Scenes.Element(hScene);
+	if (entry.bFromImage)
+	{
+		auto pCache = g_SceneImageCache.CacheLock(entry.hCacheHandle);
+		if (!pCache)
+		{
+			LoadSceneImage(entry);
+			pCache = g_SceneImageCache.CacheLock(entry.hCacheHandle);
+			Assert(pCache);
+
+			pCache->AsyncLoad();
+		}
+
+		pCache->AsyncFinish();
+		int iScene = pCache->FindSceneInImage(entry.crcScene);
+		bRet = pCache->GetSceneCachedData(iScene, pData);
+		g_SceneImageCache.CacheUnlock(entry.hCacheHandle);
+	}
+	else
+	{
+		auto pCache = g_SceneFileCache.CacheLock(entry.hCacheHandle);
+		if (!pCache)
+		{
+			LoadVCDScene(entry);
+			pCache = g_SceneFileCache.CacheLock(entry.hCacheHandle);
+			Assert(pCache);
+
+			pCache->AsyncLoad();
+		}
+
+		pCache->AsyncFinish();
+		pData->msecs = pCache->msecs;
+		pData->numSounds = pCache->soundList.Count();
+		bRet = true;
+		g_SceneFileCache.CacheUnlock(entry.hCacheHandle);
+	}
+
+	return bRet;
+}
+
+short CSceneCache::GetSceneCachedSound(int iScene, int iSound)
+{
+	UtlHashHandle_t hScene = iScene;
+	if (!m_Scenes.IsValidHandle(hScene))
+		return -1;
+
+	short nRet = -1;
+	auto& entry = m_Scenes.Element(hScene);
+	if (entry.bFromImage)
+	{
+		auto pCache = g_SceneImageCache.CacheLock(entry.hCacheHandle);
+		if (!pCache)
+		{
+			LoadSceneImage(entry);
+			pCache = g_SceneImageCache.CacheLock(entry.hCacheHandle);
+			Assert(pCache);
+
+			pCache->AsyncLoad();
+		}
+
+		pCache->AsyncFinish();
+		int iImageScene = pCache->FindSceneInImage(entry.crcScene);
+		nRet = pCache->GetSceneCachedSound(iImageScene, iSound);
+		g_SceneImageCache.CacheUnlock(entry.hCacheHandle);
+	}
+	else
+	{
+		auto pCache = g_SceneFileCache.CacheLock(entry.hCacheHandle);
+		if (!pCache)
+		{
+			LoadVCDScene(entry);
+			pCache = g_SceneFileCache.CacheLock(entry.hCacheHandle);
+			Assert(pCache);
+
+			pCache->AsyncLoad();
+		}
+
+		pCache->AsyncFinish();
+		if (iSound >= 0 && iSound < pCache->soundList.Count())
+			nRet = pCache->soundList[iSound];
+
+		g_SceneFileCache.CacheUnlock(entry.hCacheHandle);
+	}
+
+	return nRet;
+}
+
 size_t CSceneCache::GetSceneBufferSize(char const* pFilename)
 {
 	SceneFileEntry_t key;
@@ -1090,6 +1346,41 @@ IChoreoStringPool* CSceneCache::GetSceneStringPool(const char* pFilename)
 
 		pCache->AsyncFinish();
 		pRet = pCache;
+	}
+	else
+	{
+		pRet = &g_SoundTableStringPool;
+	}
+
+	return pRet;
+}
+
+IChoreoStringPool* CSceneCache::GetSceneStringPool(int iScene)
+{
+	UtlHashHandle_t hScene = iScene;
+	if (!m_Scenes.IsValidHandle(hScene))
+		return nullptr;
+
+	IChoreoStringPool* pRet = NULL;
+	auto& entry = m_Scenes.Element(hScene);
+	if (entry.bFromImage)
+	{
+		auto pCache = g_SceneImageCache.CacheGet(entry.hCacheHandle);
+		if (!pCache)
+		{
+			LoadSceneImage(entry);
+			pCache = g_SceneImageCache.CacheGet(entry.hCacheHandle);
+			Assert(pCache);
+
+			pCache->AsyncLoad();
+		}
+
+		pCache->AsyncFinish();
+		pRet = pCache;
+	}
+	else
+	{
+		pRet = &g_SoundTableStringPool;
 	}
 
 	return pRet;

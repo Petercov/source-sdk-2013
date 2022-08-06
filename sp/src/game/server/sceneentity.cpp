@@ -3867,6 +3867,7 @@ void CSceneEntity::FinishAsyncLoading(char const* pszScene, IChoreoStringPool* p
 
 	if (buflen == 0 || !buffer)
 	{
+		MissingSceneWarning(pszScene);
 		m_bSceneMissing = true;
 		return;
 	}
@@ -3946,12 +3947,16 @@ CChoreoScene *CSceneEntity::LoadScene( const char *filename, IChoreoEventCallbac
 #ifdef MAPBASE_SCENECACHE
 	size_t bufsize = scenefilecache2->GetSceneBufferSize(loadfile);
 	if (bufsize <= 0)
+	{
+		MissingSceneWarning(loadfile);
 		return NULL;
+	}
 
 	pBuffer = malloc(bufsize);
 	if (!scenefilecache2->GetSceneData(loadfile, (byte*)pBuffer, bufsize))
 	{
 		free(pBuffer);
+		MissingSceneWarning(loadfile);
 		return NULL;
 	}
 
@@ -5500,7 +5505,7 @@ void StopScriptedScene( CBaseFlex *pActor, EHANDLE hSceneEnt )
 	}
 }
 
-#ifdef MAPBASE_SCENECACHE
+#if 0 //defined(MAPBASE_SCENECACHE)
 static CUtlCachedFileData< CSceneCache >	g_SceneCache("scene.cache", SCENECACHE_VERSION, 0, UTL_CACHED_FILE_USE_FILESIZE
 #if defined( COMPILED_VCDS )
 	// On the xbox, the scene.cache is rebuild using makexvcd.exe, 
@@ -5573,10 +5578,18 @@ CSceneCacheSaver g_SceneCacheSaver("CSceneCacheSaver");
 float GetSceneDuration( char const *pszScene )
 {
 #ifdef MAPBASE_SCENECACHE
-	CSceneCache* entry = g_SceneCache.Get(pszScene);
+	/*CSceneCache* entry = g_SceneCache.Get(pszScene);
 	if (!entry)
 		return 0;
-	return (float)entry->msecs * 0.001f;
+	return (float)entry->msecs * 0.001f;*/
+	unsigned int msecs = 0;
+	SceneCachedData_t cachedData;
+	if (scenefilecache2->GetSceneCachedData(pszScene, &cachedData))
+	{
+		msecs = cachedData.msecs;
+	}
+
+	return (float)msecs * 0.001f;
 #elif !defined(MAPBASE)
 	unsigned int msecs = 0;
 
@@ -5608,7 +5621,7 @@ float GetSceneDuration( char const *pszScene )
 //-----------------------------------------------------------------------------
 float GetSceneSpeechDuration( char const* pszScene )
 {
-#ifdef MAPBASE_SCENECACHE
+#if 0 //defined(MAPBASE_SCENECACHE)
 	CSceneCache* entry = g_SceneCache.Get(pszScene);
 	if (!entry)
 		return 0;
@@ -5644,10 +5657,17 @@ float GetSceneSpeechDuration( char const* pszScene )
 int GetSceneSpeechCount( char const *pszScene )
 {
 #ifdef MAPBASE_SCENECACHE
-	CSceneCache* entry = g_SceneCache.Get(pszScene);
+	/*CSceneCache* entry = g_SceneCache.Get(pszScene);
 	if (!entry)
 		return 0;
-	return entry->GetSoundCount();
+	return entry->GetSoundCount();*/
+	SceneCachedData_t cachedData;
+	if (scenefilecache2->GetSceneCachedData(pszScene, &cachedData))
+	{
+		return cachedData.numSounds;
+	}
+
+	return 0;
 #else
 	SceneCachedData_t cachedData;
 	if ( scenefilecache->GetSceneCachedData( pszScene, &cachedData ) )
@@ -5727,6 +5747,7 @@ void PrecacheInstancedScene( char const *pszScene )
 	}
 
 #ifdef MAPBASE_SCENECACHE
+#if 0
 	if (!g_SceneCache.EntryExists(pszScene))
 	{
 		if (!CBaseEntity::IsPrecacheAllowed())
@@ -5751,6 +5772,20 @@ void PrecacheInstancedScene( char const *pszScene )
 	{
 		CBaseEntity::PrecacheScriptSound(entry->GetSoundName(i));
 	}
+#else
+	SceneCachedData_t sceneData;
+	IChoreoStringPool* pStrings = NULL;
+	if (scenefilecache2->GetSceneCachedData(pszScene, &sceneData) && (pStrings = scenefilecache2->GetSceneStringPool(sceneData.sceneId)) != NULL)
+	{
+		char szSound[MAX_PATH];
+		for (int i = 0; i < sceneData.numSounds; ++i)
+		{
+			short stringId = scenefilecache2->GetSceneCachedSound(sceneData.sceneId, i);
+			if (pStrings->GetString(stringId, szSound, sizeof(szSound)))
+				CBaseEntity::PrecacheScriptSound(szSound);
+		}
+	}
+#endif // 0
 #else
 	// verify existence, cache is pre-populated, should be there
 	SceneCachedData_t sceneData;

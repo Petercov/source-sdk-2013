@@ -8,6 +8,7 @@
 #include "appframework/IAppSystem.h"
 
 class IChoreoStringPool;
+struct SceneCachedData_t;
 
 class ISceneFileCacheCallback
 {
@@ -24,6 +25,11 @@ public:
 	virtual bool StartAsyncLoading(char const* filename) = 0;
 	virtual void PollForAsyncLoading(ISceneFileCacheCallback* entity, char const* pszScene) = 0;
 	virtual bool IsStillAsyncLoading(char const* filename) = 0;
+
+	// persisted scene data, returns true if valid, false otherwise
+	virtual bool		GetSceneCachedData(char const* pFilename, SceneCachedData_t* pData) = 0;
+	virtual short		GetSceneCachedSound(int iScene, int iSound) = 0;
+	virtual IChoreoStringPool* GetSceneStringPool(int iScene) = 0;
 
 	// sync
 	virtual size_t		GetSceneBufferSize(char const* filename) = 0;
