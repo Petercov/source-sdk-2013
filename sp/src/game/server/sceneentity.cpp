@@ -398,6 +398,7 @@ public:
 	bool					IsMultiplayer() const			{ return m_bMultiplayer; }
 #ifdef MAPBASE_SCENECACHE
 	bool					IsAsyncLoadPending() const { return m_bAsyncVCDLoadPending; }
+	virtual bool			KeyValue(const char* szKeyName, const char* szValue);
 #endif // MAPBASE_SCENECACHE
 
 	bool					IsInterruptable();
@@ -5843,6 +5844,22 @@ void CSceneEntity::PollForAsyncLoading(char const* pszScene)
 {
 	m_bAsyncVCDLoadPending = true;
 	scenefilecache2->PollForAsyncLoading(this, pszScene);
+}
+
+bool CSceneEntity::KeyValue(const char* szKeyName, const char* szValue)
+{
+	if (FStrEq(szKeyName, "SceneFile"))
+	{
+		char loadfile[MAX_PATH];
+		Q_strncpy(loadfile, szValue, sizeof(loadfile));
+		Q_SetExtension(loadfile, ".vcd", sizeof(loadfile));
+		Q_FixSlashes(loadfile);
+
+		m_iszSceneFile = AllocPooledString(loadfile);
+		return true;
+	}
+	else
+		return BaseClass::KeyValue(szKeyName, szValue);
 }
 #endif // MAPBASE_SCENECACHE
 
