@@ -67,7 +67,7 @@ void CNPC_SinJessica::GatherConditions()
 
 int CNPC_SinJessica::SelectSchedulePriorityAction()
 {
-	if (HasCondition(COND_JESS_THROW_ITEM))
+	if (HasCondition(COND_JESS_THROW_ITEM) && !HasCondition(COND_TARGET_OCCLUDED))
 		return SCHED_JESS_THROW_ITEM;
 
 	return BaseClass::SelectSchedulePriorityAction();
