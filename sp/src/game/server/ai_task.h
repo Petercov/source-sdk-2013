@@ -497,6 +497,9 @@ enum sharedtasks_e
 #ifdef MAPBASE
 		// Faces the actual interaction angles instead of just facing the enemy
 		TASK_FACE_INTERACTION_ANGLES,
+
+		TASK_WEAPON_HOLSTER,	// Taskdata 1 destroys the weapon
+		TASK_WEAPON_UNHOLSTER,	// Taskdata 1 doesn't wait for unholster
 #endif
 
 		// ======================================

@@ -1628,6 +1628,45 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			}
 		}
 		break;
+
+	case TASK_WEAPON_HOLSTER:
+	{
+		if (IsWeaponHolstered())
+		{
+			TaskComplete();
+			return;
+		}
+
+		if (!CanHolsterWeapon())
+		{
+			TaskFail("No holster animation!");
+			return;
+		}
+
+		SetDesiredWeaponState((pTask->flTaskData != 0.0f) ? DESIREDWEAPONSTATE_HOLSTERED_DESTROYED : DESIREDWEAPONSTATE_HOLSTERED);
+		break;
+	}
+
+	case TASK_WEAPON_UNHOLSTER:
+	{
+		if (WeaponCount() == 0)
+		{
+			TaskComplete();
+			return;
+		}
+
+		if (!CanHolsterWeapon())
+		{
+			TaskFail("No unholster animation!");
+			return;
+		}
+
+		SetDesiredWeaponState(DESIREDWEAPONSTATE_UNHOLSTERED);
+		if (pTask->flTaskData != 0.0f)
+			TaskComplete();
+
+		break;
+	}
 #endif
 
 	case TASK_FACE_ENEMY:
@@ -3515,6 +3554,18 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 			}
 		}
 		break;
+
+	case TASK_WEAPON_HOLSTER:
+	case TASK_WEAPON_UNHOLSTER:
+	{
+		bool bIsHolster = pTask->iTask == TASK_WEAPON_HOLSTER;
+		if (!IsWeaponStateChanging() && IsWeaponHolstered() == bIsHolster)
+		{
+			TaskComplete();
+			return;
+		}
+	}
+	break;
 #endif
 
 	case TASK_FIND_COVER_FROM_BEST_SOUND:
