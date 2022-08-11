@@ -249,6 +249,7 @@ bool CWeaponSniperRifle::Holster( CBaseCombatWeapon *pSwitchingTo )
 			{
 				pPlayer->ShowViewModel(true);		
 				m_nZoomLevel = 0;
+				m_bInZoom = false;
 			}
 		}
 	}
