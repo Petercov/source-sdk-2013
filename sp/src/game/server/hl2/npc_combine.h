@@ -24,6 +24,8 @@
 #ifdef MAPBASE
 #include "mapbase/ai_grenade.h"
 #include "ai_behavior_police.h"
+
+#define SOLDIER_OBSTRUCTION
 #endif
 #ifdef EXPANDED_RESPONSE_SYSTEM_USAGE
 #include "mapbase/expandedrs_combine.h"
@@ -153,6 +155,21 @@ public:
 
 	bool			CreateBehaviors();
 
+#ifdef EZ
+	bool			CanDeployManhack( void );
+	void			ReleaseManhack( void );
+	void			OnAnimEventDeployManhack( animevent_t *pEvent );
+	void			OnAnimEventStartDeployManhack( void );
+	virtual void	HandleManhackSpawn( CAI_BaseNPC *pNPC ) {}
+#endif
+
+	void			OnScheduleChange();
+
+#ifdef SOLDIER_OBSTRUCTION
+	virtual bool	OnObstructionPreSteer( AILocalMoveGoal_t *pMoveGoal, float distClear, AIMoveResult_t *pResult );
+	virtual bool	ShouldAttackObstruction( CBaseEntity *pEntity );
+#endif
+
 	bool			OnBeginMoveAndShoot();
 	void			OnEndMoveAndShoot();
 
@@ -255,6 +272,15 @@ private:
 		SCHED_COMBINE_MOVE_TO_FORCED_GREN_LOS,
 		SCHED_COMBINE_FACE_IDEAL_YAW,
 		SCHED_COMBINE_MOVE_TO_MELEE,
+#ifdef EZ
+		SCHED_COMBINE_DEPLOY_MANHACK,
+#endif
+#ifdef EZ2
+		SCHED_COMBINE_ORDER_SURRENDER,
+#endif
+#ifdef SOLDIER_OBSTRUCTION
+		SCHED_COMBINE_ATTACK_TARGET,
+#endif
 		NEXT_SCHEDULE,
 	};
 
@@ -287,6 +313,12 @@ private:
 		COND_COMBINE_DROP_GRENADE,
 		COND_COMBINE_ON_FIRE,
 		COND_COMBINE_ATTACK_SLOT_AVAILABLE,
+#ifdef EZ2
+		COND_COMBINE_CAN_ORDER_SURRENDER,
+#endif
+#ifdef SOLDIER_OBSTRUCTION
+		COND_COMBINE_OBSTRUCTED,
+#endif
 		NEXT_CONDITION
 	};
 
@@ -335,6 +367,22 @@ private:
 #endif
 	bool			m_bShouldPatrol;
 	bool			m_bFirstEncounter;// only put on the handsign show in the squad's first encounter.
+#ifdef EZ
+	string_t		m_iszOriginalSquad;
+	bool			m_bHoldPositionGoal; // Blixibon - For soldiers staying in their area even after being removed from player's squad
+
+	float			m_flTimePlayerStare;
+	bool			m_bTemporarilyNeedWeapon; // Soldiers who drop their weapons but aren't supposed to pick them up autonomously are given this so that they arm themselves again
+
+	float			m_flNextHealthSearchTime;
+protected:
+	bool			m_bLookForItems;
+private:
+#endif
+#ifdef SOLDIER_OBSTRUCTION
+	EHANDLE			m_hObstructor;
+	float			m_flTimeSinceObstructed;
+#endif
 
 	// Time Variables
 	float			m_flNextPainSoundTime;
