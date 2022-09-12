@@ -117,7 +117,7 @@ public:
 
 protected:
 	bool		HasRangedWeapon();
-	void		PrecacheNPCSoundScript(string_t* SoundName, string_t defaultSoundName);
+	void		PrecacheNPCSoundScript(string_t& SoundName, string_t defaultSoundName);
 
 	int			m_iNumSquadmates;
 	bool		m_bUseBothSquadSlots;	// If true use two squad slots, if false use one squad slot

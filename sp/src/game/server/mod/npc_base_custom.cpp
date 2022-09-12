@@ -126,13 +126,13 @@ void CNPC_BaseCustomNPC::Precache( void )
 	}
 
 	PrecacheModel(STRING(GetModelName()));
-	PrecacheNPCSoundScript(&m_iszFearSound, MAKE_STRING("NPC_BaseCustomr.Fear"));
-	PrecacheNPCSoundScript(&m_iszIdleSound, MAKE_STRING("NPC_BaseCustom.Idle"));
-	PrecacheNPCSoundScript(&m_iszAlertSound, MAKE_STRING("NPC_BaseCustom.Alert"));
-	PrecacheNPCSoundScript(&m_iszPainSound, MAKE_STRING("NPC_BaseCustom.Pain"));
-	PrecacheNPCSoundScript(&m_iszLostEnemySound, MAKE_STRING("NPC_BaseCustom.LostEnemy"));
-	PrecacheNPCSoundScript(&m_iszFoundEnemySound, MAKE_STRING("NPC_BaseCustom.FoundEnemy"));
-	PrecacheNPCSoundScript(&m_iszDeathSound, MAKE_STRING("NPC_BaseCustom.Death"));
+	PrecacheNPCSoundScript(m_iszFearSound, MAKE_STRING("NPC_BaseCustom.Fear"));
+	PrecacheNPCSoundScript(m_iszIdleSound, MAKE_STRING("NPC_BaseCustom.Idle"));
+	PrecacheNPCSoundScript(m_iszAlertSound, MAKE_STRING("NPC_BaseCustom.Alert"));
+	PrecacheNPCSoundScript(m_iszPainSound, MAKE_STRING("NPC_BaseCustom.Pain"));
+	PrecacheNPCSoundScript(m_iszLostEnemySound, MAKE_STRING("NPC_BaseCustom.LostEnemy"));
+	PrecacheNPCSoundScript(m_iszFoundEnemySound, MAKE_STRING("NPC_BaseCustom.FoundEnemy"));
+	PrecacheNPCSoundScript(m_iszDeathSound, MAKE_STRING("NPC_BaseCustom.Death"));
 
 	m_bWanderToggle = false;
 
@@ -490,6 +490,7 @@ bool CNPC_BaseCustomNPC::HasRangedWeapon()
 Activity CNPC_BaseCustomNPC::NPC_TranslateActivity(Activity activity)
 {
 	switch (activity) {
+#ifndef MAPBASE
 	case ACT_RUN_AIM_SHOTGUN:
 		return ACT_RUN_AIM_RIFLE;
 	case ACT_WALK_AIM_SHOTGUN:
@@ -498,6 +499,8 @@ Activity CNPC_BaseCustomNPC::NPC_TranslateActivity(Activity activity)
 		return ACT_IDLE_ANGRY_SMG1;
 	case ACT_RANGE_ATTACK_SHOTGUN_LOW:
 		return ACT_RANGE_ATTACK_SMG1_LOW;
+#endif // !MAPBASE
+
 	case ACT_IDLE_MELEE:
 	case ACT_IDLE_ANGRY_MELEE:  // If the NPC has a melee weapon but is in an idle state, don't raise the weapon
 		if (m_NPCState == NPC_STATE_IDLE)
@@ -547,12 +550,12 @@ void CNPC_BaseCustomNPC::PlaySound(string_t soundname, bool required /*= false *
 //-----------------------------------------------------------------------------
 // Purpose: Assign a default soundscript if none is provided, then precache
 //-----------------------------------------------------------------------------
-void CNPC_BaseCustomNPC::PrecacheNPCSoundScript(string_t * SoundName, string_t defaultSoundName) 
+void CNPC_BaseCustomNPC::PrecacheNPCSoundScript(string_t& SoundName, string_t defaultSoundName) 
 {
-	if (!SoundName) {
-		*SoundName = defaultSoundName;
+	if (SoundName == NULL_STRING) {
+		SoundName = defaultSoundName;
 	}
-	PrecacheScriptSound(STRING(*SoundName));
+	PrecacheScriptSound(STRING(SoundName));
 }
 
 //-----------------------------------------------------------------------------

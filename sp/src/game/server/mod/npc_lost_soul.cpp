@@ -106,7 +106,7 @@ private:
 
 
 LINK_ENTITY_TO_CLASS( npc_lost_soul, CNPC_LostSoul );
-IMPLEMENT_CUSTOM_AI( npc_manhack,CNPC_LostSoul );
+IMPLEMENT_CUSTOM_AI( npc_lost_soul, CNPC_LostSoul );
 
 
 //---------------------------------------------------------
@@ -237,7 +237,7 @@ void CNPC_LostSoul::Spawn( void )
 int CNPC_LostSoul::OnTakeDamage_Alive(const CTakeDamageInfo &info)
 {
 	// Don't take burning damage!
-	if (info.GetDamageType() & 8) {
+	if (info.GetDamageType() & DMG_BURN) {
 		return 0;
 	}
 

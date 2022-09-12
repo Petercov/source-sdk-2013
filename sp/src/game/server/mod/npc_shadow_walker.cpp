@@ -57,13 +57,13 @@ void CNPC_ShadowWalker::Precache( void )
 	}
 
 	PrecacheModel(STRING(GetModelName()));
-	PrecacheNPCSoundScript(&m_iszFearSound, MAKE_STRING("NPC_ShadowWalker.Fear"));
-	PrecacheNPCSoundScript(&m_iszIdleSound, MAKE_STRING("NPC_ShadowWalker.Idle"));
-	PrecacheNPCSoundScript(&m_iszAlertSound, MAKE_STRING("NPC_ShadowWalker.Alert"));
-	PrecacheNPCSoundScript(&m_iszPainSound, MAKE_STRING("NPC_ShadowWalker.Pain"));
-	PrecacheNPCSoundScript(&m_iszLostEnemySound, MAKE_STRING("NPC_ShadowWalker.LostEnemy"));
-	PrecacheNPCSoundScript(&m_iszFoundEnemySound, MAKE_STRING("NPC_ShadowWalker.FoundEnemy"));
-	PrecacheNPCSoundScript(&m_iszDeathSound, MAKE_STRING("NPC_ShadowWalker.Death"));
+	PrecacheNPCSoundScript(m_iszFearSound, MAKE_STRING("NPC_ShadowWalker.Fear"));
+	PrecacheNPCSoundScript(m_iszIdleSound, MAKE_STRING("NPC_ShadowWalker.Idle"));
+	PrecacheNPCSoundScript(m_iszAlertSound, MAKE_STRING("NPC_ShadowWalker.Alert"));
+	PrecacheNPCSoundScript(m_iszPainSound, MAKE_STRING("NPC_ShadowWalker.Pain"));
+	PrecacheNPCSoundScript(m_iszLostEnemySound, MAKE_STRING("NPC_ShadowWalker.LostEnemy"));
+	PrecacheNPCSoundScript(m_iszFoundEnemySound, MAKE_STRING("NPC_ShadowWalker.FoundEnemy"));
+	PrecacheNPCSoundScript(m_iszDeathSound, MAKE_STRING("NPC_ShadowWalker.Death"));
 
 	m_bWanderToggle = false;
 
@@ -108,7 +108,7 @@ void CNPC_ShadowWalker::Spawn( void )
 		CapabilitiesAdd(bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD); // The default model has no face animations, but a custom model might
 		CapabilitiesAdd(bits_CAP_SQUAD);
 		CapabilitiesAdd(bits_CAP_USE_WEAPONS | bits_CAP_AIM_GUN | bits_CAP_MOVE_SHOOT);
-		CapabilitiesAdd(bits_CAP_WEAPON_MELEE_ATTACK1 || bits_CAP_WEAPON_MELEE_ATTACK2);
+		//CapabilitiesAdd(bits_CAP_WEAPON_MELEE_ATTACK1 || bits_CAP_WEAPON_MELEE_ATTACK2);
 		CapabilitiesAdd(bits_CAP_DUCK);
 		CapabilitiesAdd(bits_CAP_USE_SHOT_REGULATOR);
 
