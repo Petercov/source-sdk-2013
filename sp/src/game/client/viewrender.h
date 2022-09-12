@@ -414,7 +414,7 @@ public:
 	virtual C_BaseEntity *GetCurrentlyDrawingEntity();
 	virtual void		  SetCurrentlyDrawingEntity( C_BaseEntity *pEnt );
 
-	virtual bool		UpdateShadowDepthTexture( ITexture *pRenderTarget, ITexture *pDepthTexture, const CViewSetup &shadowView );
+	virtual bool		UpdateShadowDepthTexture( ITexture *pRenderTarget, ITexture *pDepthTexture, const CViewSetup &shadowView, bool bViewModels, bool bToolViewModels);
 
 	int GetBaseDrawFlags() { return m_BaseDrawFlags; }
 	virtual bool ShouldForceNoVis()  { return m_bForceNoVis; }
@@ -547,6 +547,7 @@ private:
 	int				m_BuildRenderableListsNumber;
 
 	friend class CBase3dView;
+	friend class CShadowDepthView;
 
 	Frustum m_Frustum;
 
