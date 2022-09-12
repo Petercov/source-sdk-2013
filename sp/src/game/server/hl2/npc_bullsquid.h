@@ -57,6 +57,9 @@ public:
 	void StartTask ( const Task_t *pTask );
 	void RunTask ( const Task_t *pTask );
 
+	// Copied from antlion
+	virtual bool GetSpitVector( const Vector &vecStartPos, const Vector &vecTarget, Vector *vecOut );
+	
 	NPC_STATE SelectIdealState ( void );
 
 	DEFINE_CUSTOM_AI;
@@ -70,5 +73,7 @@ private:
 	float m_flHungryTime;// set this is a future time to stop the monster from eating for a while. 
 
 	float m_nextSquidSoundTime;
+	
+	Vector	m_vecSaveSpitVelocity;
 };
 #endif // NPC_BULLSQUID_H

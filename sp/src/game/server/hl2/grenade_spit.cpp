@@ -128,6 +128,10 @@ void CGrenadeSpit::Event_Killed( const CTakeDamageInfo &info )
 //-----------------------------------------------------------------------------
 void CGrenadeSpit::GrenadeSpitTouch( CBaseEntity *pOther )
 {
+	
+	if ( pOther->Classify() == CLASS_BULLSQUID)
+		return; // Don't hit bullsquids!
+	
 	if ( pOther->IsSolidFlagSet(FSOLID_VOLUME_CONTENTS | FSOLID_TRIGGER) )
 	{
 		// Some NPCs are triggers that can take damage (like antlion grubs). We should hit them.
