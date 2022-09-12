@@ -119,6 +119,7 @@ public:
 	virtual void SetShadowsDisabled( bool bDisabled ) = 0;
 
 	virtual void ComputeShadowDepthTextures( const CViewSetup &pView ) = 0;
+	virtual void ComputeViewModelShadowDepthTextures(const CViewSetup& pView, bool bPlayerViewModels, bool bToolViewModels) = 0;
 
 #ifdef GSTRING_VOLUMETRICS
 	virtual bool VolumetricsAvailable() = 0;

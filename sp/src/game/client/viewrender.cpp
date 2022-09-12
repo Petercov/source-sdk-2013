@@ -453,12 +453,14 @@ class CShadowDepthView : public CRendering3dView
 public:
 	CShadowDepthView(CViewRender *pMainView) : CRendering3dView( pMainView ) {}
 
-	void Setup( const CViewSetup &shadowViewIn, ITexture *pRenderTarget, ITexture *pDepthTexture );
+	void Setup( const CViewSetup &shadowViewIn, ITexture *pRenderTarget, ITexture *pDepthTexture, bool bViewModels, bool bToolViewModels);
 	void Draw();
 
 private:
 	ITexture *m_pRenderTarget;
 	ITexture *m_pDepthTexture;
+	bool m_bViewModels;
+	bool m_bToolViewModels;
 };
 
 //-----------------------------------------------------------------------------
@@ -1075,6 +1077,14 @@ void CViewRender::DrawViewModels( const CViewSetup &view, bool drawViewmodel )
 	bool bShouldDrawPlayerViewModel = ShouldDrawViewModel( drawViewmodel );
 	bool bShouldDrawToolViewModels = ToolsEnabled();
 
+#ifdef MAPBASE
+	{
+		view_id_t iSaveViewID = CurrentViewID();
+		g_pClientShadowMgr->ComputeViewModelShadowDepthTextures(view, bShouldDrawPlayerViewModel, bShouldDrawToolViewModels);
+		SetupCurrentView(view.origin, view.angles, iSaveViewID);
+	}
+#endif // MAPBASE
+
 	CMatRenderContextPtr pRenderContext( materials );
 
 	PIXEVENT( pRenderContext, "DrawViewModels" );
@@ -1430,7 +1440,7 @@ void CViewRender::SetCurrentlyDrawingEntity( C_BaseEntity *pEnt )
 	m_pCurrentlyDrawingEntity = pEnt;
 }
 
-bool CViewRender::UpdateShadowDepthTexture( ITexture *pRenderTarget, ITexture *pDepthTexture, const CViewSetup &shadowViewIn )
+bool CViewRender::UpdateShadowDepthTexture( ITexture *pRenderTarget, ITexture *pDepthTexture, const CViewSetup &shadowViewIn, bool bViewModels, bool bToolViewModels)
 {
 	VPROF_INCREMENT_COUNTER( "shadow depth textures rendered", 1 );
 
@@ -1441,7 +1451,7 @@ bool CViewRender::UpdateShadowDepthTexture( ITexture *pRenderTarget, ITexture *p
 	PIXEVENT( pRenderContext, szPIXEventName );
 
 	CRefPtr<CShadowDepthView> pShadowDepthView = new CShadowDepthView( this );
-	pShadowDepthView->Setup( shadowViewIn, pRenderTarget, pDepthTexture );
+	pShadowDepthView->Setup( shadowViewIn, pRenderTarget, pDepthTexture, bViewModels, bToolViewModels);
 	AddViewToScene( pShadowDepthView );
 
 	return true;
@@ -1462,14 +1472,17 @@ void CViewRender::ViewDrawScene( bool bDrew3dSkybox, SkyboxVisibility_t nSkyboxV
 
 	g_pClientShadowMgr->PreRender();
 
+#ifndef MAPBASE
 	// Shadowed flashlights supported on ps_2_b and up...
-	if ( r_flashlightdepthtexture.GetBool() && (viewID == VIEW_MAIN) )
+	if (r_flashlightdepthtexture.GetBool() && (viewID == VIEW_MAIN))
 	{
-		g_pClientShadowMgr->ComputeShadowDepthTextures( view );
+		g_pClientShadowMgr->ComputeShadowDepthTextures(view);
 #ifdef ASW_PROJECTED_TEXTURES
-		CMatRenderContextPtr pRenderContext( materials );
+		CMatRenderContextPtr pRenderContext(materials);
 #endif
 	}
+#endif // !MAPBASE
+
 
 	m_BaseDrawFlags = baseDrawFlags;
 
@@ -1538,11 +1551,13 @@ void CViewRender::ViewDrawScene( bool bDrew3dSkybox, SkyboxVisibility_t nSkyboxV
 
 	FinishCurrentView();
 
+#ifndef MAPBASE
 	// Free shadow depth textures for use in future view
-	if ( r_flashlightdepthtexture.GetBool() )
+	if (r_flashlightdepthtexture.GetBool())
 	{
 		g_pClientShadowMgr->UnlockAllShadowDepthTextures();
 	}
+#endif // !MAPBASE
 }
 
 
@@ -2186,6 +2201,15 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 				AddViewToScene( pSkyView );
 			}
 			SafeRelease( pSkyView );
+
+			// Shadowed flashlights supported on ps_2_b and up...
+			if (r_flashlightdepthtexture.GetBool())
+			{
+				g_pClientShadowMgr->ComputeShadowDepthTextures(view);
+#ifdef ASW_PROJECTED_TEXTURES
+				CMatRenderContextPtr pRenderContext(materials);
+#endif
+			}
 #endif
 
 			ViewDrawScene( bDrew3dSkybox, nSkyboxVisible, view, nClearFlags, VIEW_MAIN, whatToDraw & RENDERVIEW_DRAWVIEWMODEL );
@@ -2246,7 +2270,17 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 #ifdef MAPBASE
 		if (!bDrawnViewmodel)
 #endif
-		DrawViewModels( view, whatToDraw & RENDERVIEW_DRAWVIEWMODEL );
+		{
+			DrawViewModels(view, whatToDraw & RENDERVIEW_DRAWVIEWMODEL);
+
+#ifdef MAPBASE
+			// Free shadow depth textures for use in future view
+			if (r_flashlightdepthtexture.GetBool())
+			{
+				g_pClientShadowMgr->UnlockAllShadowDepthTextures();
+			}
+#endif // MAPBASE
+		}
 
 		DrawUnderwaterOverlay();
 
@@ -5706,11 +5740,13 @@ void CPortalSkyboxView::Draw()
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------
-void CShadowDepthView::Setup( const CViewSetup &shadowViewIn, ITexture *pRenderTarget, ITexture *pDepthTexture )
+void CShadowDepthView::Setup( const CViewSetup &shadowViewIn, ITexture *pRenderTarget, ITexture *pDepthTexture, bool bViewModels, bool bToolViewModels)
 {
 	BaseClass::Setup( shadowViewIn );
 	m_pRenderTarget = pRenderTarget;
 	m_pDepthTexture = pDepthTexture;
+	m_bViewModels = bViewModels;
+	m_bToolViewModels = bToolViewModels;
 }
 
 
@@ -5746,25 +5782,29 @@ void CShadowDepthView::Draw()
 
 	pRenderContext.SafeRelease();
 
+	const bool bViewModelMode = (m_bViewModels || m_bToolViewModels);
+	int nClearFlags = bViewModelMode ? 0 : VIEW_CLEAR_DEPTH;
 	if( IsPC() )
 	{
-		render->Push3DView( (*this), VIEW_CLEAR_DEPTH, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
+		render->Push3DView( (*this), nClearFlags, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
 	}
 	else if( IsX360() )
 	{
 		//for the 360, the dummy render target has a separate depth buffer which we Resolve() from afterward
-		render->Push3DView( (*this), VIEW_CLEAR_DEPTH, m_pRenderTarget, GetFrustum() );
+		render->Push3DView( (*this), nClearFlags, m_pRenderTarget, GetFrustum() );
 	}
 
 	SetupCurrentView( origin, angles, VIEW_SHADOW_DEPTH_TEXTURE );
 
 	MDLCACHE_CRITICAL_SECTION();
 
+	if (!bViewModelMode)
 	{
 		VPROF_BUDGET( "BuildWorldRenderLists", VPROF_BUDGETGROUP_SHADOW_DEPTH_TEXTURING );
 		BuildWorldRenderLists( true, -1, true, true ); // @MULTICORE (toml 8/9/2006): Portal problem, not sending custom vis down
 	}
 
+	if (!bViewModelMode)
 	{
 		VPROF_BUDGET( "BuildRenderableRenderLists", VPROF_BUDGETGROUP_SHADOW_DEPTH_TEXTURING );
 		BuildRenderableRenderLists( CurrentViewID() );
@@ -5774,6 +5814,7 @@ void CShadowDepthView::Draw()
 
 	m_DrawFlags = m_pMainView->GetBaseDrawFlags() | DF_RENDER_UNDERWATER | DF_RENDER_ABOVEWATER | DF_SHADOW_DEPTH_MAP;	// Don't draw water surface...
 
+	if (!bViewModelMode)
 	{
 		VPROF_BUDGET( "DrawWorld", VPROF_BUDGETGROUP_SHADOW_DEPTH_TEXTURING );
 		DrawWorld( 0.0f );
@@ -5783,9 +5824,33 @@ void CShadowDepthView::Draw()
 	// OVERRIDE_DEPTH_WRITE is OK with a NULL material pointer
 	modelrender->ForcedMaterialOverride( NULL, OVERRIDE_DEPTH_WRITE );	
 
+	if (!bViewModelMode)
 	{
 		VPROF_BUDGET( "DrawOpaqueRenderables", VPROF_BUDGETGROUP_SHADOW_DEPTH_TEXTURING );
 		DrawOpaqueRenderables( DEPTH_MODE_SHADOW );
+	}
+	else
+	{
+		CUtlVector< IClientRenderable* > opaqueViewModelList(32);
+		CUtlVector< IClientRenderable* > translucentViewModelList(32);
+
+		ClientLeafSystem()->CollateViewModelRenderables(opaqueViewModelList, translucentViewModelList);
+
+		if (ToolsEnabled() && (!m_bViewModels || !m_bToolViewModels))
+		{
+			int nOpaque = opaqueViewModelList.Count();
+			for (int i = nOpaque - 1; i >= 0; --i)
+			{
+				IClientRenderable* pRenderable = opaqueViewModelList[i];
+				bool bEntity = pRenderable->GetIClientUnknown()->GetBaseEntity();
+				if ((bEntity && !m_bViewModels) || (!bEntity && !m_bToolViewModels))
+				{
+					opaqueViewModelList.FastRemove(i);
+				}
+			}
+		}
+
+		m_pMainView->DrawRenderablesInList(opaqueViewModelList, STUDIO_SHADOWDEPTHTEXTURE);
 	}
 
 	modelrender->ForcedMaterialOverride( 0 );
