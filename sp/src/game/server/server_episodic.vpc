@@ -52,6 +52,19 @@ $Project "Server (Episodic)"
 
 		$Folder	"HL2 DLL"
 		{
+
+//TE120--
+			$Folder "TE120"
+			{
+				$File	"te120\ai_striderfinale.cpp"
+				$File	"te120\ai_striderfinale.h"
+				$File	"te120\prop_gravity_ball.cpp"
+				$File	"te120\prop_gravity_ball.h"
+				$File	"te120\weapon_physconcussion.cpp"
+				$File	"te120\weapon_physconcussion.h"
+			}
+//TE120--
+
 			$Folder	"Mod"
 			{
 				$File	"mod\npc_base_custom.h"
@@ -66,7 +79,8 @@ $Project "Server (Episodic)"
 				$File	"episodic\weapon_hopwire.cpp"
 				$File	"hl2\npc_bullsquid.h"
 				$File	"hl2\npc_bullsquid.cpp"
-			}			
+			}
+			
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep1.cpp"
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep2.cpp"
 			$File	"$SRCDIR\game\shared\episodic\achievements_epx.cpp"

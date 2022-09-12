@@ -31,6 +31,13 @@ $Project "Client (Episodic)"
 
 		$Folder	"HL2 DLL"
 		{
+			$Folder "TE120"
+			{
+				$File	"te120\c_weapon_physconcussion.cpp"
+				$File	"te120\c_prop_gravity_ball.cpp"
+				$File	"te120\c_prop_gravity_ball.h"
+			}
+
 			$File	"$SRCDIR\game\shared\hl2\basehlcombatweapon_shared.cpp"
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep1.cpp"
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep2.cpp"
