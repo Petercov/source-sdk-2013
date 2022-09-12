@@ -710,6 +710,10 @@ bool VScriptClientInit()
 				VScriptRunScript( "vscript_client", true );
 				VScriptRunScript( "mapspawn", false );
 
+#ifdef MAPBASE_VSCRIPT
+				RunAddonScripts();
+#endif
+
 				VMPROF_SHOW( pszScriptLanguage, "virtual machine startup" );
 
 				return true;
