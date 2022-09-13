@@ -32,22 +32,28 @@ STUB_WEAPON_CLASS( weapon_pistol, WeaponPistol, C_BaseHLCombatWeapon );
 STUB_WEAPON_CLASS( weapon_shotgun, WeaponShotgun, C_BaseHLCombatWeapon );
 STUB_WEAPON_CLASS( weapon_smg1, WeaponSMG1, C_HLSelectFireMachineGun );
 STUB_WEAPON_CLASS( weapon_357, Weapon357, C_BaseHLCombatWeapon );
+
 #ifndef MAPBASE
 STUB_WEAPON_CLASS(weapon_crossbow, WeaponCrossbow, C_BaseHLCombatWeapon);
 #else
 STUB_WEAPON_CLASS(weapon_crossbow, WeaponCrossbow, C_BaseHLZoomableWeapon);
 #endif // !MAPBASE
+
 #ifndef MAPBASE
 STUB_WEAPON_CLASS( weapon_slam, Weapon_SLAM, C_BaseHLCombatWeapon );
 #endif
+
 STUB_WEAPON_CLASS( weapon_crowbar, WeaponCrowbar, C_BaseHLBludgeonWeapon );
+
 #ifdef HL2_EPISODIC
 STUB_WEAPON_CLASS( weapon_hopwire, WeaponHopwire, C_BaseHLCombatWeapon );
 //STUB_WEAPON_CLASS( weapon_proto1, WeaponProto1, C_BaseHLCombatWeapon );
 #endif
+
 #ifdef HL2_LOSTCOAST
 STUB_WEAPON_CLASS( weapon_oldmanharpoon, WeaponOldManHarpoon, C_WeaponCitizenPackage );
 #endif
+
 #ifdef HL2BETA_WEAPONS
 STUB_WEAPON_CLASS(weapon_oicw, WeaponOICW, C_HLMachineGun);
 STUB_WEAPON_CLASS(weapon_hmg1, WeaponHMG1, C_HLSelectFireMachineGun);
@@ -59,6 +65,14 @@ STUB_WEAPON_CLASS(weapon_sniperrifle, WeaponSniperRifle, C_BaseHLZoomableWeapon)
 #endif // !MAPBASE
 STUB_WEAPON_CLASS(weapon_irifle, WeaponIRifle, C_BaseHLCombatWeapon);
 #endif // HL2BETA_WEAPONS
+
+#ifdef EZ2_WEAPONS
+//STUB_WEAPON_CLASS( weapon_pulsepistol, WeaponPulsePistol, C_BaseHLCombatWeapon );
+STUB_WEAPON_CLASS(weapon_displacer_pistol, DisplacerPistol, C_BaseHLCombatWeapon);
+STUB_WEAPON_CLASS(weapon_ar2_proto, WeaponAR2Proto, C_BaseHLCombatWeapon);
+STUB_WEAPON_CLASS(weapon_endgame, WeaponEndGame, C_BaseHLCombatWeapon);
+STUB_WEAPON_CLASS(weapon_arbeit_clipboard, WeaponArbeitClipboard, C_WeaponCitizenPackage);
+#endif
 #endif
 
 

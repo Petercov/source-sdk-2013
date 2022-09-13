@@ -419,6 +419,13 @@ ConVar	sk_npc_dmg_irifle("sk_npc_dmg_irifle", "0", FCVAR_REPLICATED);
 ConVar	sk_max_incendiary("sk_max_incendiary", "0", FCVAR_REPLICATED);
 #endif // HL2BETA_WEAPONS
 
+#ifdef EZ2_WEAPONS
+ConVar	sk_plr_dmg_gauss_pistol("sk_plr_dmg_gauss_pistol", "0", FCVAR_REPLICATED);
+ConVar	sk_npc_dmg_gauss_pistol("sk_npc_dmg_gauss_pistol", "0", FCVAR_REPLICATED);
+ConVar	sk_max_gauss_pistol("sk_max_gauss_pistol", "0", FCVAR_REPLICATED);
+#endif // EZ2_WEAPONS
+
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : iDmgType - 
@@ -1556,7 +1563,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 			case CLASS_ANTLION:			return "CLASS_ANTLION";
 			case CLASS_BARNACLE:		return "CLASS_BARNACLE";
 			case CLASS_BULLSEYE:		return "CLASS_BULLSEYE";
-			//case CLASS_BULLSQUID:		return "CLASS_BULLSQUID";	
+			case CLASS_BULLSQUID:		return "CLASS_BULLSQUID";	
 			case CLASS_CITIZEN_PASSIVE: return "CLASS_CITIZEN_PASSIVE";		
 			case CLASS_CITIZEN_REBEL:	return "CLASS_CITIZEN_REBEL";
 			case CLASS_COMBINE:			return "CLASS_COMBINE";
@@ -1564,7 +1571,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 			case CLASS_COMBINE_HUNTER:	return "CLASS_COMBINE_HUNTER";
 			case CLASS_CONSCRIPT:		return "CLASS_CONSCRIPT";
 			case CLASS_HEADCRAB:		return "CLASS_HEADCRAB";
-			//case CLASS_HOUNDEYE:		return "CLASS_HOUNDEYE";
+			case CLASS_HOUNDEYE:		return "CLASS_HOUNDEYE";
 			case CLASS_MANHACK:			return "CLASS_MANHACK";
 			case CLASS_METROPOLICE:		return "CLASS_METROPOLICE";
 			case CLASS_MILITARY:		return "CLASS_MILITARY";	
@@ -2179,6 +2186,14 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
 		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_LINE,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		NULL,					BULLET_IMPULSE(10, 600), 0 );
 
+#ifdef EZ2_WEAPONS
+		// Entropy Zero 2
+		//def.AddAmmoType("XenGrenade", DMG_BLAST, TRACER_NONE, "sk_plr_dmg_grenade", "sk_npc_dmg_grenade", "sk_max_hopwire", 0, 0); // this is the xen grenade
+
+		// Entropy Zero 2
+		def.AddAmmoType("GaussPistol", DMG_BULLET, TRACER_LINE_AND_WHIZ, "sk_plr_dmg_gauss_pistol", "sk_npc_dmg_gauss_pistol", "sk_max_gauss_pistol", BULLET_IMPULSE(200, 1225), 0);
+#endif
+
 		// Custom
 		def.AddAmmoType("FlareRound", DMG_BURN, TRACER_NONE, "sk_plr_dmg_flare_round", "sk_npc_dmg_flare_round", "sk_max_flare_round", 0, 0);
 
@@ -2240,7 +2255,7 @@ CAmmoDef *GetAmmoDef()
 #else
 		def.AddAmmoType("CombineHeavyCannon",	DMG_BULLET,				TRACER_LINE,			40,	40, NULL, 10 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 10 kg weight at 750 ft/s
 #endif
-		def.AddAmmoType("ammo_proto1",			DMG_BULLET,				TRACER_LINE,			0, 0, 10, 0, 0 );
+		//def.AddAmmoType("ammo_proto1",			DMG_BULLET,				TRACER_LINE,			0, 0, 10, 0, 0 );
 #endif // HL2_EPISODIC
 #ifdef MAPBASE
 		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			0,			0,			5,			0,							0 );

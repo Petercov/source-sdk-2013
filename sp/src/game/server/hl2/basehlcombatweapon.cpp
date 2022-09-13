@@ -135,10 +135,16 @@ void CHLMachineGun::PrimaryAttack( void )
 //-----------------------------------------------------------------------------
 void CHLMachineGun::FireBullets( const FireBulletsInfo_t &info )
 {
-	if(CBasePlayer *pPlayer = ToBasePlayer ( GetOwner() ) )
+#ifndef MAPBASE
+	if (CBasePlayer* pPlayer = ToBasePlayer(GetOwner()))
 	{
 		pPlayer->FireBullets(info);
 	}
+#else
+	FireBulletsInfo_t infoCopy(info);
+	infoCopy.m_pAttacker = GetOwner();
+	BaseClass::FireBullets(infoCopy);
+#endif // !MAPBASE
 }
 
 //-----------------------------------------------------------------------------

@@ -26,20 +26,20 @@ public:
 
 	DECLARE_SERVERCLASS();
 
-	void	ItemPostFrame( void );
-	void	Precache( void );
+	virtual void	ItemPostFrame( void );
+	virtual void	Precache( void );
 	
-	void	SecondaryAttack( void );
-	void	DelayedAttack( void );
+	virtual void	SecondaryAttack( void );
+	virtual void	DelayedAttack( void );
 
 	const char *GetTracerType( void ) { return "AR2Tracer"; }
 
-	void	AddViewKick( void );
+	virtual void	AddViewKick( void );
 
-	void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
-	void	FireNPCSecondaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
-	void	Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
-	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
+	virtual void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
+	virtual void	FireNPCSecondaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
+	virtual void	Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
+	virtual void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
 	int		GetMinBurst( void ) { return 2; }
 	int		GetMaxBurst( void ) { return 5; }
@@ -82,5 +82,44 @@ public:
 	DECLARE_DATADESC();
 };
 
+#ifdef EZ2_WEAPONS
+class CWeaponAR2Proto : public CWeaponAR2
+{
+public:
+	DECLARE_CLASS(CWeaponAR2Proto, CWeaponAR2);
+
+	CWeaponAR2Proto();
+
+	DECLARE_SERVERCLASS();
+
+	void	PrimaryAttack(void); // Breadman
+	void	SecondaryAttack(void);
+	void	DelayedAttack(void);
+
+	void	AddViewKick(void);
+
+	void	FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, bool bUseWeaponAngles);
+	void	FireNPCSecondaryAttack(CBaseCombatCharacter* pOperator, bool bUseWeaponAngles);
+
+	int		GetMinBurst(void) { return 5; }
+	int		GetMaxBurst(void) { return 10; }
+	float	GetFireRate(void) { return 0.12f; } // Breadman - lowered for prototype
+
+	virtual const Vector& GetBulletSpread(void)
+	{
+		static Vector cone;
+
+		cone = VECTOR_CONE_10DEGREES;
+
+		return cone;
+	}
+
+protected:
+
+	int m_nBurstMax;
+
+	DECLARE_DATADESC();
+};
+#endif
 
 #endif	//WEAPONAR2_H

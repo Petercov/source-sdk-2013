@@ -2793,7 +2793,13 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 	info.m_vecSpread = GetActiveWeapon()->GetBulletSpread();
 #endif // CLIENT_DLL
 
-	pPlayer->FireBullets( info );
+#ifdef MAPBASE
+	info.m_pAttacker = pPlayer;
+	FireBullets(info);
+#else
+	pPlayer->FireBullets(info);
+#endif // MAPBASE
+
 
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{

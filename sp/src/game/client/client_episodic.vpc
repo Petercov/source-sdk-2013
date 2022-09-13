@@ -17,7 +17,7 @@ $Configuration
 	{
 		$AdditionalIncludeDirectories	".\hl2;.\hl2\elements;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;..\..\public;$BASE"
 		$PreprocessorDefinitions		"$BASE;HL2_CLIENT_DLL;HL2_EPISODIC"
-		$PreprocessorDefinitions		"$BASE;CSS_WEAPONS_IN_HL2"
+		$PreprocessorDefinitions		"$BASE;CSS_WEAPONS_IN_HL2;EZ2_WEAPONS"
 	}
 }
 
@@ -36,6 +36,11 @@ $Project "Client (Episodic)"
 				$File	"te120\c_weapon_physconcussion.cpp"
 				$File	"te120\c_prop_gravity_ball.cpp"
 				$File	"te120\c_prop_gravity_ball.h"
+			}
+
+			$Folder "EZ2"
+			{
+				$File	"ez2\c_weapon_pulse_pistol.cpp"
 			}
 
 			$File	"$SRCDIR\game\shared\hl2\basehlcombatweapon_shared.cpp"

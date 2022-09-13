@@ -1743,6 +1743,28 @@ void CTempEnts::MuzzleFlash( int type, ClientEntityHandle_t hEntity, int attachm
 		}
 		break;
 
+	case MUZZLEFLASH_COMBINE_PISTOL:
+		if (firstPerson)
+		{
+			MuzzleFlash_Combine_Player(hEntity, attachmentIndex);
+		}
+		else
+		{
+			MuzzleFlash_Combine_Pistol_NPC(hEntity, attachmentIndex);
+		}
+		break;
+
+	case MUZZLEFLASH_COMBINE_SMG:
+		if (firstPerson)
+		{
+			MuzzleFlash_Combine_Player(hEntity, attachmentIndex);
+		}
+		else
+		{
+			MuzzleFlash_Combine_SMG_NPC(hEntity, attachmentIndex);
+		}
+		break;
+
 	case MUZZLEFLASH_SMG1:
 	case MUZZLEFLASH_AR2:
 		if ( firstPerson )
@@ -2424,6 +2446,7 @@ void CTempEnts::LevelInit()
 	m_pShells[0] = (model_t *) engine->LoadModel( "models/weapons/shell.mdl" );
 	m_pShells[1] = (model_t *) engine->LoadModel( "models/weapons/rifleshell.mdl" );
 	m_pShells[2] = (model_t *) engine->LoadModel( "models/weapons/shotgun_shell.mdl" );
+	m_pShells[3] = (model_t*)engine->LoadModel("models/weapons/ez2/rifleshell.mdl");
 #endif
 
 #if defined( HL1_CLIENT_DLL )
@@ -2462,6 +2485,7 @@ void CTempEnts::Init (void)
 	m_pShells[0] = NULL;
 	m_pShells[1] = NULL;
 	m_pShells[2] = NULL;
+	m_pShells[3] = NULL;
 
 #if defined( HL1_CLIENT_DLL )
 	m_pHL1Shell			= NULL;
@@ -2813,6 +2837,140 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 			el->decay	= el->radius / 0.05f;
 			el->die		= gpGlobals->curtime + 0.05f;
 		}
+	}
+}
+
+void CTempEnts::MuzzleFlash_Combine_Pistol_NPC(ClientEntityHandle_t hEntity, int attachmentIndex)
+{
+	VPROF_BUDGET("MuzzleFlash_Combine_Pistol_NPC", VPROF_BUDGETGROUP_PARTICLE_RENDERING);
+
+	// If the material isn't available, let's not do anything.
+	if (g_Mat_Combine_Muzzleflash[0] == NULL)
+	{
+		return;
+	}
+
+	CSmartPtr<CLocalSpaceEmitter> pSimple = CLocalSpaceEmitter::Create("MuzzleFlash_Combine_Pistol_NPC", hEntity, attachmentIndex);
+	Assert(pSimple);
+	if (pSimple == NULL)
+		return;
+
+	const float scale = 0.5f;
+
+	// Lock our bounding box
+	pSimple->GetBinding().SetBBox(-(Vector(16, 16, 16) * scale), (Vector(16, 16, 16) * scale));
+
+	SimpleParticle* pParticle;
+	Vector			forward(1, 0, 0), offset;
+
+	float flScale = random->RandomFloat(scale - 0.25f, scale + 0.25f);
+
+	if (flScale < 0.5f)
+	{
+		flScale = 0.5f;
+	}
+	else if (flScale > 8.0f)
+	{
+		flScale = 8.0f;
+	}
+
+	//
+	// Flash
+	//
+
+	int i;
+	for (i = 1; i < 9; i++)
+	{
+		offset = (forward * (i * 2.0f * scale));
+
+		pParticle = (SimpleParticle*)pSimple->AddParticle(sizeof(SimpleParticle), g_Mat_Combine_Muzzleflash[random->RandomInt(0, 1)], offset);
+
+		if (pParticle == NULL)
+			return;
+
+		pParticle->m_flLifetime = 0.0f;
+		pParticle->m_flDieTime = /*bOneFrame ? 0.0001f :*/ 0.1f;
+
+		pParticle->m_vecVelocity.Init();
+
+			pParticle->m_uchColor[0] = 255;
+			pParticle->m_uchColor[1] = 255;
+			pParticle->m_uchColor[2] = 255;
+
+		pParticle->m_uchStartAlpha = 255;
+		pParticle->m_uchEndAlpha = 128;
+
+		pParticle->m_uchStartSize = (random->RandomFloat(6.0f, 9.0f) * (12 - (i)) / 9) * flScale;
+		pParticle->m_uchEndSize = pParticle->m_uchStartSize;
+		pParticle->m_flRoll = random->RandomInt(0, 360);
+		pParticle->m_flRollDelta = 0.0f;
+	}
+}
+
+void CTempEnts::MuzzleFlash_Combine_SMG_NPC(ClientEntityHandle_t hEntity, int attachmentIndex)
+{
+	VPROF_BUDGET("MuzzleFlash_Combine_Pistol_NPC", VPROF_BUDGETGROUP_PARTICLE_RENDERING);
+
+	// If the material isn't available, let's not do anything.
+	if (g_Mat_Combine_Muzzleflash[0] == NULL)
+	{
+		return;
+	}
+
+	CSmartPtr<CLocalSpaceEmitter> pSimple = CLocalSpaceEmitter::Create("MuzzleFlash_Combine_Pistol_NPC", hEntity, attachmentIndex);
+	Assert(pSimple);
+	if (pSimple == NULL)
+		return;
+
+	const float scale = 1.f;
+
+	// Lock our bounding box
+	pSimple->GetBinding().SetBBox(-(Vector(16, 16, 16) * scale), (Vector(16, 16, 16) * scale));
+
+	SimpleParticle* pParticle;
+	Vector			forward(1, 0, 0), offset;
+
+	float flScale = random->RandomFloat(scale - 0.25f, scale + 0.25f);
+
+	if (flScale < 0.5f)
+	{
+		flScale = 0.5f;
+	}
+	else if (flScale > 8.0f)
+	{
+		flScale = 8.0f;
+	}
+
+	//
+	// Flash
+	//
+
+	int i;
+	for (i = 1; i < 9; i++)
+	{
+		offset = (forward * (i * 2.0f * scale));
+
+		pParticle = (SimpleParticle*)pSimple->AddParticle(sizeof(SimpleParticle), g_Mat_Combine_Muzzleflash[random->RandomInt(0, 1)], offset);
+
+		if (pParticle == NULL)
+			return;
+
+		pParticle->m_flLifetime = 0.0f;
+		pParticle->m_flDieTime = /*bOneFrame ?*/ 0.0001f /*: 0.1f*/;
+
+		pParticle->m_vecVelocity.Init();
+
+		pParticle->m_uchColor[0] = 255;
+		pParticle->m_uchColor[1] = 255;
+		pParticle->m_uchColor[2] = 255;
+
+		pParticle->m_uchStartAlpha = 255;
+		pParticle->m_uchEndAlpha = 128;
+
+		pParticle->m_uchStartSize = (random->RandomFloat(6.0f, 9.0f) * (12 - (i)) / 9) * flScale;
+		pParticle->m_uchEndSize = pParticle->m_uchStartSize;
+		pParticle->m_flRoll = random->RandomInt(0, 360);
+		pParticle->m_flRollDelta = 0.0f;
 	}
 }
 

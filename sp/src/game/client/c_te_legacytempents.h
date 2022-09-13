@@ -146,7 +146,7 @@ private:
 	// Muzzle flash sprites
 	struct model_t			*m_pSpriteMuzzleFlash[10];
 	struct model_t			*m_pSpriteAR2Flash[4];
-	struct model_t			*m_pShells[3];
+	struct model_t			*m_pShells[4];
 	struct model_t			*m_pSpriteCombineFlash[2];
 
 #if defined( HL1_CLIENT_DLL )
@@ -206,6 +206,8 @@ private:
 	// Combine				
 	void					MuzzleFlash_Combine_Player( ClientEntityHandle_t hEntity, int attachmentIndex );
 	void					MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attachmentIndex );
+	void					MuzzleFlash_Combine_Pistol_NPC(ClientEntityHandle_t hEntity, int attachmentIndex);
+	void					MuzzleFlash_Combine_SMG_NPC(ClientEntityHandle_t hEntity, int attachmentIndex);
 
 	// 357
 	void					MuzzleFlash_357_Player( ClientEntityHandle_t hEntity, int attachmentIndex );

@@ -92,6 +92,14 @@ typedef enum
 	AE_NPC_MAKE_INTERACTION_DEATHSOUND,
 #endif
 
+#ifdef EZ2_KICK
+	AE_KICKATTACK, // For Bad Cop kicks
+#endif // EZ2_KICK
+
+#ifdef EZ2_WEAPONS
+	AE_SLIDERETURN, // For the pulse pistol chambering one charge during 'dry fire'
+#endif
+
 	LAST_SHARED_ANIMEVENT,
 } Animevent;
 
