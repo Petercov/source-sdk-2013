@@ -56,6 +56,11 @@ public:
 	//void OnStartSchedule( int scheduleType );
 
 	//void InitializeBehavior();
+
+#ifdef EZ2_HELICOPTER
+	// Used by the Arbeit helicopter
+	void StartWaitingForRappel() { m_bWaitingToRappel = true; GetOuter()->AddFlag(FL_FLY); }
+#endif
 	
 	enum
 	{
