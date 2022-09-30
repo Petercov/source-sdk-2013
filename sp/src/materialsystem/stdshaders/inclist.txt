@@ -1,3 +1,7 @@
+fxctmp9_tmp\VertexlitPBR_ps30.inc
+fxctmp9_tmp\vertexlitPBR_vs30.inc
+fxctmp9_tmp\lightmappedPBR_ps30.inc
+fxctmp9_tmp\lightmappedPBR_vs30.inc
 fxctmp9_tmp\SDK_skin_ps30.inc
 fxctmp9_tmp\SDK_skin_vs30.inc
 fxctmp9_tmp\SDK_vertexlit_and_unlit_generic_bump_ps30.inc
@@ -29,7 +33,3 @@ fxctmp9_tmp\SDK_teeth_flashlight_ps30.inc
 fxctmp9_tmp\SDK_teeth_flashlight_vs30.inc
 fxctmp9_tmp\SDK_decalmodulate_ps30.inc
 fxctmp9_tmp\SDK_decalmodulate_vs30.inc
-fxctmp9_tmp\VertexlitPBR_ps30.inc
-fxctmp9_tmp\vertexlitPBR_vs30.inc
-fxctmp9_tmp\lightmappedPBR_ps30.inc
-fxctmp9_tmp\lightmappedPBR_vs30.inc

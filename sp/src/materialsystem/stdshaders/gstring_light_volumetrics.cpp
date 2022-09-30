@@ -45,7 +45,7 @@ BEGIN_VS_SHADER( gstring_light_volumetrics, "" )
 
 			EnableAlphaBlending( SHADER_BLEND_SRC_ALPHA, SHADER_BLEND_ONE );
 
-			unsigned int flags = VERTEX_POSITION;
+			unsigned int flags = VERTEX_POSITION | VERTEX_COLOR;
 			int nTexCoordCount = 1;
 			int userDataSize = 0;
 			pShaderShadow->VertexShaderVertexFormat( flags, nTexCoordCount, NULL, userDataSize );

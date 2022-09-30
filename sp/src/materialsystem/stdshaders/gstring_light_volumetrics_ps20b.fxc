@@ -36,6 +36,7 @@ struct PS_INPUT
 	//float2 vTexCoord0				: TEXCOORD0;
 	float4 flashlightSpacePos		: TEXCOORD1;
 	float4 vProjPos					: TEXCOORD2;
+    float4 color : COLOR;
 };
 
 float4 main( PS_INPUT i ) : COLOR
@@ -52,6 +53,6 @@ float4 main( PS_INPUT i ) : COLOR
 	
 	color *= g_FlashlightColor.rgb;
 	
-	return float4( color, shadow * attn * depthBlend * g_FlashlightColor.a );
+	return float4( color * i.color.rgb, shadow * attn * depthBlend * g_FlashlightColor.a * i.color.a );
 }
 

@@ -148,7 +148,7 @@ class CVolumetricLightRenderable;
 
 // forward declarations
 void ToolFramework_RecordMaterialParams( IMaterial *pMaterial );
-
+bool IsMainView(view_id_t id);
 
 //-----------------------------------------------------------------------------
 // A texture allocator used to batch textures together
@@ -1278,6 +1278,10 @@ int CVisibleShadowList::FindShadows( const CViewSetup *pView, int nLeafCount, Le
 }
 
 #ifdef GSTRING_VOLUMETRICS
+ConVar volum_subdiv_scale("gstring_volumetrics_subdiv_scale", "0.1");
+ConVar volum_subdiv_base("gstring_volumetrics_subdiv_base", "10");
+ConVar volum_subdiv_sqrroot("gstring_volumetrics_subdiv_sqrroot", "0");
+
 //-----------------------------------------------------------------------------
 // Renderable for volumetric light effects
 //-----------------------------------------------------------------------------
@@ -1497,7 +1501,7 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 			(farPlane[3] - farPlane[0]),
 		};
 
-		const VertexFormat_t vertexFormat = VERTEX_POSITION | VERTEX_TEXCOORD_SIZE(0, 2);
+		const VertexFormat_t vertexFormat = VERTEX_POSITION | VERTEX_COLOR | VERTEX_TEXCOORD_SIZE(0, 2);
 		CMatRenderContextPtr pRenderContext(materials);
 		m_pVolmetricMesh = pRenderContext->CreateStaticMesh(vertexFormat, TEXTURE_GROUP_OTHER, sm_LightShaftsMaterial);
 
@@ -1518,18 +1522,22 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 
 			meshBuilder.Position3f(XYZ(v00));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v10));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v11));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v01));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 		}
 
@@ -1544,18 +1552,22 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 
 			meshBuilder.Position3f(XYZ(v00));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v01));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v11));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v10));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 		}
 
@@ -1570,18 +1582,22 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 
 			meshBuilder.Position3f(XYZ(v00));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v01));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v11));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v10));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 		}
 
@@ -1596,7 +1612,17 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 			(farPlane[3] - farPlane[0]),
 		};
 
-		const VertexFormat_t vertexFormat = VERTEX_POSITION | VERTEX_TEXCOORD_SIZE(0, 2);
+		Vector vColorScale(1, 1, 1);
+		if (volum_subdiv_scale.GetFloat() > 0.f)
+		{
+			float flDivisor = Max(1.f, (m_iCurrentVolumetricsSubDiv - volum_subdiv_base.GetFloat()) * volum_subdiv_scale.GetFloat());
+			if (volum_subdiv_sqrroot.GetBool())
+				flDivisor = FastSqrt(flDivisor);
+
+			vColorScale *= 1.f / flDivisor;
+		}
+
+		const VertexFormat_t vertexFormat = VERTEX_POSITION | VERTEX_COLOR | VERTEX_TEXCOORD_SIZE(0, 2);
 		CMatRenderContextPtr pRenderContext(materials);
 		m_pVolmetricMesh = pRenderContext->CreateStaticMesh(vertexFormat, TEXTURE_GROUP_OTHER, sm_LightShaftsMaterial);
 
@@ -1610,6 +1636,8 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 			//flFracX = powf( flFracX, 3.0f );
 			flFracX = powf(flFracX, m_State.m_flVolumetricsQualityBias);
 
+			Vector vertColor = vColorScale * flFracX;
+
 			Vector v00 = vec3_origin + vecDirections[0] * flFracX;
 			Vector v10 = v00 + vecDirections[1] * flFracX;
 			Vector v11 = v10 + vecDirections[2] * flFracX;
@@ -1617,26 +1645,32 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 
 			meshBuilder.Position3f(XYZ(v00));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vertColor));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v10));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vertColor));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v11));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vertColor));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v00));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vertColor));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v11));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vertColor));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v01));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vertColor));
 			meshBuilder.AdvanceVertex();
 		}
 
@@ -1649,14 +1683,17 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 
 			meshBuilder.Position3f(XYZ(vec3_origin));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vColorScale));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v0));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v1));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 		}
 
@@ -1669,14 +1706,17 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 
 			meshBuilder.Position3f(XYZ(vec3_origin));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3f(XYZ(vColorScale));
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v0));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 
 			meshBuilder.Position3f(XYZ(v1));
 			meshBuilder.TexCoord2f(0, 0.0f, 0.0f);
+			meshBuilder.Color3ub(255, 255, 255);
 			meshBuilder.AdvanceVertex();
 		}
 
@@ -1684,13 +1724,11 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 	}
 }
 
-ConVar volum_subdiv_scale("gstring_volumetrics_subdiv_scale", "0.1");
-ConVar volum_subdiv_base("gstring_volumetrics_subdiv_base", "10");
-ConVar volum_subdiv_sqrroot("gstring_volumetrics_subdiv_sqrroot", "0");
 int CVolumetricLightRenderable::DrawModel(int flags)
 {
 	if (!m_State.m_bEnableVolumetrics ||
-		CurrentViewID() != VIEW_MAIN)
+		(!IsMainView(CurrentViewID()) && CurrentViewID() != VIEW_INTRO_CAMERA && CurrentViewID() != VIEW_INTRO_PLAYER)
+		)
 	{
 		return 0;
 	}
@@ -1723,14 +1761,14 @@ int CVolumetricLightRenderable::DrawModel(int flags)
 	}
 
 	float flColorScale = m_State.m_flVolumetricsMultiplier;
-	if (!light.m_bOrtho && volum_subdiv_scale.GetFloat() > 0.f)
+	/*if (!light.m_bOrtho && volum_subdiv_scale.GetFloat() > 0.f)
 	{
 		float flDivisor = Max(1.f, (m_iCurrentVolumetricsSubDiv - volum_subdiv_base.GetFloat()) * volum_subdiv_scale.GetFloat());
 		if (volum_subdiv_sqrroot.GetBool())
 			flDivisor = FastSqrt(flDivisor);
 
 		flColorScale *= 1.f / flDivisor;
-	}
+	}*/
 
 	light.m_Color[0] *= flColorScale;
 	light.m_Color[1] *= flColorScale;
