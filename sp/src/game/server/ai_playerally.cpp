@@ -60,6 +60,7 @@ ConceptInfo_t g_ConceptInfos[] =
 	{ 	TLK_JOINPLAYER,		SPEECH_IMPORTANT,	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},	
 	{ 	TLK_STOP,			SPEECH_IMPORTANT,	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
 	{ 	TLK_NOSHOOT,		SPEECH_IMPORTANT,	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
+	{ 	TLK_NOSHOOTME,		SPEECH_IMPORTANT,	-1,		-1,		-1,		-1,		 5,		 7,		AICF_DEFAULT,	},
 	{ 	TLK_PLHURT1,		SPEECH_IMPORTANT, 	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
 	{ 	TLK_PLHURT2,		SPEECH_IMPORTANT, 	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
 	{ 	TLK_PLHURT3,		SPEECH_IMPORTANT, 	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
@@ -1288,7 +1289,7 @@ void CAI_PlayerAlly::TraceAttack( const CTakeDamageInfo &info, const Vector &vec
 		|| !info.GetAttacker()->IsPlayer()
 		|| info.GetDamage() >= GetHealth()
 		|| !IsPlayerAlly(ToBasePlayer(info.GetAttacker()))
-		|| !SpeakIfAllowed(TLK_NOSHOOT, modifiers)
+		|| !SpeakIfAllowed(TLK_NOSHOOTME, modifiers, true)
 		)
 #else
 	// set up the speech modifiers
@@ -1321,13 +1322,25 @@ int CAI_PlayerAlly::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	}
 #endif
 
-#if 0
+#ifdef MAPBASE
 	// if player damaged this entity, talk about it.
 	if (subInfo.GetAttacker() && subInfo.GetAttacker()->IsPlayer() && subInfo.GetDamage() < GetHealth() && IsPlayerAlly(ToBasePlayer(subInfo.GetAttacker())))
 	{
 		AI_CriteriaSet set;
 		ModifyOrAppendDamageCriteria(set, subInfo);
-		SpeakIfAllowed(TLK_NOSHOOT, set, true);
+		
+		CBaseEntity* pFriend = FindSpeechTarget(AIST_NPCS | AIST_NOT_GAGGED);
+
+		if (pFriend && pFriend->IsAlive())
+		{
+			// only if not dead or dying!
+			CAI_PlayerAlly* pTalkNPC = (CAI_PlayerAlly*)pFriend;
+
+			if (pTalkNPC && pTalkNPC->IsOkToCombatSpeak())
+			{
+				pTalkNPC->Speak(TLK_NOSHOOT, set);
+			}
+		}
 	}
 #endif // MAPBASE
 
