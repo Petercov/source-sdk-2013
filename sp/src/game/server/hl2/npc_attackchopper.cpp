@@ -1776,7 +1776,7 @@ bool CNPC_AttackHelicopter::DoGunIdle( const Vector &vGunDir, const Vector &vTar
 	if ( ( m_nAttackMode == ATTACK_MODE_BULLRUSH_VEHICLE ) && 
 		( IsInSecondaryMode( BULLRUSH_MODE_SHOOT_GUN ) || IsInSecondaryMode(BULLRUSH_MODE_SHOOT_IDLE_PLAYER) ) )
 	{
-		EmitSound( "NPC_AttackHelicopter.ChargeGun" );
+		ChargeGunSound();
 		m_flChargeTime = gpGlobals->curtime + CHOPPER_GUN_CHARGE_TIME;
 		m_nGunState = GUN_STATE_CHARGING;
 		m_flCircleOfDeathRadius = CHOPPER_MAX_CIRCLE_OF_DEATH_RADIUS;
@@ -1820,7 +1820,7 @@ bool CNPC_AttackHelicopter::DoGunIdle( const Vector &vGunDir, const Vector &vTar
 	}
 	else
 	{
-		EmitSound( "NPC_AttackHelicopter.ChargeGun" );
+		ChargeGunSound();
 		float flChargeTime = CHOPPER_GUN_CHARGE_TIME;
 		float flVariance = flChargeTime * 0.1f;
 		m_flChargeTime = gpGlobals->curtime + random->RandomFloat(flChargeTime - flVariance, flChargeTime + flVariance);
@@ -2775,6 +2775,11 @@ bool CNPC_AttackHelicopter::FireGun( void )
 	}
 
 	return DoGunIdle( vGunDir, vTargetDir );
+}
+
+void CNPC_AttackHelicopter::ChargeGunSound()
+{
+	EmitSound("NPC_AttackHelicopter.ChargeGun");
 }
 
 

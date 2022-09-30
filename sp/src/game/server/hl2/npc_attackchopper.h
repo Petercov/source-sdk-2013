@@ -17,8 +17,10 @@
 #include "cbasehelicopter.h"
 #include "basegrenade_shared.h"
 #include "ai_spotlight.h"
+#include "physics_bone_follower.h"
 
 class CSprite;
+class CSoundPatch;
 
 #define SF_HELICOPTER_LOUD_ROTOR_SOUND		0x00010000
 #define SF_HELICOPTER_ELECTRICAL_DRONE		0x00020000
@@ -221,6 +223,7 @@ protected:
 
 	// Weaponry
 	bool	FireGun(void);
+	virtual void ChargeGunSound();
 
 	// Movement:	
 	virtual void Flight(void);
@@ -357,7 +360,7 @@ protected:
 	void ExplodeAndThrowChunk(const Vector& vecExplosionPos);
 
 	// Drop a corpse!
-	void DropCorpse(int nDamage);
+	virtual void DropCorpse(int nDamage);
 
 	// Should we trigger a damage effect?
 	bool ShouldTriggerDamageEffect(int nPrevHealth, int nEffectCount) const;

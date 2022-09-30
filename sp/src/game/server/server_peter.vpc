@@ -28,5 +28,13 @@ $Project
 				$File	"hl2\weapon_sniperrifle.cpp"
 			}
 		}
+
+		$Folder "SiN Episodes"
+		{
+			$File	"sin\npc_generic_actor.cpp"
+			$File	"sin\npc_jessica.cpp"
+			$File	"sin\npc_jessica.h"
+			$File	"sin\npc_druglab_helicopter.cpp"
+		}
 	}
 }
