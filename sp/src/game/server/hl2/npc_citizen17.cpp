@@ -409,8 +409,10 @@ BEGIN_DATADESC( CNPC_Citizen )
 	DEFINE_KEYFIELD(	m_bAlternateAiming,			FIELD_BOOLEAN, "AlternateAiming" ),
 #endif
 
-	DEFINE_FIELD(m_pChestGlow, FIELD_EHANDLE),
+#ifndef EZ_EYEGLOWS
+	DEFINE_FIELD(m_pEyeGlow, FIELD_EHANDLE),
 	DEFINE_FIELD(m_pShoulderGlow, FIELD_EHANDLE),
+#endif // !EZ_EYEGLOWS
 
 	DEFINE_OUTPUT(		m_OnJoinedPlayerSquad,	"OnJoinedPlayerSquad" ),
 	DEFINE_OUTPUT(		m_OnLeftPlayerSquad,	"OnLeftPlayerSquad" ),
@@ -709,7 +711,9 @@ void CNPC_Citizen::Spawn()
 	CapabilitiesAdd(bits_CAP_MOVE_CLIMB);
 #endif
 
+#ifndef EZ_EYEGLOWS
 	CreateSprites();
+#endif // !EZ_EYEGLOWS
 }
 
 //-----------------------------------------------------------------------------
@@ -4980,11 +4984,13 @@ void CNPC_Citizen::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir
 //-----------------------------------------------------------------------------
 void CNPC_Citizen::Event_Killed(const CTakeDamageInfo& info)
 {
-	if (m_pChestGlow)
-		m_pChestGlow->FadeAndDie(0.5f);
+#ifndef EZ_EYEGLOWS
+	if (m_pEyeGlow)
+		m_pEyeGlow->FadeAndDie(0.5f);
 
 	if (m_pShoulderGlow)
 		m_pShoulderGlow->FadeAndDie(0.5f);
+#endif // !EZ_EYEGLOWS
 
 	if (m_Type == CT_BRUTE && GetBodygroup(BRUTE_MASK_BODYGROUP) != 1)
 	{
@@ -5101,11 +5107,11 @@ void CNPC_Citizen::OnChangeActivity(Activity eNewActivity)
 			//DispatchParticleEffect("citizen_longfall_jump", PATTACH_POINT_FOLLOW, this, LookupAttachment("backpack_end"));
 
 			// Make the chest eye a different color while we're jumping
-			if (m_pChestGlow)
+			if (m_pEyeGlow)
 			{
-				m_pChestGlow->SetRenderColor(LONGFALL_GLOW_CHEST_JUMP_R, LONGFALL_GLOW_CHEST_JUMP_G, LONGFALL_GLOW_CHEST_JUMP_B, LONGFALL_GLOW_CHEST_JUMP_A);
-				m_pChestGlow->SetBrightness(LONGFALL_GLOW_CHEST_JUMP_BRIGHT, npc_citizen_longfall_glow_chest_jump_fade_enter.GetFloat());
-				m_pChestGlow->SetScale(LONGFALL_GLOW_CHEST_JUMP_SCALE, npc_citizen_longfall_glow_chest_jump_fade_enter.GetFloat());
+				m_pEyeGlow->SetRenderColor(LONGFALL_GLOW_CHEST_JUMP_R, LONGFALL_GLOW_CHEST_JUMP_G, LONGFALL_GLOW_CHEST_JUMP_B, LONGFALL_GLOW_CHEST_JUMP_A);
+				m_pEyeGlow->SetBrightness(LONGFALL_GLOW_CHEST_JUMP_BRIGHT, npc_citizen_longfall_glow_chest_jump_fade_enter.GetFloat());
+				m_pEyeGlow->SetScale(LONGFALL_GLOW_CHEST_JUMP_SCALE, npc_citizen_longfall_glow_chest_jump_fade_enter.GetFloat());
 			}
 
 			EmitSound("NPC_Citizen_JumpRebel.Jump");
@@ -5122,11 +5128,11 @@ void CNPC_Citizen::OnChangeActivity(Activity eNewActivity)
 		default:
 		{
 			// If we were jumping, return the chest eye to its normal color
-			if (m_pChestGlow && m_pChestGlow->GetBrightness() == LONGFALL_GLOW_CHEST_JUMP_BRIGHT)
+			if (m_pEyeGlow && m_pEyeGlow->GetBrightness() == LONGFALL_GLOW_CHEST_JUMP_BRIGHT)
 			{
-				m_pChestGlow->SetRenderColor(LONGFALL_GLOW_CHEST_R, LONGFALL_GLOW_CHEST_G, LONGFALL_GLOW_CHEST_B, LONGFALL_GLOW_CHEST_A);
-				m_pChestGlow->SetBrightness(LONGFALL_GLOW_CHEST_BRIGHT, npc_citizen_longfall_glow_chest_jump_fade_exit.GetFloat());
-				m_pChestGlow->SetScale(LONGFALL_GLOW_CHEST_SCALE, npc_citizen_longfall_glow_chest_jump_fade_exit.GetFloat());
+				m_pEyeGlow->SetRenderColor(LONGFALL_GLOW_CHEST_R, LONGFALL_GLOW_CHEST_G, LONGFALL_GLOW_CHEST_B, LONGFALL_GLOW_CHEST_A);
+				m_pEyeGlow->SetBrightness(LONGFALL_GLOW_CHEST_BRIGHT, npc_citizen_longfall_glow_chest_jump_fade_exit.GetFloat());
+				m_pEyeGlow->SetScale(LONGFALL_GLOW_CHEST_SCALE, npc_citizen_longfall_glow_chest_jump_fade_exit.GetFloat());
 			}
 		}
 		break;
@@ -5134,18 +5140,133 @@ void CNPC_Citizen::OnChangeActivity(Activity eNewActivity)
 	}
 }
 
+#ifdef EZ_EYEGLOWS
+//-----------------------------------------------------------------------------
+// Purpose: Return the pointer for a given sprite given an index
+//-----------------------------------------------------------------------------
+CSprite* CNPC_Citizen::GetGlowSpritePtr(int index)
+{
+	if (m_Type == CT_LONGFALL)
+	{
+		switch (index)
+		{
+		case 0:
+			return m_pEyeGlow;
+		case 1:
+			return m_pShoulderGlow;
+		}
+	}
+
+	return BaseClass::GetGlowSpritePtr(index);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Sets the glow sprite at the given index
+//-----------------------------------------------------------------------------
+void CNPC_Citizen::SetGlowSpritePtr(int index, CSprite* sprite)
+{
+	if (m_Type == CT_LONGFALL)
+	{
+		switch (index)
+		{
+		case 0:
+			m_pEyeGlow = sprite;
+			break;
+		case 1:
+			m_pShoulderGlow = sprite;
+			break;
+		}
+	}
+
+	BaseClass::SetGlowSpritePtr(index, sprite);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Return the glow attributes for a given index
+//-----------------------------------------------------------------------------
+EyeGlow_t* CNPC_Citizen::GetEyeGlowData(int index)
+{
+	if (m_Type == CT_LONGFALL)
+	{
+		EyeGlow_t* eyeGlow = new EyeGlow_t();
+
+		switch (index) {
+		case 0:
+			eyeGlow->spriteName = AllocPooledString(LONGFALL_GLOW_CHEST_SPRITE);
+			eyeGlow->attachment = AllocPooledString("backpack_eye_chest");
+
+			if (GetNavType() == NAV_JUMP)
+			{
+				eyeGlow->alpha = LONGFALL_GLOW_CHEST_JUMP_A;
+				eyeGlow->brightness = LONGFALL_GLOW_CHEST_JUMP_BRIGHT;
+
+				eyeGlow->red = LONGFALL_GLOW_CHEST_JUMP_R;
+				eyeGlow->green = LONGFALL_GLOW_CHEST_JUMP_G;
+				eyeGlow->blue = LONGFALL_GLOW_CHEST_JUMP_B;
+
+				eyeGlow->scale = LONGFALL_GLOW_CHEST_JUMP_SCALE;
+			}
+			else
+			{
+				eyeGlow->alpha = LONGFALL_GLOW_CHEST_A;
+				eyeGlow->brightness = LONGFALL_GLOW_CHEST_BRIGHT;
+
+				eyeGlow->red = LONGFALL_GLOW_CHEST_R;
+				eyeGlow->green = LONGFALL_GLOW_CHEST_G;
+				eyeGlow->blue = LONGFALL_GLOW_CHEST_B;
+
+				eyeGlow->scale = LONGFALL_GLOW_CHEST_SCALE;
+			}
+
+			eyeGlow->renderMode = kRenderWorldGlow;
+			eyeGlow->proxyScale = 2.0f;
+
+			return eyeGlow;
+		case 1:
+			eyeGlow->spriteName = AllocPooledString(LONGFALL_GLOW_SHOULDER_SPRITE);
+			eyeGlow->attachment = AllocPooledString("backpack_eye_shoulder");
+
+			eyeGlow->alpha = 192;
+			eyeGlow->brightness = 164;
+
+			eyeGlow->red = 255;
+			eyeGlow->green = 245;
+			eyeGlow->blue = 180;
+
+			eyeGlow->renderMode = kRenderWorldGlow;
+			eyeGlow->scale = 0.15f;
+			eyeGlow->proxyScale = 1.0f;
+
+			return eyeGlow;
+		}
+	}
+
+	return BaseClass::GetEyeGlowData(index);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Return the number of glows
+//-----------------------------------------------------------------------------
+int CNPC_Citizen::GetNumGlows()
+{
+	if (m_Type == CT_LONGFALL)
+		return 2;
+	else
+		return BaseClass::GetNumGlows();
+}
+#else
 bool CNPC_Citizen::CreateSprites(void)
 {
 	if (m_Type == CT_LONGFALL)
 	{
-		m_pChestGlow = CSprite::SpriteCreate(LONGFALL_GLOW_CHEST_SPRITE, GetLocalOrigin(), false);
-		if (m_pChestGlow)
+		m_pEyeGlow = CSprite::SpriteCreate(LONGFALL_GLOW_CHEST_SPRITE, GetLocalOrigin(), false);
+		if (m_pEyeGlow)
 		{
-			m_pChestGlow->SetAttachment(this, LookupAttachment("backpack_eye_chest"));
+			m_pEyeGlow->SetAttachment(this, LookupAttachment("backpack_eye_chest"));
 
-			m_pChestGlow->SetTransparency(kRenderWorldGlow, LONGFALL_GLOW_CHEST_R, LONGFALL_GLOW_CHEST_G, LONGFALL_GLOW_CHEST_B, LONGFALL_GLOW_CHEST_A, kRenderFxNoDissipation);
-			m_pChestGlow->SetScale(0.5f, 0.1f);
-			m_pChestGlow->SetGlowProxySize(2.f);
+			m_pEyeGlow->SetTransparency(kRenderWorldGlow, LONGFALL_GLOW_CHEST_R, LONGFALL_GLOW_CHEST_G, LONGFALL_GLOW_CHEST_B, LONGFALL_GLOW_CHEST_A, kRenderFxNoDissipation);
+			m_pEyeGlow->SetScale(0.5f, 0.1f);
+			m_pEyeGlow->SetGlowProxySize(2.f);
 		}
 
 		m_pShoulderGlow = CSprite::SpriteCreate(LONGFALL_GLOW_SHOULDER_SPRITE, GetLocalOrigin(), false);
@@ -5161,6 +5282,8 @@ bool CNPC_Citizen::CreateSprites(void)
 
 	return true;
 }
+#endif // EZ_EYEGLOWS
+
 
 bool CNPC_Citizen::AllowedToIgnite(void)
 {

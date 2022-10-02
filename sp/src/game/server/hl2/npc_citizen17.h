@@ -301,7 +301,14 @@ public:
 	void			SetCitizenType( int iType ) { m_Type = (CitizenType_t)iType; }
 #endif
 
+#ifdef EZ_EYEGLOWS
+	virtual CSprite*	GetGlowSpritePtr(int i);
+	virtual void		SetGlowSpritePtr(int i, CSprite* sprite);
+	virtual EyeGlow_t*	GetEyeGlowData(int i);
+	virtual int			GetNumGlows();
+#else
 	bool	CreateSprites(void);
+#endif
 
 private:
 	//-----------------------------------------------------
@@ -414,8 +421,13 @@ private:
 	
 	//-----------------------------------------------------
 
-	CHandle<CSprite>		m_pChestGlow;
+#ifndef EZ_EYEGLOWS
+	CHandle<CSprite>		m_pEyeGlow;
 	CHandle<CSprite>		m_pShoulderGlow;
+#else
+	CSprite* m_pShoulderGlow;
+#endif // !EZ_EYEGLOWS
+
 	
 #ifdef MAPBASE_VSCRIPT
 	static ScriptHook_t		g_Hook_SelectModel;

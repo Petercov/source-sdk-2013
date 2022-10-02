@@ -264,7 +264,9 @@ private:
 
 	float			m_flBladeSpeed;
 
-	CSprite			*m_pEyeGlow;
+#ifndef EZ_EYEGLOWS // Declared in BaseNPC
+	CSprite* m_pEyeGlow;
+#endif
 	CSprite			*m_pLightGlow;
 	
 	CHandle<SmokeTrail>	m_hSmokeTrail;

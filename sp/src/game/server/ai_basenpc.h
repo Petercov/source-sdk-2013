@@ -68,6 +68,9 @@ struct AI_Waypoint_t;
 class AI_Response;
 #endif
 class CBaseFilter;
+#ifdef EZ_EYEGLOWS
+class CSprite;
+#endif
 
 typedef CBitVec<MAX_CONDITIONS> CAI_ScheduleBits;
 
@@ -474,6 +477,39 @@ struct ScriptedNPCInteraction_t
 
 	DECLARE_SIMPLE_DATADESC();
 };
+
+#ifdef EZ_EYEGLOWS
+// -----------------------------------------
+// Glow sprite data
+// -----------------------------------------
+struct EyeGlow_t
+{
+	EyeGlow_t()
+	{
+		red = 0;
+		green = 0;
+		blue = 0;
+		scale = 0;
+		alpha = 0;
+		renderMode = kRenderTransAdd;
+		brightness = 0;
+		proxyScale = 0.0f;
+		spriteName = NULL_STRING;
+		attachment = NULL_STRING;
+	}
+
+	int red;
+	int green;
+	int blue;
+	int alpha;
+	RenderMode_t renderMode;
+	float brightness;
+	float scale;
+	float proxyScale;
+	string_t spriteName;
+	string_t attachment;
+};
+#endif // EZ_EYEGLOWS
 
 //=============================================================================
 //
@@ -2425,6 +2461,21 @@ public:
 	void				GetPlayerAvoidBounds( Vector *pMins, Vector *pMaxs );
 
 	void				StartPingEffect( void ) { m_flTimePingEffect = gpGlobals->curtime + 2.0f; DispatchUpdateTransmitState(); }
+
+#ifdef EZ_EYEGLOWS
+	virtual void		StartEye(void); // Start glow effects for this NPC
+	virtual void		KillSprites(float flDelay); // Stop all glow effects
+
+protected:
+	// Glow Effects
+	CSprite*	m_pEyeGlow;
+	bool		m_bNoGlow; // Don't glow!
+
+	virtual CSprite*	GetGlowSpritePtr(int i);
+	virtual void		SetGlowSpritePtr(int i, CSprite* sprite);
+	virtual EyeGlow_t*	GetEyeGlowData(int i);
+	virtual int			GetNumGlows() { return 1; };
+#endif
 };
 
 

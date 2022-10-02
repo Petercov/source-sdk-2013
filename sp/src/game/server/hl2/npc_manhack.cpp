@@ -2540,10 +2540,12 @@ void CNPC_Manhack::Activate()
 {
 	BaseClass::Activate();
 
-	if ( IsAlive() )
+#ifndef EZ_EYEGLOWS
+	if (IsAlive())
 	{
 		StartEye();
 	}
+#endif // !EZ_EYEGLOWS
 }
 
 //-----------------------------------------------------------------------------

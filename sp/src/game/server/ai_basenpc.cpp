@@ -104,6 +104,10 @@
 #include "mapbase/vscript_funcs_shared.h"
 #endif
 
+#ifdef EZ_EYEGLOWS
+#include "Sprite.h"
+#endif // EZ_EYEGLOWS
+
 #include "env_debughistory.h"
 #include "collisionutils.h"
 
@@ -611,6 +615,10 @@ void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 	}
 
 	Wake( false );
+
+#ifdef EZ_EYEGLOWS
+	KillSprites(0.0f);
+#endif
 	
 	//Adrian: Select a death pose to extrapolate the ragdoll's velocity.
 	SelectDeathPose( info );
@@ -1892,6 +1900,154 @@ void CAI_BaseNPC::DoImpactEffect( trace_t &tr, int nDamageType )
 
 	BaseClass::DoImpactEffect( tr, nDamageType );
 }
+
+#ifdef EZ_EYEGLOWS
+//-----------------------------------------------------------------------------
+// Purpose: Start all glow effects for this NPC.
+//		Based on Manhack eye glows
+//-----------------------------------------------------------------------------
+void CAI_BaseNPC::StartEye(void)
+{
+	// If; they key value "No glows" is set, don't start any glows!
+	if (m_bNoGlow)
+	{
+		return;
+	}
+
+	for (int i = 0; i < GetNumGlows(); i++)
+	{
+		EyeGlow_t* glowData = GetEyeGlowData(i);
+		if (glowData == NULL)
+			continue;
+
+		CSprite* sprite = GetGlowSpritePtr(i);
+
+		//Create our Eye sprite
+		if (sprite == NULL)
+		{
+			sprite = CSprite::SpriteCreate(STRING(glowData->spriteName), GetLocalOrigin(), false);
+			sprite->SetAttachment(this, LookupAttachment(STRING(glowData->attachment)));
+
+			sprite->SetTransparency(glowData->renderMode, glowData->red, glowData->green, glowData->blue, glowData->alpha, kRenderFxNoDissipation);
+			sprite->SetColor(glowData->red, glowData->green, glowData->blue);
+
+			if (glowData->brightness > 0)
+			{
+				sprite->SetBrightness(glowData->brightness, 0.1f);
+			}
+			if (glowData->scale > 0)
+			{
+				sprite->SetScale(glowData->scale, 0.1f);
+			}
+			if (glowData->proxyScale > 0)
+			{
+				sprite->SetGlowProxySize(glowData->proxyScale);
+			}
+			sprite->SetAsTemporary();
+			SetGlowSpritePtr(i, sprite);
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Remove all glow sprites
+//		Based on Manhack eye glows
+//		1upD
+//-----------------------------------------------------------------------------
+void CAI_BaseNPC::KillSprites(float flDelay)
+{
+	for (int i = 0; i < GetNumGlows(); i++) {
+		CSprite* sprite = GetGlowSpritePtr(i);
+		if (sprite)
+			sprite->FadeAndDie(flDelay);
+		SetGlowSpritePtr(i, NULL);
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Return the pointer for a given sprite
+//-----------------------------------------------------------------------------
+CSprite* CAI_BaseNPC::GetGlowSpritePtr(int i) {
+	if (i != 0)
+		return NULL;
+
+	return m_pEyeGlow;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Sets the glow sprite at the given index
+//-----------------------------------------------------------------------------
+void CAI_BaseNPC::SetGlowSpritePtr(int i, CSprite* sprite)
+{
+	if (i != 0)
+		return;
+
+	m_pEyeGlow = sprite;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Return the glow attributes for a given index
+//-----------------------------------------------------------------------------
+EyeGlow_t* CAI_BaseNPC::GetEyeGlowData(int i)
+{
+	// Only load from model data for 0 index
+	if (i != 0)
+		return NULL;
+
+	EyeGlow_t* eyeGlow = NULL;
+
+	KeyValues* modelKeyValues = new KeyValues("");
+	if (modelKeyValues->LoadFromBuffer(modelinfo->GetModelName(GetModel()), modelinfo->GetModelKeyValueText(GetModel())))
+	{
+		KeyValues* pkvGlowData = modelKeyValues->FindKey("glow_data");
+		if (pkvGlowData)
+		{
+			// Get all of the available glow skins
+			CUtlVector<KeyValues*> glowskins;
+			KeyValues* pSkin = pkvGlowData->GetFirstSubKey();
+			while (pSkin)
+			{
+				glowskins.AddToTail(pSkin);
+				pSkin = pSkin->GetNextKey();
+			}
+
+			if (glowskins.Count() > 0)
+			{
+				// Use modulus to get our desired skin
+				pSkin = glowskins[m_nSkin % glowskins.Count()];
+				if (pSkin)
+				{
+					Color color = pSkin->GetColor("color");
+
+					// 0 alpha means this skin should not use an eye glow
+					if (color.a() == 0)
+					{
+						modelKeyValues->deleteThis();
+						return NULL;
+					}
+
+					eyeGlow = new EyeGlow_t();
+
+					eyeGlow->red = color.r();
+					eyeGlow->green = color.g();
+					eyeGlow->blue = color.b();
+					eyeGlow->alpha = color.a();
+
+					eyeGlow->spriteName = AllocPooledString(pSkin->GetString("spriteName", "sprites/light_glow02.vmt"));
+					eyeGlow->attachment = AllocPooledString(pSkin->GetString("attachment", "eyes"));
+					eyeGlow->renderMode = (RenderMode_t)pSkin->GetInt("renderMode", kRenderGlow);
+					eyeGlow->scale = pSkin->GetFloat("scale", 0.3f);
+					eyeGlow->proxyScale = pSkin->GetFloat("proxyScale", 3.0f);
+				}
+			}
+		}
+
+		modelKeyValues->deleteThis();
+	}
+
+	return eyeGlow;
+}
+#endif
 
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -12194,6 +12350,10 @@ BEGIN_DATADESC( CAI_BaseNPC )
 	DEFINE_FIELD(m_bInteractionMadeDeathSound, FIELD_BOOLEAN),
 #endif
 
+#ifdef EZ_EYEGLOWS
+		DEFINE_KEYFIELD(m_bNoGlow, FIELD_BOOLEAN, "noglow"),
+#endif
+
 	// Satisfy classcheck
 	// DEFINE_FIELD( m_ScheduleHistory, CUtlVector < AIScheduleChoice_t > ),
 
@@ -12526,6 +12686,12 @@ void CAI_BaseNPC::Activate( void )
 	m_ScheduleHistory.RemoveAll();
 #endif//AI_MONITOR_FOR_OSCILLATION
 
+#ifdef EZ_EYEGLOWS
+	if (IsAlive())
+	{
+		StartEye();
+	}
+#endif
 }
 
 void CAI_BaseNPC::Precache( void )
@@ -13101,6 +13267,10 @@ CAI_BaseNPC::~CAI_BaseNPC(void)
 //-----------------------------------------------------------------------------
 void CAI_BaseNPC::UpdateOnRemove(void)
 {
+#ifdef EZ_EYEGLOWS
+	KillSprites(0.0f);
+#endif
+
 	if ( !m_bDidDeathCleanup )
 	{
 		if ( m_NPCState == NPC_STATE_DEAD )
