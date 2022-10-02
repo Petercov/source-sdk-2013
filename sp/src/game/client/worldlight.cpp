@@ -365,6 +365,17 @@ void CWorldLights::FindBrightestLightSourceOld( const Vector &vecPosition, Vecto
 		float flDistSqr = vecDelta.LengthSqr();
 		float flRadiusSqr = light->radius * light->radius;
 
+		if (light->type == emit_spotlight)
+		{
+			Vector vecLightToPoint = -vecDelta;
+			VectorNormalize(vecLightToPoint);
+
+			float flDot = DotProduct(vecLightToPoint, light->normal);
+
+			if (flDot < light->stopdot2)
+				continue;
+		}
+
 		// Skip lights that are out of our radius
 		if(flRadiusSqr > 0 && flDistSqr >= flRadiusSqr)
 		{
@@ -380,8 +391,8 @@ void CWorldLights::FindBrightestLightSourceOld( const Vector &vecPosition, Vecto
 		}
 
 		// Calculate intensity at our position
-		float flRatio = Engine_WorldLightDistanceFalloff(light, vecDelta);
-		Vector vecIntensity = light->intensity * flRatio * engine->LightStyleValue(light->style);
+		float flRatio = Engine_WorldLightDistanceFalloff(light, vecDelta) * engine->LightStyleValue(light->style);
+		Vector vecIntensity = light->intensity * flRatio;
 
 		// Is this light more intense than the one we already found?
 		if(vecIntensity.LengthSqr() <= vecLightBrightness.LengthSqr())
@@ -430,7 +441,7 @@ void CWorldLights::FindBrightestLightSourceNew( const Vector &vecPosition, Vecto
 		{
 			// If we did hit something, and it wasn't the skybox, then skip
 			// this worldlight
-			if((tr.surface.flags & SURF_SKY) && (tr.surface.flags & SURF_SKY2D))
+			if((tr.surface.flags & SURF_SKY) || (tr.surface.flags & SURF_SKY2D))
 			{
 				// Act like we didn't find any valid worldlights, so the shadow
 				// manager uses the default shadow direction instead (should be the
@@ -455,6 +466,17 @@ void CWorldLights::FindBrightestLightSourceNew( const Vector &vecPosition, Vecto
 			float flDistSqr = vecDelta.LengthSqr();
 			float flRadiusSqr = light->radius * light->radius;
 
+			if (light->type == emit_spotlight)
+			{
+				Vector vecLightToPoint = -vecDelta;
+				VectorNormalize(vecLightToPoint);
+
+				float flDot = DotProduct(vecLightToPoint, light->normal);
+
+				if (flDot < light->stopdot2)
+					continue;
+			}
+
 			// Skip lights that are out of our radius
 			if(flRadiusSqr > 0 && flDistSqr >= flRadiusSqr)
 			{
@@ -463,8 +485,8 @@ void CWorldLights::FindBrightestLightSourceNew( const Vector &vecPosition, Vecto
 			}
 
 			// Calculate intensity at our position
-			float flRatio = Engine_WorldLightDistanceFalloff(light, vecDelta);
-			Vector vecIntensity = light->intensity * flRatio * engine->LightStyleValue(light->style);
+			float flRatio = Engine_WorldLightDistanceFalloff(light, vecDelta) * engine->LightStyleValue(light->style);
+			Vector vecIntensity = light->intensity * flRatio;
 
 			// Is this light more intense than the one we already found?
 			if(vecIntensity.LengthSqr() <= vecLightBrightness.LengthSqr())
