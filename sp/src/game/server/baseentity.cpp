@@ -1031,9 +1031,14 @@ int CBaseEntity::DrawDebugTextOverlays(void)
 	int offset = 1;
 	if (m_debugOverlays & OVERLAY_TEXT_BIT) 
 	{
+		int r = 0;
+		int g = 255;
+		int b = 0;
+
+
 		char tempstr[512];
 		Q_snprintf( tempstr, sizeof(tempstr), "(%d) Name: %s (%s)", entindex(), GetDebugName(), GetClassname() );
-		EntityText(offset,tempstr, 0);
+		EntityText(offset,tempstr, 0, r, g, b);
 		offset++;
 
 		if( m_iGlobalname != NULL_STRING )
@@ -1044,21 +1049,27 @@ int CBaseEntity::DrawDebugTextOverlays(void)
 		}
 
 		Vector vecOrigin = GetAbsOrigin();
-		Q_snprintf( tempstr, sizeof(tempstr), "Position: %0.1f, %0.1f, %0.1f\n", vecOrigin.x, vecOrigin.y, vecOrigin.z );
+		Q_snprintf( tempstr, sizeof(tempstr), "Position: %0.3f, %0.3f, %0.3f\n", vecOrigin.x, vecOrigin.y, vecOrigin.z );
 		EntityText( offset, tempstr, 0 );
 		offset++;
+
+		if (!BlocksLOS())
+		{
+			EntityText(offset, "Doesn't block LOS", 0);
+			offset++;
+		}
 
 		if( GetModelName() != NULL_STRING || GetBaseAnimating() )
 		{
 			Q_snprintf(tempstr, sizeof(tempstr), "Model:%s", STRING(GetModelName()) );
-			EntityText(offset,tempstr,0);
+			EntityText(offset,tempstr,0, 255, 255, 0);
 			offset++;
 		}
 
 		if( m_hDamageFilter.Get() != NULL )
 		{
 			Q_snprintf( tempstr, sizeof(tempstr), "DAMAGE FILTER:%s", m_hDamageFilter->GetDebugName() );
-			EntityText( offset,tempstr,0 );
+			EntityText( offset,tempstr,0, r, g, b);
 			offset++;
 		}
 
@@ -1071,10 +1082,18 @@ int CBaseEntity::DrawDebugTextOverlays(void)
 				contexts = UTIL_VarArgs("%s,%s:%s", contexts, STRING(m_ResponseContexts[i].m_iszName), STRING(m_ResponseContexts[i].m_iszValue));
 			}
 			Q_snprintf(tempstr, sizeof(tempstr), "Response Contexts:%s", contexts);
-			EntityText(offset, tempstr, 0);
+			EntityText(offset, tempstr, 0, r, g, b);
 			offset++;
 		}
 #endif
+
+		Q_snprintf(tempstr, sizeof(tempstr), "Flags :%d", GetFlags());
+		EntityText(offset, tempstr, 0);
+		offset++;
+
+		Q_snprintf(tempstr, sizeof(tempstr), "Effects :%d (EF_NODRAW=%d)", GetEffects(), GetEffects() & EF_NODRAW);
+		EntityText(offset, tempstr, 0);
+		offset++;
 
 #ifdef MAPBASE_VSCRIPT
 		// 'OnEntText' hook inspired by later source games

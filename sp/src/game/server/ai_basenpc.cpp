@@ -10398,12 +10398,16 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 
 	if (m_debugOverlays & OVERLAY_TEXT_BIT)
 	{
+		int r = 0;
+		int g = 255;
+		int b = 255;
+
 		char tempstr[512];
 		// --------------
 		// Print Health
 		// --------------
 		Q_snprintf(tempstr,sizeof(tempstr),"Health: %i  (DACC:%1.2f)",m_iHealth.Get(), GetDamageAccumulator() );
-		EntityText(text_offset,tempstr,0);
+		EntityText(text_offset,tempstr,0, r, g, b);
 		text_offset++;
 
 		// --------------
@@ -10413,7 +10417,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		if ( (int)m_NPCState < ARRAYSIZE(pStateNames) )
 		{
 			Q_snprintf(tempstr,sizeof(tempstr),"Stat: %s, ", pStateNames[m_NPCState] );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10423,7 +10427,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		if( IsInAScript() )
 		{
 			Q_snprintf(tempstr,sizeof(tempstr),"STARTSCRIPTING" );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10433,7 +10437,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		if( GetHintGroup() != NULL_STRING )
 		{
 			Q_snprintf(tempstr,sizeof(tempstr),"Hint Group: %s", STRING(GetHintGroup()) );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10441,12 +10445,12 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		// Print MotionType
 		// -----------------
 		int navTypeIndex = (int)GetNavType() + 1;
-		static const char *pMoveNames[] = { "None", "Ground", "Jump", "Fly", "Climb" };
+		static const char *pMoveNames[] = { "None", "Ground", "Jump", "Fly", "Climb", "Crawl" };
 		Assert( navTypeIndex >= 0 && navTypeIndex < ARRAYSIZE(pMoveNames) );
 		if ( navTypeIndex < ARRAYSIZE(pMoveNames) )
 		{
 			Q_snprintf(tempstr,sizeof(tempstr),"Move: %s, ", pMoveNames[navTypeIndex] );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10459,7 +10463,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			if ( pBehavior )
 			{
 				Q_snprintf(tempstr,sizeof(tempstr),"Behv: %s, ", pBehavior->GetName() );
-				EntityText(text_offset,tempstr,0);
+				EntityText(text_offset,tempstr,0, r, g, b);
 				text_offset++;
 			}
 
@@ -10470,7 +10474,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 				pName = "Unknown";
 			}
 			Q_snprintf(tempstr,sizeof(tempstr),"Schd: %s, ", pName );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 
 			if (m_debugOverlays & OVERLAY_NPC_TASK_BIT)
@@ -10483,7 +10487,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 						TaskName(GetCurSchedule()->GetTaskList()[i].iTask),
 						((i==GetScheduleCurTaskIndex())	? "<-"   :""));
 
-					EntityText(text_offset,tempstr,0);
+					EntityText(text_offset,tempstr,0, r, g, b);
 					text_offset++;
 				}
 			}
@@ -10498,7 +10502,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 				{
 					Q_strncpy(tempstr,"Task: None",sizeof(tempstr));
 				}
-				EntityText(text_offset,tempstr,0);
+				EntityText(text_offset,tempstr,0, r, g, b);
 				text_offset++;
 			}
 		}
@@ -10527,7 +10531,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		{
 			Q_strncpy(tempstr,"Actv: INVALID", sizeof(tempstr) );
 		}
-		EntityText(text_offset,tempstr,0);
+		EntityText(text_offset,tempstr,0, r, g, b);
 		text_offset++;
 
 		//
@@ -10541,7 +10545,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 				if (m_Conditions.IsBitSet(i))
 				{
 					Q_snprintf(tempstr, sizeof(tempstr), "Cond: %s\n", ConditionName(AI_RemapToGlobal(i)));
-					EntityText(text_offset, tempstr, 0);
+					EntityText(text_offset, tempstr, 0, r, g, b);
 					text_offset++;
 					bHasConditions = true;
 				}
@@ -10549,7 +10553,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			if (!bHasConditions)
 			{
 				Q_snprintf(tempstr,sizeof(tempstr),"(no conditions)");
-				EntityText(text_offset,tempstr,0);
+				EntityText(text_offset,tempstr,0, r, g, b);
 				text_offset++;
 			}
 		}
@@ -10573,7 +10577,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			}
 
 			Q_snprintf(tempstr,sizeof(tempstr),"Intr: %s (%s)\n", pName, m_interruptText );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10589,7 +10593,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 				pName = "Unknown";
 			}
 			Q_snprintf(tempstr,sizeof(tempstr),"Fail: %s (%s)\n", pName,m_failText );
-			EntityText(text_offset,tempstr,0);
+			EntityText(text_offset,tempstr,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10599,7 +10603,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		// -------------------------------
 		if (HasCondition(COND_ENEMY_TOO_FAR))
 		{
-			EntityText(text_offset,"Enemy too far to attack",0);
+			EntityText(text_offset,"Enemy too far to attack",0, r, g, b);
 			text_offset++;
 		}
 		if ( GetAbsVelocity() != vec3_origin || GetLocalAngularVelocity() != vec3_angle )
@@ -10608,7 +10612,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			Q_snprintf( tmp, sizeof(tmp), "Vel %.1f %.1f %.1f   Ang: %.1f %.1f %.1f\n", 
 				GetAbsVelocity().x, GetAbsVelocity().y, GetAbsVelocity().z, 
 				GetLocalAngularVelocity().x, GetLocalAngularVelocity().y, GetLocalAngularVelocity().z );
-			EntityText(text_offset,tmp,0);
+			EntityText(text_offset,tmp,0, r, g, b);
 			text_offset++;
 		}
 
@@ -10631,7 +10635,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 				Vector curSpread = GetAttackSpread(GetActiveWeapon(), GetEnemy());
 				float curCone = RAD2DEG(asin(curSpread.x)) * 2;
 				float bias = GetSpreadBias( GetActiveWeapon(), GetEnemy());
-				EntityText(text_offset,msg.sprintf("Cone %.1f, Bias %.2f", curCone, bias),0);
+				EntityText(text_offset,msg.sprintf("Cone %.1f, Bias %.2f", curCone, bias),0, r, g, b);
 				text_offset++;
 			}
 		}
@@ -10647,7 +10651,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			{
 				Q_strncat(tempstr,STRING(GetGoalEnt()->m_iClassname),sizeof(tempstr), COPY_ALL_CHARACTERS);
 			}
-			EntityText(text_offset, tempstr, 0);
+			EntityText(text_offset, tempstr, 0, r, g, b);
 			text_offset++;
 		}
 
@@ -10656,7 +10660,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			vphysics_objectstress_t stressOut;
 			CalculateObjectStress( VPhysicsGetObject(), this, &stressOut );
 			Q_snprintf(tempstr, sizeof(tempstr),"Stress: %.2f", stressOut.receivedStress );
-			EntityText(text_offset, tempstr, 0);
+			EntityText(text_offset, tempstr, 0, r, g, b);
 			text_offset++;
 		}
 		if ( m_pSquad )
@@ -10664,12 +10668,12 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 			if( m_pSquad->IsLeader(this) )
 			{
 				Q_snprintf(tempstr, sizeof(tempstr),"**Squad Leader**" );
-				EntityText(text_offset, tempstr, 0);
+				EntityText(text_offset, tempstr, 0, r, g, b);
 				text_offset++;
 			}
 
 			Q_snprintf(tempstr, sizeof(tempstr), "SquadSlot:%s", GetSquadSlotDebugName( GetMyStrategySlot() ) );
-			EntityText(text_offset, tempstr, 0);
+			EntityText(text_offset, tempstr, 0, r, g, b);
 			text_offset++;
 		}
 	}
