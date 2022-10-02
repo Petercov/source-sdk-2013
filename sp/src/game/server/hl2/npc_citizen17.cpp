@@ -338,11 +338,11 @@ static const char *g_ppszModelLocs[] =
 	"Group02",
 	"Group03%s",
 	"Group01",
-	"Group03b",
-	"Group03x", // May wish to change this to "Group04%s" IF a brute and medic version of the long fall rebel are created - then we can have Group04, Group04b, Group04m
+	"Group03b%s",
+	"Group03x%s", // May wish to change this to "Group04%s" IF a brute and medic version of the long fall rebel are created - then we can have Group04, Group04b, Group04m
 	"Group04%s", // Arctic
-	"Group04%s", // Arbeit
-	"Group04%s", // Arbeit2
+	"Group05",	// Arbeit
+	"Group05b", // Arbeit2
 
 	"Hazmat01", // Gasmask
 	"Group06", // Worker
@@ -686,8 +686,6 @@ void CNPC_Citizen::Spawn()
 		m_nSkin = entindex() % BRUTE_MASK_NUM_SKINS;
 	}
 
-	CapabilitiesAdd(bits_CAP_MOVE_CLIMB);
-
 	m_flTimePlayerStare = FLT_MAX;
 
 	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
@@ -707,7 +705,11 @@ void CNPC_Citizen::Spawn()
 	{
 		m_bTossesMedkits = true;
 	}
+
+	CapabilitiesAdd(bits_CAP_MOVE_CLIMB);
 #endif
+
+	CreateSprites();
 }
 
 //-----------------------------------------------------------------------------
@@ -766,6 +768,8 @@ void CNPC_Citizen::SelectModel()
 		PrecacheAllOfType(CT_BRUTE);
 		PrecacheAllOfType(CT_LONGFALL);
 		PrecacheAllOfType(CT_ARCTIC);
+		PrecacheAllOfType(CT_ARBEIT);
+		PrecacheAllOfType(CT_ARBEIT_SEC);
 		PrecacheAllOfType(CT_GASMASK);
 		PrecacheAllOfType(CT_WORKER);
 		PrecacheAllOfType(CT_HOSTAGE);

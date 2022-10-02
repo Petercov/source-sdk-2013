@@ -101,14 +101,13 @@ class CPhysicsProp;
 //
 //-----------------------------------------------------------------------------
 #ifdef MAPBASE
-class CNPC_PlayerCompanion : public CAI_GrenadeUser<CAI_PlayerAlly>
-{
-	DECLARE_CLASS( CNPC_PlayerCompanion, CAI_GrenadeUser<CAI_PlayerAlly> );
+typedef CAI_GrenadeUser<CAI_PlayerAlly> CNPC_PlayerCompanionBase;
 #else
-class CNPC_PlayerCompanion : public CAI_PlayerAlly
-{
-	DECLARE_CLASS( CNPC_PlayerCompanion, CAI_PlayerAlly );
+typedef CAI_PlayerAlly CNPC_PlayerCompanionBase;
 #endif
+class CNPC_PlayerCompanion : public CNPC_PlayerCompanionBase
+{
+	DECLARE_CLASS( CNPC_PlayerCompanion, CNPC_PlayerCompanionBase);
 public:
 
 	CNPC_PlayerCompanion();
