@@ -28,6 +28,8 @@
 	#include "c_te_effect_dispatch.h"
 	#include "fx_quad.h"
 	#include "fx.h"
+#include "dlight.h"
+#include "iefx.h"
 
 	extern void DrawHalo( IMaterial* pMaterial, const Vector &source, float scale, float const *color, float flHDRColorScale = 1.0f );
 	extern void FormatViewModelAttachment( Vector &vOrigin, bool bInverse );
@@ -636,6 +638,23 @@ void C_WeaponStunStick::ClientThink( void )
 			beamInfo.m_nFlags = 0;
 			
 			beams->CreateBeamEntPoint( beamInfo );
+		}
+	}
+	else if (GetOwner() && GetOwner()->IsNPC())
+	{
+		if (m_bActive && gpGlobals->frametime != 0.0f && !IsDormant())
+		{
+			dlight_t* pLight = effects->CL_AllocElight(index);
+			if (pLight)
+			{
+				GetAttachment(1, pLight->origin);
+				pLight->radius = RandomFloat(45.f, 55.f);
+				pLight->color.r = 120;
+				pLight->color.g = 160;
+				pLight->color.b = 148;
+				pLight->color.exponent = 4;
+				pLight->die = gpGlobals->curtime + 0.001;
+			}
 		}
 	}
 }
