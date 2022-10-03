@@ -1278,9 +1278,9 @@ int CVisibleShadowList::FindShadows( const CViewSetup *pView, int nLeafCount, Le
 }
 
 #ifdef GSTRING_VOLUMETRICS
-ConVar volum_subdiv_scale("gstring_volumetrics_subdiv_scale", "0.1");
-ConVar volum_subdiv_base("gstring_volumetrics_subdiv_base", "10");
-ConVar volum_subdiv_sqrroot("gstring_volumetrics_subdiv_sqrroot", "0");
+//ConVar volum_subdiv_scale("gstring_volumetrics_subdiv_scale", "0.1");
+//ConVar volum_subdiv_base("gstring_volumetrics_subdiv_base", "10");
+//ConVar volum_subdiv_sqrroot("gstring_volumetrics_subdiv_sqrroot", "0");
 
 //-----------------------------------------------------------------------------
 // Renderable for volumetric light effects
@@ -1492,6 +1492,8 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 	const int iCvarSubDiv = gstring_volumetrics_subdiv.GetInt();
 	m_iCurrentVolumetricsSubDiv = (iCvarSubDiv > 2) ? iCvarSubDiv : Max(m_State.m_iVolumetricsQuality, 3);
 
+	CMatRenderContextPtr pRenderContext(materials);
+
 #ifdef ASW_PROJECTED_TEXTURES
 	if (light.m_bOrtho)
 	{
@@ -1502,7 +1504,6 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 		};
 
 		const VertexFormat_t vertexFormat = VERTEX_POSITION | VERTEX_COLOR | VERTEX_TEXCOORD_SIZE(0, 2);
-		CMatRenderContextPtr pRenderContext(materials);
 		m_pVolmetricMesh = pRenderContext->CreateStaticMesh(vertexFormat, TEXTURE_GROUP_OTHER, sm_LightShaftsMaterial);
 
 		CMeshBuilder meshBuilder;
@@ -1612,18 +1613,17 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 			(farPlane[3] - farPlane[0]),
 		};
 
-		Vector vColorScale(1, 1, 1);
-		if (volum_subdiv_scale.GetFloat() > 0.f)
+		Vector vColorScale(1.f / m_iCurrentVolumetricsSubDiv);
+		/*if (volum_subdiv_scale.GetFloat() > 0.f)
 		{
 			float flDivisor = Max(1.f, (m_iCurrentVolumetricsSubDiv - volum_subdiv_base.GetFloat()) * volum_subdiv_scale.GetFloat());
 			if (volum_subdiv_sqrroot.GetBool())
 				flDivisor = FastSqrt(flDivisor);
 
 			vColorScale *= 1.f / flDivisor;
-		}
+		}*/
 
 		const VertexFormat_t vertexFormat = VERTEX_POSITION | VERTEX_COLOR | VERTEX_TEXCOORD_SIZE(0, 2);
-		CMatRenderContextPtr pRenderContext(materials);
 		m_pVolmetricMesh = pRenderContext->CreateStaticMesh(vertexFormat, TEXTURE_GROUP_OTHER, sm_LightShaftsMaterial);
 
 		CMeshBuilder meshBuilder;
@@ -1636,7 +1636,7 @@ void CVolumetricLightRenderable::RebuildVolumetricMesh()
 			//flFracX = powf( flFracX, 3.0f );
 			flFracX = powf(flFracX, m_State.m_flVolumetricsQualityBias);
 
-			Vector vertColor = vColorScale * flFracX;
+			Vector vertColor = Lerp(flFracX, vColorScale, Vector(1));
 
 			Vector v00 = vec3_origin + vecDirections[0] * flFracX;
 			Vector v10 = v00 + vecDirections[1] * flFracX;
