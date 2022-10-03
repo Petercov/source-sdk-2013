@@ -28,16 +28,17 @@ $Project "Client (Episodic)"
 		$File	"hud_chat.cpp"
 		$File	"c_team_objectiveresource.cpp"
 		$File	"c_team_objectiveresource.h"
+		
+		$Folder "TE120"
+		{
+			$File	"te120\c_weapon_physconcussion.cpp"
+			$File	"te120\c_prop_gravity_ball.cpp"
+			$File	"te120\c_prop_gravity_ball.h"
+			$File	"te120\te120_screenspaceeffects.cpp"
+		}
 
 		$Folder	"HL2 DLL"
 		{
-			$Folder "TE120"
-			{
-				$File	"te120\c_weapon_physconcussion.cpp"
-				$File	"te120\c_prop_gravity_ball.cpp"
-				$File	"te120\c_prop_gravity_ball.h"
-			}
-
 			$Folder "EZ2"
 			{
 				$File	"ez2\c_weapon_pulse_pistol.cpp"

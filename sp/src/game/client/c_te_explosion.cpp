@@ -22,11 +22,12 @@
 
 
 // Enumator class for ragdolls being affected by explosive forces
-CRagdollExplosionEnumerator::CRagdollExplosionEnumerator( Vector origin, float radius, float magnitude )
+CRagdollExplosionEnumerator::CRagdollExplosionEnumerator( Vector origin, float radius, float magnitude, bool direct )
 {
 	m_vecOrigin		= origin;
 	m_flMagnitude	= magnitude;
 	m_flRadius		= radius;
+	m_bDirectPush	= direct;
 }
 
 // Actual work code
@@ -55,31 +56,38 @@ CRagdollExplosionEnumerator::~CRagdollExplosionEnumerator()
 		C_BaseEntity *pEnt = m_Entities[i];
 		C_BaseAnimating *pModel = static_cast< C_BaseAnimating * >( pEnt );
 
-		Vector	position = pEnt->CollisionProp()->GetCollisionOrigin();
+		if (m_bDirectPush) // TE120
+		{
+			pModel->GCPush(m_vecOrigin, m_flRadius);
+		}
+		else
+		{
+			Vector	position = pEnt->CollisionProp()->GetCollisionOrigin();
 
-		Vector	dir		= position - m_vecOrigin;
-		float	dist	= VectorNormalize( dir );
-		float	force	= m_flMagnitude - ( ( m_flMagnitude / m_flRadius ) * dist );
+			Vector	dir = position - m_vecOrigin;
+			float	dist = VectorNormalize(dir);
+			float	force = m_flMagnitude - ((m_flMagnitude / m_flRadius) * dist);
 
-		if ( force <= 1.0f )
-			continue;
+			if (force <= 1.0f)
+				continue;
 
-		trace_t	tr;
-		UTIL_TraceLine( m_vecOrigin, position, MASK_SHOT_HULL, NULL, COLLISION_GROUP_NONE, &tr );
+			trace_t	tr;
+			UTIL_TraceLine(m_vecOrigin, position, MASK_SHOT_HULL, NULL, COLLISION_GROUP_NONE, &tr);
 
-		// debugoverlay->AddLineOverlay( m_vecOrigin, position, 0,255,0, true, 18.0 );
+			// debugoverlay->AddLineOverlay( m_vecOrigin, position, 0,255,0, true, 18.0 );
 
-		if ( tr.fraction < 1.0f && tr.m_pEnt != pModel )
-			continue;	
+			if (tr.fraction < 1.0f && tr.m_pEnt != pModel)
+				continue;
 
-		dir *= force; // scale force
+			dir *= force; // scale force
 
-		// tricky, adjust tr.start so end-start->= force
-		tr.startpos = tr.endpos - dir;
-		// move expolsion center a bit down, so things fly higher 
-		tr.startpos.z -= 32.0f;
+			// tricky, adjust tr.start so end-start->= force
+			tr.startpos = tr.endpos - dir;
+			// move expolsion center a bit down, so things fly higher 
+			tr.startpos.z -= 32.0f;
 
-		pModel->ImpactTrace( &tr, DMG_BLAST, NULL );
+			pModel->ImpactTrace(&tr, DMG_BLAST, NULL);
+		}
 	}
 }
 

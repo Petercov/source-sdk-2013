@@ -16,6 +16,7 @@
 #include "view.h"
 #include "view_scene.h"
 #include "beamdraw.h"
+#include "ragdollexplosionenumerator.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -113,3 +114,31 @@ void GravityBallImpactCallback( const CEffectData &data )
 }
 
 DECLARE_CLIENT_EFFECT( "gball_bounce", GravityBallImpactCallback );
+
+//TE120--
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool FX_AffectConcussionRagdolls(Vector vecOrigin, float radius, float magnitude)
+{
+	// don't do this when lots of ragdolls are simulating
+	if (s_RagdollLRU.CountRagdolls(true) > 1)
+		return false;
+
+	CRagdollExplosionEnumerator	ragdollEnum(vecOrigin, radius, magnitude, true);
+	partition->EnumerateElementsInSphere(PARTITION_CLIENT_RESPONSIVE_EDICTS, vecOrigin, radius, false, &ragdollEnum);
+
+	return true;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+// Input  : &data -
+//-----------------------------------------------------------------------------
+void RagdollConcussionCallback(const CEffectData& data)
+{
+	FX_AffectConcussionRagdolls(data.m_vOrigin, data.m_flRadius, data.m_flMagnitude);
+}
+
+DECLARE_CLIENT_EFFECT("RagdollConcussion", RagdollConcussionCallback);
+//TE120--
