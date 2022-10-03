@@ -68,7 +68,7 @@ void CGlowObjectManager::RenderGlowEffects( const CViewSetup *pSetup, int nSplit
 			int nX, nY, nWidth, nHeight;
 			pRenderContext->GetViewport( nX, nY, nWidth, nHeight );
 
-			PIXEvent _pixEvent( pRenderContext, "EntityGlowEffects" );
+			PIXEVENT( pRenderContext, "EntityGlowEffects" );
 			ApplyEntityGlowEffects( pSetup, nSplitScreenSlot, pRenderContext, glow_outline_effect_width.GetFloat(), nX, nY, nWidth, nHeight );
 		}
 	}
@@ -263,7 +263,7 @@ void CGlowObjectManager::ApplyEntityGlowEffects( const CViewSetup *pSetup, int n
 	// Render the glow colors to _rt_FullFrameFB 
 	//=============================================
 	{
-		PIXEvent pixEvent( pRenderContext, "RenderGlowModels" );
+		PIXEVENT( pRenderContext, "RenderGlowModels" );
 		RenderGlowModels( pSetup, nSplitScreenSlot, pRenderContext );
 	}
 	
