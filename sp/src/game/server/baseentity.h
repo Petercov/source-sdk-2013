@@ -610,6 +610,9 @@ public:
 
 	void ValidateEntityConnections();
 	void FireNamedOutput( const char *pszOutput, variant_t variant, CBaseEntity *pActivator, CBaseEntity *pCaller, float flDelay = 0.0f );
+#ifdef MAPBASE
+	virtual
+#endif
 	CBaseEntityOutput *FindNamedOutput( const char *pszOutput );
 #ifdef MAPBASE_VSCRIPT
 	void ScriptFireOutput( const char *pszOutput, HSCRIPT hActivator, HSCRIPT hCaller, const char *szValue, float flDelay );
@@ -868,6 +871,11 @@ public:
 
 	void		 SetAIWalkable( bool bBlocksLOS );
 	bool		 IsAIWalkable( void );
+
+#ifdef MAPBASE
+	virtual void	HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues) {}
+#endif // MAPBASE
+
 private:
 	int SaveDataDescBlock( ISave &save, datamap_t *dmap );
 	int RestoreDataDescBlock( IRestore &restore, datamap_t *dmap );
