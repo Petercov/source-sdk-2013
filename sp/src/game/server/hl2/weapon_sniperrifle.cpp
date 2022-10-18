@@ -388,7 +388,7 @@ bool CWeaponSniperRifle::Reload( void )
 			// Play reload on different channel as it happens after every fire
 			// and otherwise steals channel away from fire sound
 			WeaponSound(RELOAD);
-			SendWeaponAnim(Clip1() ? ACT_VM_RELOAD : ACT_VM_RELOAD_EMPTY);
+			SendWeaponAnim(primary == 1 ? ACT_VM_RELOAD : ACT_VM_RELOAD_EMPTY);
 			
 			m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
 
