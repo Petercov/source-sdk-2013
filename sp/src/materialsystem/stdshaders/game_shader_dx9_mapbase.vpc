@@ -78,6 +78,8 @@ $Project
 		$File	"LightmappedPBR_dx9_helper.h"
 	}
 
-	//$Shaders	"mapbase_dx9_20b.txt"
-	//$Shaders	"mapbase_dx9_30.txt"
+	$File	"buildmapbaseshaders.bat"
+	
+	$Shaders	"mapbase_dx9_20b.txt"
+	$Shaders	"mapbase_dx9_30.txt"
 }

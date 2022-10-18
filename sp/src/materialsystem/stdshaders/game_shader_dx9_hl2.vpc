@@ -10,4 +10,5 @@ $Include "$SRCDIR\materialsystem\stdshaders\game_shader_dx9_base.vpc"
 
 $Project "Shaders (HL2)"
 {
+	$File	"buildhl2shaders.bat"
 }
