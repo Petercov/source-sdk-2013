@@ -18,15 +18,13 @@ $Project
 	{
 		$Folder "HL2 Beta"
 		{
-			$Folder "Weapons"
-			{
-				$File	"firefightreloaded\weapon_oicw.cpp"
-				$File	"firefightreloaded\weapon_oicw.h"
-				$File	"insolence\weapon_hmg1.cpp"
-				$File	"hl2\weapon_irifle.cpp"
-				$File	"hl2\weapon_smg2.cpp"
-				$File	"hl2\weapon_sniperrifle.cpp"
-			}
+			$File	"firefightreloaded\weapon_oicw.cpp"
+			$File	"firefightreloaded\weapon_oicw.h"
+			$File	"insolence\weapon_hmg1.cpp"
+			$File	"hl2\weapon_irifle.cpp"
+			$File	"hl2\weapon_smg2.cpp"
+			$File	"hl2\weapon_sniperrifle.cpp"
+			$File	"physgun.cpp"
 		}
 
 		$Folder "SiN Episodes"
