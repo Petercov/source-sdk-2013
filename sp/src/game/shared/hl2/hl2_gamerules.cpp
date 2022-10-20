@@ -619,14 +619,26 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		// --------------------------------------------------------------
 		// First initialize table so we can report missing relationships
 		// --------------------------------------------------------------
-		for (i=0;i<NUM_AI_CLASSES;i++)
+#ifndef MAPBASE
+		for (i = 0; i < NUM_AI_CLASSES; i++)
 		{
-			for (j=0;j<NUM_AI_CLASSES;j++)
+			for (j = 0; j < NUM_AI_CLASSES; j++)
 			{
 				// By default all relationships are neutral of priority zero
-				CBaseCombatCharacter::SetDefaultRelationship( (Class_T)i, (Class_T)j, D_NU, 0 );
+				CBaseCombatCharacter::SetDefaultRelationship((Class_T)i, (Class_T)j, D_NU, 0);
 			}
 		}
+#else
+		const int nClasses = NumEntityClasses();
+		for (i = 0; i < nClasses; i++)
+		{
+			for (j = 0; j < nClasses; j++)
+			{
+				// By default all relationships are neutral of priority zero
+				CBaseCombatCharacter::SetDefaultRelationship((Class_T)i, (Class_T)j, D_NU, 0);
+			}
+		}
+#endif // !MAPBASE
 
 		// ------------------------------------------------------------
 		//	> CLASS_ANTLION
@@ -1509,7 +1521,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
-		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,		CLASS_TEST,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_TEST,D_HT, 0);
 		// ------------------------------------------------------------
 		//	> CLASS_HACKED_ROLLERMINE
 		// ------------------------------------------------------------
@@ -1541,7 +1553,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
-				CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,		CLASS_TEST,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_TEST,D_HT, 0);
 	}
 
 

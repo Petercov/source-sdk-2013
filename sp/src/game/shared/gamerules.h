@@ -350,6 +350,10 @@ public:
 // AI Definitions
 	virtual void			InitDefaultAIRelationships( void ) { return; }
 	virtual const char*		AIClassText(int classType) { return NULL; }
+#ifdef MAPBASE
+	virtual int				NumEntityClasses() const { return NUM_AI_CLASSES; }
+	virtual int				NumFactions() const { return NUM_SHARED_FACTIONS; }
+#endif // MAPBASE
 
 // Healthcharger respawn control
 	virtual float FlHealthChargerRechargeTime( void ) = 0;// how long until a depleted HealthCharger recharges itself?

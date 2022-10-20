@@ -89,7 +89,14 @@ enum Disposition_t
 	D_HT,		// Hate
 	D_FR,		// Fear
 	D_LI,		// Like
-	D_NU		// Neutral
+	D_NU,		// Neutral
+
+	// The following are duplicates of the above, only with friendlier names
+	D_ERROR = D_ER,		// Undefined - error
+	D_HATE = D_HT,		// Hate
+	D_FEAR = D_FR,		// Fear
+	D_LIKE = D_LI,		// Like
+	D_NEUTRAL = D_NU,	// Neutral
 };
 
 const int DEF_RELATIONSHIP_PRIORITY = INT_MIN;
@@ -98,6 +105,10 @@ struct Relationship_t
 {
 	EHANDLE			entity;			// Relationship to a particular entity
 	Class_T			classType;		// Relationship to a class  CLASS_NONE = not class based (Def. in baseentity.h)
+#ifdef MAPBASE
+	int				faction;		// Relationship to a faction FACTION_NONE = not faction based
+#endif // MAPBASE
+
 	Disposition_t	disposition;	// D_HT (Hate), D_FR (Fear), D_LI (Like), D_NT (Neutral)
 	int				priority;		// Relative importance of this relationship (higher numbers mean more important)
 
@@ -472,6 +483,17 @@ public:
 	virtual void		AddClassRelationship( Class_T nClass, Disposition_t nDisposition, int nPriority );
 #ifdef MAPBASE
 	virtual bool		RemoveClassRelationship( Class_T nClass );
+
+	static void			AllocateDefaultFactionRelationships();
+	static void			SetDefaultFactionRelationship(int nFaction, int nFactionTarget, Disposition_t nDisposition, int nPriority);
+	Disposition_t		GetFactionRelationshipDisposition(int nFaction);
+	virtual void		AddFactionRelationship(int nFaction, Disposition_t nDisposition, int nPriority);
+
+	// Factions
+	static int			GetNumFactions(void);
+	static CUtlVector<EHANDLE>* GetEntitiesInFaction(int nFaction);
+	int					GetFaction(void) const { return m_nFaction; }
+	virtual void		ChangeFaction(int nNewFaction);
 #endif
 
 	virtual void		ChangeTeam( int iTeamNum );
@@ -607,6 +629,10 @@ private:
 	
 	static int					m_lastInteraction;	// Last registered interaction #
 	static Relationship_t**		m_DefaultRelationship;
+#ifdef MAPBASE
+	static Relationship_t** m_FactionRelationship;
+	static CUtlVector< CUtlVector< EHANDLE> > m_aFactions;
+#endif // MAPBASE
 
 	// attack/damage
 	int					m_LastHitGroup;			// the last body region that took damage
@@ -626,6 +652,9 @@ private:
 	//  Relationships
 	// ---------------
 	CUtlVector<Relationship_t>		m_Relationship;						// Array of relationships
+#ifdef MAPBASE
+	int								m_nFaction;
+#endif // MAPBASE
 
 protected:
 	// shared ammo slots
