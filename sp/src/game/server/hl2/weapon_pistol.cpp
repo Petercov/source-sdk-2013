@@ -595,7 +595,9 @@ public:
 
 	void	Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
 
-	virtual bool Reload(void) { return false; } // The pulse pistol does not reload
+	void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
+
+	virtual bool Reload( void ) { return false; } // The pulse pistol does not reload
 
 	virtual int GetMaxClip2(void) const { int iBase = BaseClass::GetMaxClip2(); return iBase > 0 ? iBase : sv_pulse_pistol_max_charge.GetInt(); }
 
@@ -622,10 +624,15 @@ public:
 
 	virtual float GetFireRate(void)
 	{
-		return 3.0f;
+		if ( GetOwner() && GetOwner()->IsPlayer() )
+		{
+			return 3.0f;
+		}
+
+		return 1.0f;
 	}
 
-	virtual void	UpdateOnRemove(void);
+	virtual void	UpdateOnRemove( void );
 
 	bool	Deploy(void);
 	bool	Holster(CBaseCombatWeapon* pSwitchingTo);
@@ -799,6 +806,32 @@ void CWeaponPulsePistol::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseComb
 	}
 
 	BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Overridden by CWeaponPulsePistol to handle unique clip sizes
+//-----------------------------------------------------------------------------
+void CWeaponPulsePistol::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
+{
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+
+	WeaponSound( SINGLE_NPC );
+
+	FireBulletsInfo_t info;
+	info.m_iShots = 2;
+	info.m_vecSrc = vecShootOrigin;
+	info.m_vecDirShooting = vecShootDir;
+	info.m_vecSpread = VECTOR_CONE_PRECALCULATED;
+	info.m_flDistance = MAX_TRACE_LENGTH;
+	info.m_iAmmoType = m_iPrimaryAmmoType;
+	info.m_iTracerFreq = 1; // Pulse pistol ALWAYS uses tracer
+
+	pOperator->FireBullets( info );
+	pOperator->DoMuzzleFlash();
+	m_iClip1 = MAX(m_iClip1 - 10, 0);
+
+	// NPCs handle recharging after every shot
+	RechargeAmmo();
 }
 
 
