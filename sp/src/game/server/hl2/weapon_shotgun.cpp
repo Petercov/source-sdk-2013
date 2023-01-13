@@ -1123,11 +1123,7 @@ void CWeaponFlechetteShotgun::PrimaryAttack( void )
 		}
 	}
 	
-#ifdef EZ
 	pPlayer->ViewPunch(QAngle(random->RandomFloat(-4, -2), random->RandomFloat(-4, 4), 0)); // Breadman - values doubled
-#else
-	pPlayer->ViewPunch( QAngle( random->RandomFloat( -2, -1 ), random->RandomFloat( -2, 2 ), 0 ) );
-#endif
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, GetOwner() );
 
@@ -1169,18 +1165,10 @@ void CWeaponFlechetteShotgun::SecondaryAttack( void )
 	SendWeaponAnim( ACT_VM_SECONDARYATTACK );
 
 	// player "shoot" animation
-#ifdef MAPBASE
 	pPlayer->SetAnimation( PLAYER_ATTACK2 );
-#else
-	pPlayer->SetAnimation( PLAYER_ATTACK1 );
-#endif
 
 	// Don't fire again until fire animation has completed
-#ifdef MAPBASE
 	m_flNextPrimaryAttack = gpGlobals->curtime + GetViewModelSequenceDuration();
-#else
-	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
-#endif
 	m_iClip1 -= 2;	// Shotgun uses same clip for primary and secondary attacks
 
 	Vector vecSrc	 = pPlayer->Weapon_ShootPosition();
@@ -1197,11 +1185,7 @@ void CWeaponFlechetteShotgun::SecondaryAttack( void )
 		FlechetteShotgun_CreateFlechette( vecSrc, vecDir * RandomFloat( sk_plr_flechette_shotgun_speed_min.GetFloat(), sk_plr_flechette_shotgun_speed_max.GetFloat() ), pPlayer);
 	}
 
-#ifdef EZ
 	pPlayer->ViewPunch(QAngle(random->RandomFloat(-7, -7), random->RandomFloat(-6, 6), 0)); // Breadman - was 5 5 and second bit wasn't present
-#else
-	pPlayer->ViewPunch( QAngle(random->RandomFloat( -5, 5 ),0,0) );
-#endif
 
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );
 
