@@ -66,6 +66,9 @@
 #ifdef MAPBASE
 #include "mapbase/GlobalStrings.h"
 #endif
+#ifdef EZ2
+#include "npc_playercompanion.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -86,6 +89,12 @@ ConVar sk_hunter_health( "sk_hunter_health", "210" );
 // Melee attacks
 ConVar sk_hunter_dmg_one_slash( "sk_hunter_dmg_one_slash", "20" );
 ConVar sk_hunter_dmg_charge( "sk_hunter_dmg_charge", "20" );
+#ifdef EZ2
+ConVar sk_hunter_dmg_one_slash_forcescale( "sk_hunter_dmg_one_slash_forcescale", "0.5" );
+
+// Suppress sounds when the player can't see it
+ConVar hunter_suppress_sounds_while_unseen( "hunter_suppress_sounds_while_unseen", "1" );
+#endif
 
 // Flechette volley attack
 ConVar hunter_flechette_max_range( "hunter_flechette_max_range", "1200" );
@@ -264,6 +273,12 @@ enum SquadSlot_t
 
 #define HUNTER_RUNDOWN_SQUADDATA 0
 
+#ifdef EZ2
+// Blixibon - A special list of entities which hunters should dodge.
+// Entities involved in this list (e.g. Combine balls) normally extern this
+// and add/remove themselves from it at their constructors/destructors.
+CUtlVector<CBaseEntity*> g_pDodgeableProjectiles;
+#endif
 
 //-----------------------------------------------------------------------------
 // We're doing this quite a lot, so this makes the check a lot faster since
@@ -372,6 +387,21 @@ protected:
 	bool CreateSprites( bool bBright );
 
 	void FlechetteTouch( CBaseEntity *pOther );
+
+	virtual const char *GetFlechetteModel() { return HUNTER_FLECHETTE_MODEL; }
+	virtual float GetFlechetteDamage() { return sk_hunter_dmg_flechette.GetFloat(); }
+	virtual float GetFlechetteExplodeDamage() { return sk_hunter_flechette_explode_dmg.GetFloat(); }
+	virtual float GetFlechetteExplodeRadius() { return sk_hunter_flechette_explode_radius.GetFloat(); }
+
+	virtual const char *GetFlechetteSound_NearMiss() { return "NPC_Hunter.FlechetteNearmiss"; }
+	virtual const char *GetFlechetteSound_HitBody() { return "NPC_Hunter.FlechetteHitBody"; }
+	virtual const char *GetFlechetteSound_HitWorld() { return "NPC_Hunter.FlechetteHitWorld"; }
+	virtual const char *GetFlechetteSound_PreExplode() { return "NPC_Hunter.FlechettePreExplode"; }
+	virtual const char *GetFlechetteSound_Explode() { return "NPC_Hunter.FlechetteExplode"; }
+
+	virtual const char *GetFlechetteParticle_Trail_Bright() { return "hunter_flechette_trail_striderbuster"; }
+	virtual const char *GetFlechetteParticle_Trail() { return "hunter_flechette_trail"; }
+	virtual const char *GetFlechetteParticle_Explode() { return "hunter_projectile_explosion_1"; }
 
 #ifdef EZ2_WEAPONS
 	virtual bool IsShotgunFlechette() { return false; }
@@ -525,11 +555,11 @@ bool CHunterFlechette::CreateSprites( bool bBright )
 {
 	if ( bBright )
 	{
-		DispatchParticleEffect( "hunter_flechette_trail_striderbuster", PATTACH_ABSORIGIN_FOLLOW, this );
+		DispatchParticleEffect( GetFlechetteParticle_Trail_Bright(), PATTACH_ABSORIGIN_FOLLOW, this);
 	}
 	else
 	{
-		DispatchParticleEffect( "hunter_flechette_trail", PATTACH_ABSORIGIN_FOLLOW, this );
+		DispatchParticleEffect( GetFlechetteParticle_Trail(), PATTACH_ABSORIGIN_FOLLOW, this);
 	}
 	
 	return true;
@@ -542,7 +572,7 @@ void CHunterFlechette::Spawn()
 {
 	Precache( );
 
-	SetModel( HUNTER_FLECHETTE_MODEL );
+	SetModel( GetFlechetteModel() );
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
 	UTIL_SetSize( this, -Vector(1,1,1), Vector(1,1,1) );
 	SetSolid( SOLID_BBOX );
@@ -584,18 +614,18 @@ void CHunterFlechette::SetupGlobalModelData()
 //-----------------------------------------------------------------------------
 void CHunterFlechette::Precache()
 {
-	PrecacheModel( HUNTER_FLECHETTE_MODEL );
+	PrecacheModel( GetFlechetteModel() );
 	PrecacheModel( "sprites/light_glow02_noz.vmt" );
 
-	PrecacheScriptSound( "NPC_Hunter.FlechetteNearmiss" );
-	PrecacheScriptSound( "NPC_Hunter.FlechetteHitBody" );
-	PrecacheScriptSound( "NPC_Hunter.FlechetteHitWorld" );
-	PrecacheScriptSound( "NPC_Hunter.FlechettePreExplode" );
-	PrecacheScriptSound( "NPC_Hunter.FlechetteExplode" );
+	PrecacheScriptSound( GetFlechetteSound_NearMiss() );
+	PrecacheScriptSound( GetFlechetteSound_HitBody() );
+	PrecacheScriptSound( GetFlechetteSound_HitWorld() );
+	PrecacheScriptSound( GetFlechetteSound_PreExplode() );
+	PrecacheScriptSound( GetFlechetteSound_Explode() );
 
-	PrecacheParticleSystem( "hunter_flechette_trail_striderbuster" );
-	PrecacheParticleSystem( "hunter_flechette_trail" );
-	PrecacheParticleSystem( "hunter_projectile_explosion_1" );
+	PrecacheParticleSystem( GetFlechetteParticle_Trail_Bright() );
+	PrecacheParticleSystem( GetFlechetteParticle_Trail() );
+	PrecacheParticleSystem( GetFlechetteParticle_Explode() );
 }
 
 
@@ -603,7 +633,7 @@ void CHunterFlechette::Precache()
 //-----------------------------------------------------------------------------
 void CHunterFlechette::StickTo( CBaseEntity *pOther, trace_t &tr )
 {
-	EmitSound( "NPC_Hunter.FlechetteHitWorld" );
+	EmitSound( GetFlechetteSound_HitWorld() );
 
 	SetMoveType( MOVETYPE_NONE );
 	
@@ -659,6 +689,21 @@ void CHunterFlechette::StickTo( CBaseEntity *pOther, trace_t &tr )
 	SetContextThink( NULL, 0, s_szHunterFlechetteSeekThink );
 
 	// Get ready to explode.
+#ifdef EZ2_WEAPONS
+	if ( IsShotgunFlechette() )
+	{
+		extern ConVar sk_plr_flechette_shotgun_explode_delay;
+		extern ConVar sk_npc_flechette_shotgun_explode_delay;
+
+		float flExplodeDelay = sk_plr_flechette_shotgun_explode_delay.GetFloat();
+		if (GetOwnerEntity() && GetOwnerEntity()->IsNPC())
+			flExplodeDelay = sk_npc_flechette_shotgun_explode_delay.GetFloat();
+
+		SetThink( &CHunterFlechette::DangerSoundThink );
+		SetNextThink( gpGlobals->curtime + (flExplodeDelay - HUNTER_FLECHETTE_WARN_TIME) );
+	}
+	else
+#endif
 	if ( !bAttachedToBuster )
 	{
 		SetThink( &CHunterFlechette::DangerSoundThink );
@@ -698,7 +743,7 @@ void CHunterFlechette::FlechetteTouch( CBaseEntity *pOther )
 			return;
 	}
 
-	if ( FClassnameIs( pOther, "hunter_flechette" ) )
+	if ( FClassnameIs( pOther, GetClassname() ) )
 		return;
 
 	trace_t	tr;
@@ -711,7 +756,7 @@ void CHunterFlechette::FlechetteTouch( CBaseEntity *pOther )
 		ClearMultiDamage();
 		VectorNormalize( vecNormalizedVel );
 
-		float flDamage = sk_hunter_dmg_flechette.GetFloat();
+		float flDamage = GetFlechetteDamage();
 		CBreakable *pBreak = dynamic_cast <CBreakable *>(pOther);
 		if ( pBreak && ( pBreak->GetMaterialType() == matGlass ) )
 		{
@@ -732,7 +777,7 @@ void CHunterFlechette::FlechetteTouch( CBaseEntity *pOther )
 		SetAbsVelocity( Vector( 0, 0, 0 ) );
 
 		// play body "thwack" sound
-		EmitSound( "NPC_Hunter.FlechetteHitBody" );
+		EmitSound( GetFlechetteSound_HitBody() );
 
 		StopParticleEffects( this );
 
@@ -864,7 +909,7 @@ void CHunterFlechette::DopplerThink()
 
 	if ( flPlayerDot <= flMyDot )
 	{
-		EmitSound( "NPC_Hunter.FlechetteNearMiss" );
+		EmitSound( GetFlechetteSound_NearMiss() );
 		
 		// We've played the near miss sound and we're not seeking. Stop thinking.
 		SetThink( NULL );
@@ -911,11 +956,28 @@ void CHunterFlechette::Shoot( Vector &vecVelocity, bool bBrightFX )
 //-----------------------------------------------------------------------------
 void CHunterFlechette::DangerSoundThink()
 {
-	EmitSound( "NPC_Hunter.FlechettePreExplode" );
+	EmitSound( GetFlechetteSound_PreExplode() );
 
 	CSoundEnt::InsertSound( SOUND_DANGER|SOUND_CONTEXT_EXCLUDE_COMBINE, GetAbsOrigin(), 150.0f, 0.5, this );
 	SetThink( &CHunterFlechette::ExplodeThink );
-	SetNextThink( gpGlobals->curtime + HUNTER_FLECHETTE_WARN_TIME );
+
+#ifdef EZ2_WEAPONS
+	if (IsShotgunFlechette())
+	{
+		extern ConVar sk_plr_flechette_shotgun_explode_warn_duration;
+		extern ConVar sk_npc_flechette_shotgun_explode_warn_duration;
+
+		float flWarnTime = sk_plr_flechette_shotgun_explode_warn_duration.GetFloat();
+		if (GetOwnerEntity() && GetOwnerEntity()->IsNPC())
+			flWarnTime = sk_npc_flechette_shotgun_explode_warn_duration.GetFloat();
+
+		SetNextThink( gpGlobals->curtime + flWarnTime );
+	}
+	else
+#endif
+	{
+		SetNextThink( gpGlobals->curtime + HUNTER_FLECHETTE_WARN_TIME );
+	}
 }
 
 
@@ -936,12 +998,12 @@ void CHunterFlechette::Explode()
 	// Don't catch self in own explosion!
 	m_takedamage = DAMAGE_NO;
 
-	EmitSound( "NPC_Hunter.FlechetteExplode" );
+	EmitSound( GetFlechetteSound_Explode() );
 	
 	// Move the explosion effect to the tip to reduce intersection with the world.
 	Vector vecFuse;
 	GetAttachment( s_nFlechetteFuseAttach, vecFuse );
-	DispatchParticleEffect( "hunter_projectile_explosion_1", vecFuse, GetAbsAngles(), NULL );
+	DispatchParticleEffect( GetFlechetteParticle_Explode(), vecFuse, GetAbsAngles(), NULL);
 
 	int nDamageType = DMG_DISSOLVE;
 
@@ -956,7 +1018,7 @@ void CHunterFlechette::Explode()
 
 #ifdef EZ2_WEAPONS
 	// Shotgun flechettes ignore their owners
-	RadiusDamage( CTakeDamageInfo( this, GetOwnerEntity(), sk_hunter_flechette_explode_dmg.GetFloat(), nDamageType ), GetAbsOrigin(), sk_hunter_flechette_explode_radius.GetFloat(), CLASS_NONE, IsShotgunFlechette() ? GetOwnerEntity() : NULL );
+	RadiusDamage( CTakeDamageInfo( this, GetOwnerEntity(), GetFlechetteExplodeDamage(), nDamageType), GetAbsOrigin(), GetFlechetteExplodeRadius(), CLASS_NONE, IsShotgunFlechette() ? GetOwnerEntity() : NULL);
 #else
 	RadiusDamage( CTakeDamageInfo( this, GetOwnerEntity(), sk_hunter_flechette_explode_dmg.GetFloat(), nDamageType ), GetAbsOrigin(), sk_hunter_flechette_explode_radius.GetFloat(), CLASS_NONE, NULL );
 #endif
@@ -1081,7 +1143,15 @@ public:
 	CNPC_Hunter *GetOuter() { return (CNPC_Hunter *)( BaseClass::GetOuter() ); }
 
 	void SetEscortTarget( CNPC_Strider *pLeader, bool fFinishCurSchedule = false );
+#ifdef EZ
+	CNPC_Strider * GetEscortTarget() { return GetFollowTarget() && GetFollowTarget()->m_iClassname == gm_isz_class_Strider ? (CNPC_Strider *)GetFollowTarget() : NULL; }
+#else
 	CNPC_Strider * GetEscortTarget() { return (CNPC_Strider *)GetFollowTarget(); }
+#endif
+
+#ifdef EZ2
+	CBaseEntity *GetVehicleTarget();
+#endif
 
 	bool FarFromFollowTarget()
 	{ 
@@ -1171,9 +1241,15 @@ impactdamagetable_t s_HunterImpactDamageTable =
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+#ifdef EZ2
+class CNPC_Hunter : public CNPC_PlayerCompanion
+{
+	DECLARE_CLASS( CNPC_Hunter, CNPC_PlayerCompanion );
+#else
 class CNPC_Hunter : public CAI_BaseActor
 {
 	DECLARE_CLASS( CNPC_Hunter, CAI_BaseActor );
+#endif
 
 public:
 	CNPC_Hunter();
@@ -1317,6 +1393,10 @@ public:
 	void			PainSound( const CTakeDamageInfo &info );
 	void			DeathSound( const CTakeDamageInfo &info );
 
+#ifdef EZ2
+	bool			SuppressUnseenHunterSounds();
+#endif
+
 	//---------------------------------
 	// Damage handling
 	//---------------------------------
@@ -1343,6 +1423,10 @@ public:
 	void            TaskFail( AI_TaskFailureCode_t code );
 	void			TaskFail( const char *pszGeneralFailText )	{ TaskFail( MakeFailCode( pszGeneralFailText ) ); }
 
+#ifdef EZ
+	bool			ShouldRegenerateHealth( void ) { return m_bCompanionHunter; }
+#endif
+
 	CAI_BaseNPC *	GetEntity() { return this; }
 
 	//---------------------------------
@@ -1356,6 +1440,11 @@ private:
 	void ConsiderFlinching( const CTakeDamageInfo &info );
 
 	void TaskFindDodgeActivity();
+
+#ifdef EZ2
+	bool CheckDodgeConditions( bool bSeeEnemy );
+	bool CheckDodge( CBaseEntity *pTarget );
+#endif
 
 	void GatherChargeConditions();
 	void GatherIndoorOutdoorConditions();
@@ -1505,7 +1594,11 @@ private:
 	bool			m_bIsBleeding;
 
 	Activity		m_eDodgeActivity;
+#ifdef EZ2
+	EHANDLE			m_hDodgeTarget;
+#else // Hunters need to dodge more often
 	CSimpleSimTimer m_RundownDelay;
+#endif
 	CSimpleSimTimer m_IgnoreVehicleTimer;
 
 	bool m_bDisableShooting;	// Range attack disabled via an input. Used for scripting melee attacks.
@@ -1521,6 +1614,10 @@ private:
 	bool m_bLastCanPlantHere;
 	bool m_bMissLeft;
 	bool m_bEnableUnplantedShooting;
+
+#ifdef EZ2
+	bool m_bCompanionHunter;
+#endif
 
 	static float	gm_flMinigunDistZ;
 	static Vector	gm_vecLocalRelativePositionMinigun;
@@ -1538,6 +1635,10 @@ private:
 
 	static int gm_nUnplantedNode;
 	static int gm_nPlantedNode;
+
+#ifdef EZ2
+	virtual CAI_FollowBehavior &GetFollowBehavior( void ) { return m_EscortBehavior; }
+#endif
 
 	CAI_HunterEscortBehavior m_EscortBehavior;
 
@@ -1623,7 +1724,11 @@ BEGIN_DATADESC( CNPC_Hunter )
 
 	DEFINE_FIELD( m_nKillingDamageType, FIELD_INTEGER ),
 	DEFINE_FIELD( m_eDodgeActivity, FIELD_INTEGER ),
+#ifdef EZ2
+	DEFINE_FIELD( m_hDodgeTarget, FIELD_EHANDLE ),
+#else
 	DEFINE_EMBEDDED( m_RundownDelay ),
+#endif
 	DEFINE_EMBEDDED( m_IgnoreVehicleTimer ),
 
 	DEFINE_FIELD( m_flNextMeleeTime, FIELD_TIME ),
@@ -1659,6 +1764,10 @@ BEGIN_DATADESC( CNPC_Hunter )
 	DEFINE_FIELD( m_flNextFlechetteTime, FIELD_TIME ),
 	DEFINE_UTLVECTOR( m_hAttachedBusters, FIELD_EHANDLE ),
 	DEFINE_UTLVECTOR( m_pSiegeTargets, FIELD_EHANDLE ),
+
+#ifdef EZ2
+	DEFINE_KEYFIELD( m_bCompanionHunter, FIELD_BOOLEAN, "CompanionHunter" ),
+#endif
 
 	// inputs
 	DEFINE_INPUTFUNC( FIELD_VOID, "Dodge", InputDodge ),
@@ -1808,7 +1917,12 @@ void CNPC_Hunter::Spawn()
 	//m_debugOverlays |= OVERLAY_NPC_ROUTE_BIT | OVERLAY_BBOX_BIT | OVERLAY_PIVOT_BIT;
 
 	SetHullType( HULL_MEDIUM_TALL );
+#ifdef EZ2
+	// Needed so HULL_HUMAN isn't used from companion class
+	SetHullSizeNormal( true );
+#else
 	SetHullSizeNormal();
+#endif
 	SetDefaultEyeOffset();
 	
 	SetNavType( NAV_GROUND );
@@ -1978,6 +2092,11 @@ void CNPC_Hunter::IdleSound()
 //-----------------------------------------------------------------------------
 bool CNPC_Hunter::ShouldPlayIdleSound()
 {
+#ifdef EZ2
+	if ( SuppressUnseenHunterSounds() )
+		return false;
+#endif
+
 	if ( random->RandomInt(0, 99) == 0 && !HasSpawnFlags( SF_NPC_GAG ) )
 		return true;
 	
@@ -2330,6 +2449,22 @@ void CNPC_Hunter::GatherConditions()
 	// Enemy LKP that doesn't get updated by the free knowledge code.
 	// Used for shooting at where our enemy was when we can't see them.
 	ClearCondition( COND_HUNTER_INCOMING_VEHICLE );
+#ifdef EZ2
+	m_hDodgeTarget = NULL;
+	if ( m_IgnoreVehicleTimer.Expired() )
+	{
+		bool bEnemyCondition = (GetEnemy() && HasCondition( COND_SEE_ENEMY ));
+
+		if ( GlobalEntity_GetCounter( s_iszHuntersToRunOver ) <= 0 )
+		{
+			// Blixibon - Check all of the ways in which we can dodge
+			CheckDodgeConditions( bEnemyCondition );
+		}
+
+		if (bEnemyCondition)
+			m_vecEnemyLastSeen = GetEnemy()->GetAbsOrigin();
+	}
+#else
 	if ( m_IgnoreVehicleTimer.Expired() && GetEnemy() && HasCondition( COND_SEE_ENEMY ) )
 	{
 		CBaseEntity *pVehicle = GetEnemyVehicle();
@@ -2408,6 +2543,7 @@ void CNPC_Hunter::GatherConditions()
 
 		m_vecEnemyLastSeen = GetEnemy()->GetAbsOrigin();
 	}
+#endif
 
 	if( !HasCondition(COND_ENEMY_OCCLUDED) )
 	{
@@ -2428,6 +2564,124 @@ void CNPC_Hunter::GatherConditions()
 
 	ManageSiegeTargets();
 }
+
+#ifdef EZ2
+//-----------------------------------------------------------------------------
+// Blixibon - Extremely experimental code for dodging numerous types of entities, even outside of combat
+//-----------------------------------------------------------------------------
+bool CNPC_Hunter::CheckDodgeConditions( bool bSeeEnemy )
+{
+	// Attempt to dodge relevant projectiles, e.g. Combine balls
+	for (int i = 0; i < g_pDodgeableProjectiles.Count(); i++)
+	{
+		CBaseEntity *pProjectile = g_pDodgeableProjectiles[i];
+		if (pProjectile /*&& pProjectile->GetOwnerEntity() && IRelationType(pProjectile->GetOwnerEntity()) <= D_FR*/)
+		{
+			if (pProjectile->GetAbsOrigin().AsVector2D().DistToSqr(GetAbsOrigin().AsVector2D()) <= Square(1024))
+			{
+				if (CheckDodge(pProjectile))
+					return true;
+			}
+		}
+	}
+
+	// Always try to dodge the player's vehicle, even when friendly
+	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
+	if (pPlayer && pPlayer->IsInAVehicle())
+	{
+		if (CheckDodge( pPlayer->GetVehicleEntity() ))
+			return true;
+	}
+
+	// Finally, still do enemy vehicle checking for NPC vehicles
+	if (bSeeEnemy)
+	{
+		CBaseEntity *pVehicle = GetEnemyVehicle();
+		if (pVehicle)
+		{
+			if (CheckDodge( pVehicle ))
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool CNPC_Hunter::CheckDodge( CBaseEntity *pVehicle )
+{
+	static float timeDrawnArrow;
+
+	// Extrapolate the position of the vehicle and see if it's heading toward us.
+	float predictTime = hunter_dodge_warning.GetFloat();
+	Vector2D vecFuturePos = pVehicle->GetAbsOrigin().AsVector2D() + pVehicle->GetSmoothedVelocity().AsVector2D() * predictTime;
+	if ( pVehicle->GetSmoothedVelocity().LengthSqr() > Square( 200 ) )
+	{
+		float t = 0;
+		Vector2D vDirMovement = pVehicle->GetSmoothedVelocity().AsVector2D();
+		if ( hunter_dodge_debug.GetBool() )
+		{
+			NDebugOverlay::Line( pVehicle->GetAbsOrigin(), pVehicle->GetAbsOrigin() + pVehicle->GetSmoothedVelocity(), 255, 255, 255, true, .1 );
+		}
+		vDirMovement.NormalizeInPlace();
+		Vector2D vDirToHunter = GetAbsOrigin().AsVector2D() - pVehicle->GetAbsOrigin().AsVector2D();
+		vDirToHunter.NormalizeInPlace();
+		if ( DotProduct2D( vDirMovement, vDirToHunter ) > hunter_dodge_warning_cone.GetFloat() && 
+			 CalcDistanceSqrToLine2D( GetAbsOrigin().AsVector2D(), pVehicle->GetAbsOrigin().AsVector2D(), vecFuturePos, &t ) < Square( hunter_dodge_warning_width.GetFloat() * .5 ) && 
+			 t > 0.0 && t < 1.0 )
+		{
+			if ( fabs( predictTime - hunter_dodge_warning.GetFloat() ) < .05 || random->RandomInt( 0, 3 ) )
+			{
+				SetCondition( COND_HUNTER_INCOMING_VEHICLE );
+				m_hDodgeTarget = pVehicle;
+			}
+			else
+			{
+				if ( hunter_dodge_debug. GetBool() )
+				{
+					Msg( "Hunter %d failing dodge (ignore)\n", entindex() );
+				}
+			}
+
+			if ( hunter_dodge_debug. GetBool() )
+			{
+				NDebugOverlay::Cross3D( EyePosition(), 100, 255, 255, 255, true, .1 );
+				if ( timeDrawnArrow != gpGlobals->curtime )
+				{
+					timeDrawnArrow = gpGlobals->curtime;
+					Vector vEndpoint( vecFuturePos.x, vecFuturePos.y, UTIL_GetLocalPlayer()->WorldSpaceCenter().z - 24 );
+					NDebugOverlay::HorzArrow( UTIL_GetLocalPlayer()->WorldSpaceCenter() - Vector(0, 0, 24), vEndpoint, hunter_dodge_warning_width.GetFloat(), 255, 0, 0, 64, true, .1 );
+				}
+			}
+		}
+		else if ( hunter_dodge_debug.GetBool() )
+		{
+			if ( t <= 0 )
+			{
+				NDebugOverlay::Cross3D( EyePosition(), 100, 0, 0, 255, true, .1 );
+			}
+			else
+			{
+				NDebugOverlay::Cross3D( EyePosition(), 100, 0, 255, 255, true, .1 );
+			}
+		}
+	}
+	else if ( hunter_dodge_debug.GetBool() )
+	{
+		NDebugOverlay::Cross3D( EyePosition(), 100, 0, 255, 0, true, .1 );
+	}
+	if ( hunter_dodge_debug. GetBool() )
+	{
+		if ( timeDrawnArrow != gpGlobals->curtime )
+		{
+			timeDrawnArrow = gpGlobals->curtime;
+			Vector vEndpoint( vecFuturePos.x, vecFuturePos.y, UTIL_GetLocalPlayer()->WorldSpaceCenter().z - 24 );
+			NDebugOverlay::HorzArrow( UTIL_GetLocalPlayer()->WorldSpaceCenter() - Vector(0, 0, 24), vEndpoint, hunter_dodge_warning_width.GetFloat(), 127, 127, 127, 64, true, .1 );
+		}
+	}
+
+	return m_hDodgeTarget.Get() != NULL;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Search all entities in the map
@@ -2908,6 +3162,13 @@ int CNPC_Hunter::SelectCombatSchedule()
 
 	if ( HasCondition( COND_TOO_CLOSE_TO_ATTACK ) )
 	{
+#ifdef EZ2
+		// Blixibon - Hunters should be more aggressive with melee attacks
+		// against smaller NPCs, as they often fight in tight spaces
+		if ( pEnemy->MyNPCPointer() && pEnemy->MyNPCPointer()->GetHullType() <= HULL_TINY && !GetHintGroup() )
+			return SCHED_HUNTER_CHASE_ENEMY;
+#endif
+
 		return SCHED_MOVE_AWAY_FROM_ENEMY;
 	}
 
@@ -3061,6 +3322,7 @@ int CNPC_Hunter::SelectSchedule()
 
 	if ( HasCondition( COND_HUNTER_INCOMING_VEHICLE ) )
 	{
+#ifndef EZ2
 		if ( m_RundownDelay.Expired() )
 		{
 			int iRundownCounter = 0;
@@ -3123,7 +3385,23 @@ int CNPC_Hunter::SelectSchedule()
 				}
 			}
 		}
+#endif
 
+#ifdef EZ2
+		if ( FVisible( m_hDodgeTarget ) )
+		{
+			if ( hunter_dodge_debug.GetBool() )
+			{
+				Msg( "Hunter %d try dodge\n", entindex() );
+			}
+			return SCHED_HUNTER_DODGE;
+		}
+		else
+		{
+			SetTarget( m_hDodgeTarget );
+			return SCHED_TARGET_FACE;
+		}
+#else
 		if ( HasCondition( COND_SEE_ENEMY ) )
 		{
 			if ( hunter_dodge_debug.GetBool() )
@@ -3137,6 +3415,7 @@ int CNPC_Hunter::SelectSchedule()
 			SetTarget( UTIL_GetLocalPlayer() );
 			return SCHED_TARGET_FACE;
 		}
+#endif
 
 		CSound *pBestSound = GetBestSound( SOUND_PHYSICS_DANGER );
 		if ( pBestSound && ( pBestSound->SoundContext() & SOUND_CONTEXT_PLAYER_VEHICLE ) )
@@ -3289,18 +3568,30 @@ void CNPC_Hunter::TaskFail( AI_TaskFailureCode_t code )
 //-----------------------------------------------------------------------------
 void CNPC_Hunter::TaskFindDodgeActivity()
 {
+#ifdef EZ2
+	if ( m_hDodgeTarget == NULL )
+	{
+		TaskFail( "No target to dodge" );
+		return;
+	}
+#else
 	if ( GetEnemy() == NULL )
 	{
 		TaskFail( "No enemy to dodge" );
 		return;
 	}
+#endif
 
 	Vector vecUp;
 	Vector vecRight;
 	GetVectors( NULL, &vecRight, &vecUp );
 
 	// TODO: find most perpendicular 8-way dodge when we get the anims
+#ifdef EZ2
+	Vector vecEnemyDir = m_hDodgeTarget->GetAbsOrigin() - GetAbsOrigin();
+#else
 	Vector vecEnemyDir = GetEnemy()->GetAbsOrigin() - GetAbsOrigin();
+#endif
 	//Vector vecDir = CrossProduct( vecEnemyDir, vecUp );
 	VectorNormalize( vecEnemyDir );
 	if ( fabs( DotProduct( vecEnemyDir, vecRight ) ) > 0.7 )
@@ -3311,7 +3602,11 @@ void CNPC_Hunter::TaskFindDodgeActivity()
 
 	// Check left or right randomly first.
 	bool bDodgeLeft = false;
+#ifdef EZ2
+	CBaseEntity *pVehicle = m_hDodgeTarget;
+#else
 	CBaseEntity *pVehicle = GetEnemyVehicle();
+#endif
 	if ( pVehicle  )
 	{
 		Ray_t enemyRay;
@@ -4590,6 +4885,23 @@ void CAI_HunterEscortBehavior::SetEscortTarget( CNPC_Strider *pStrider, bool fFi
 }
 
 
+#ifdef EZ2
+CBaseEntity *CAI_HunterEscortBehavior::GetVehicleTarget()
+{
+	CBaseEntity *pFollowTarget = GetFollowTarget();
+	if (!pFollowTarget)
+		return NULL;
+
+	if (pFollowTarget->GetServerVehicle())
+		return pFollowTarget;
+
+	if (pFollowTarget->IsCombatCharacter())
+		return pFollowTarget->MyCombatCharacterPointer()->GetVehicleEntity();
+
+	return NULL;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CNPC_Hunter::InputEnableUnplantedShooting( inputdata_t &inputdata )
@@ -4644,6 +4956,9 @@ void CNPC_Hunter::InputUseSiegeTargets( inputdata_t &inputdata )
 //-----------------------------------------------------------------------------
 void CNPC_Hunter::InputDodge( inputdata_t &inputdata )
 {
+#ifdef EZ2
+	m_hDodgeTarget = GetEnemy();
+#endif
 	SetCondition( COND_HUNTER_FORCED_DODGE );
 }
 
@@ -5184,7 +5499,11 @@ CBaseEntity *CNPC_Hunter::MeleeAttack( float flDist, int iDamage, QAngle &qaView
 	vecMins.z = vecMins.x;
 	vecMaxs.z = vecMaxs.x;
 
+#ifdef EZ2
+	CBaseEntity *pHurt = CheckTraceHullAttack( flDist, vecMins, vecMaxs, iDamage, DMG_SLASH, sk_hunter_dmg_one_slash_forcescale.GetFloat() );
+#else
 	CBaseEntity *pHurt = CheckTraceHullAttack( flDist, vecMins, vecMaxs, iDamage, DMG_SLASH );
+#endif
 
 	if ( pHurt )
 	{
@@ -5398,6 +5717,11 @@ bool CNPC_Hunter::IsInLargeOutdoorMap()
 //-----------------------------------------------------------------------------
 void CNPC_Hunter::AlertSound()
 {
+#ifdef EZ2
+	if ( SuppressUnseenHunterSounds() )
+		return;
+#endif
+
 	EmitSound( "NPC_Hunter.Alert" );
 }
 
@@ -5420,6 +5744,27 @@ void CNPC_Hunter::DeathSound( const CTakeDamageInfo &info )
 {
 	EmitSound( "NPC_Hunter.Death" );
 }
+
+#ifdef EZ2
+//-----------------------------------------------------------------------------
+// In EZ2, the companion hunter usually is set to think outside PVS so that it can catch up.
+// Hunter footsteps are very loud and recognizable
+// In most of Chapter 4, the Hunter's footsteps are a constant nuisance
+// Before playing a footstep sound, make sure the player is within reasonable distance
+//-----------------------------------------------------------------------------
+bool CNPC_Hunter::SuppressUnseenHunterSounds()
+{
+	if ( !hunter_suppress_sounds_while_unseen.GetBool() )
+		return false;
+
+	CBaseEntity * pPlayer = UTIL_GetLocalPlayer();
+
+	trace_t	playerTr;
+	UTIL_TraceLine( WorldSpaceCenter(), pPlayer->EyePosition(), MASK_BLOCKLOS, pPlayer, COLLISION_GROUP_NONE, &playerTr );
+
+	return !HasCondition( COND_IN_PVS ) || (playerTr.fraction != 1.0f && abs( WorldSpaceCenter().DistTo( pPlayer->EyePosition() ) ) > 512.0f);
+}
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -5914,7 +6259,11 @@ void CNPC_Hunter::Event_Killed( const CTakeDamageInfo &info )
 	// Remember the killing blow to make decisions about ragdolling.
 	m_nKillingDamageType = info.GetDamageType();
 
+#ifdef EZ
+	if ( m_EscortBehavior.GetEscortTarget() )
+#else
 	if ( m_EscortBehavior.GetFollowTarget() )
+#endif
 	{
 		if ( AIGetNumFollowers( m_EscortBehavior.GetFollowTarget(), m_iClassname ) == 1 )
 		{
@@ -5926,8 +6275,14 @@ void CNPC_Hunter::Event_Killed( const CTakeDamageInfo &info )
 		}
 	}
 	
+#ifdef EZ2
+	// Blixibon - Hunters now dodge energy balls as well
+	if ( info.GetDamageType() & DMG_VEHICLE || info.GetDamageType() & (DMG_DISSOLVE | DMG_CRUSH) )
+#else
 	if ( info.GetDamageType() & DMG_VEHICLE )
+#endif
 	{
+#ifndef EZ2
 		bool bWasRunDown = false;
 		int iRundownCounter = 0;
 		if ( GetSquad() )
@@ -5942,6 +6297,7 @@ void CNPC_Hunter::Event_Killed( const CTakeDamageInfo &info )
 
 		if ( hunter_dodge_debug.GetBool() )
 			Msg( "Hunter %d was%s run down\n", entindex(), ( bWasRunDown ) ? "" : " not" );
+#endif
 
 		// Death by vehicle! Decrement the hunters to run over counter.
 		// When the counter reaches zero hunters will start dodging.
@@ -6032,9 +6388,16 @@ float CNPC_Hunter::MaxYawSpeed()
 //-----------------------------------------------------------------------------
 bool CNPC_Hunter::IsJumpLegal(const Vector &startPos, const Vector &apex, const Vector &endPos) const
 {
+#ifdef EZ2
+	// Blixibon - Adjusted jump parameters
+	float MAX_JUMP_RISE		= 192.0f;
+	float MAX_JUMP_DISTANCE	= 420.0f;
+	float MAX_JUMP_DROP		= 384.0f;
+#else
 	float MAX_JUMP_RISE		= 220.0f;
 	float MAX_JUMP_DISTANCE	= 512.0f;
 	float MAX_JUMP_DROP		= 384.0f;
+#endif
 
 	trace_t tr;	
 	UTIL_TraceHull( startPos, startPos, GetHullMins(), GetHullMaxs(), MASK_NPCSOLID, this, COLLISION_GROUP_NONE, &tr );
@@ -6408,7 +6771,14 @@ Vector CNPC_Hunter::LeftFootHit( float eventtime )
 	Vector footPosition;
 
 	GetAttachment( "left foot", footPosition );
+
+#ifdef EZ2
+	if ( SuppressUnseenHunterSounds() )
+		return footPosition;
+#endif
+
 	CPASAttenuationFilter filter( this );
+
 	EmitSound( filter, entindex(), "NPC_Hunter.Footstep", &footPosition, eventtime );
 
 	FootFX( footPosition );
@@ -6424,6 +6794,12 @@ Vector CNPC_Hunter::RightFootHit( float eventtime )
 	Vector footPosition;
 
 	GetAttachment( "right foot", footPosition );
+
+#ifdef EZ2
+	if ( SuppressUnseenHunterSounds() )
+		return footPosition;
+#endif
+
 	CPASAttenuationFilter filter( this );
 	EmitSound( filter, entindex(), "NPC_Hunter.Footstep", &footPosition, eventtime );
 	FootFX( footPosition );
@@ -6439,6 +6815,12 @@ Vector CNPC_Hunter::BackFootHit( float eventtime )
 	Vector footPosition;
 
 	GetAttachment( "back foot", footPosition );
+
+#ifdef EZ2
+	if ( SuppressUnseenHunterSounds() )
+		return footPosition;
+#endif
+
 	CPASAttenuationFilter filter( this );
 	EmitSound( filter, entindex(), "NPC_Hunter.BackFootstep", &footPosition, eventtime );
 	FootFX( footPosition );
@@ -6775,9 +7157,15 @@ Activity CNPC_Hunter::GetDeathActivity()
 //-----------------------------------------------------------------------------
 void CAI_HunterEscortBehavior::OnDamage( const CTakeDamageInfo &info )
 {
+#ifdef MAPBASE
+	if ( info.GetDamage() > 0 && info.GetAttacker() && info.GetAttacker()->IsPlayer() &&
+		GetFollowTarget() && ( AIGetNumFollowers( GetFollowTarget() ) > 1 ) &&
+		GetOuter()->GetSquad() && ( GetOuter()->GetSquad()->GetSquadSoundWaitTime() <= gpGlobals->curtime ) ) // && !FarFromFollowTarget()
+#else
 	if ( info.GetDamage() > 0 && info.GetAttacker()->IsPlayer() &&
 		GetFollowTarget() && ( AIGetNumFollowers( GetFollowTarget() ) > 1 ) &&
 		( GetOuter()->GetSquad()->GetSquadSoundWaitTime() <= gpGlobals->curtime ) ) // && !FarFromFollowTarget()
+#endif
 	{
 		// Start the clock ticking. We'll return the the strider when the timer elapses.
 		m_flTimeEscortReturn = gpGlobals->curtime + random->RandomFloat( 15.0f, 25.0f );
@@ -6921,6 +7309,13 @@ void CAI_HunterEscortBehavior::StartTask( const Task_t *pTask )
 		{
 			if ( GetEnemy() )
 			{
+				// 1upD - GetOuter()->GetSquad() should be null safe
+				if (GetOuter()->GetSquad() == NULL)
+				{
+					DevMsg("Hunter %s escort behavior tried to access NULL squad! Hunter %s will refuse to escort until given a squad!\n", GetOuter()->GetDebugName(), GetOuter()->GetDebugName());
+					break;
+				}
+
 				if ( GetOuter()->OccupyStrategySlot( SQUAD_SLOT_RUN_SHOOT ) )
 				{
 					if ( GetOuter()->GetSquad()->GetSquadMemberNearestTo( GetEnemy()->GetAbsOrigin() ) == GetOuter() )
@@ -6976,7 +7371,12 @@ void CAI_HunterEscortBehavior::RunTask( const Task_t *pTask )
 							{
 								if ( !bHasSlot )
 								{
-									if ( GetOuter()->OccupyStrategySlot( SQUAD_SLOT_RUN_SHOOT ) )
+									// 1upD - GetOuter()->GetSquad() should be null safe
+									if (GetOuter()->GetSquad() == NULL)
+									{
+										DevMsg("Hunter %s escort behavior tried to access NULL squad! Hunter %s will refuse to escort until given a squad!\n", GetOuter()->GetDebugName(), GetOuter()->GetDebugName());
+									}
+									else if ( GetOuter()->OccupyStrategySlot( SQUAD_SLOT_RUN_SHOOT ) )
 									{
 										if ( GetOuter()->GetSquad()->GetSquadMemberNearestTo( GetEnemy()->GetAbsOrigin() ) == GetOuter() )
 										{
@@ -7212,6 +7612,16 @@ void Hunter_StriderBusterDetached( CBaseEntity *pHunter, CBaseEntity *pAttached 
 
 
 #ifdef EZ2_WEAPONS
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+extern ConVar	sk_plr_dmg_flechette;
+extern ConVar	sk_plr_flechette_shotgun_explode_dmg;
+extern ConVar	sk_plr_flechette_shotgun_explode_radius;
+extern ConVar	sk_npc_dmg_flechette;
+extern ConVar	sk_npc_flechette_shotgun_explode_dmg;
+extern ConVar	sk_npc_flechette_shotgun_explode_radius;
+
 class CShotgunFlechette : public CHunterFlechette
 {
 	DECLARE_CLASS( CShotgunFlechette, CHunterFlechette );
@@ -7220,6 +7630,24 @@ public:
 
 	//CShotgunFlechette();
 	//~CShotgunFlechette();
+
+	inline bool IsOwnerNPC() { return GetOwnerEntity() && GetOwnerEntity()->IsNPC(); }
+
+	float GetFlechetteDamage() { return IsOwnerNPC() ? sk_npc_dmg_flechette.GetFloat() : sk_plr_dmg_flechette.GetFloat(); }
+	float GetFlechetteExplodeDamage() { return IsOwnerNPC() ? sk_npc_flechette_shotgun_explode_dmg.GetFloat() : sk_plr_flechette_shotgun_explode_dmg.GetFloat(); }
+	float GetFlechetteExplodeRadius() { return IsOwnerNPC() ? sk_npc_flechette_shotgun_explode_radius.GetFloat() : sk_plr_flechette_shotgun_explode_radius.GetFloat(); }
+
+	const char *GetFlechetteSound_NearMiss() { return "Weapon_Flechette_Shotgun.FlechetteNearmiss"; }
+	const char *GetFlechetteSound_HitBody() { return "Weapon_Flechette_Shotgun.FlechetteHitBody"; }
+	const char *GetFlechetteSound_HitWorld() { return "Weapon_Flechette_Shotgun.FlechetteHitWorld"; }
+	const char *GetFlechetteSound_PreExplode() { return "Weapon_Flechette_Shotgun.FlechettePreExplode"; }
+	const char *GetFlechetteSound_Explode() { return "Weapon_Flechette_Shotgun.FlechetteExplode"; }
+
+	const char *GetFlechetteParticle_Trail_Bright() { return "shotgun_flechette_trail_striderbuster"; }
+	const char *GetFlechetteParticle_Trail() { return "shotgun_flechette_trail"; }
+	const char *GetFlechetteParticle_Explode() { return "shotgun_flechette_projectile_explosion_1"; }
+
+	const char *GetFlechetteModel() { return "models/weapons/shotgun_flechette.mdl"; }
 
 	bool IsShotgunFlechette() { return true; }
 
