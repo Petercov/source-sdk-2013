@@ -115,6 +115,10 @@ ConVar sv_infinite_aux_power( "sv_infinite_aux_power", "0", FCVAR_CHEAT );
 ConVar autoaim_unlock_target( "autoaim_unlock_target", "0.8666" );
 
 ConVar sv_stickysprint("sv_stickysprint", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX);
+#ifdef EZ2_WEAPONS
+ConVar sv_pulsepistol_battery_pickup("sv_pulsepistol_battery_pickup", "1", FCVAR_REPLICATED, "Picks up extra pulse pistols as armor batteries");
+ConVar sv_pulsepistol_battery_pickup_amount("sv_pulsepistol_battery_pickup_amount", "0.4", FCVAR_REPLICATED, "What percentage of sk_battery should be provided by extra pulse pistols");
+#endif // EZ2_WEAPONS
 
 #ifdef MAPBASE
 ConVar player_autoswitch_enabled( "player_autoswitch_enabled", "1", FCVAR_NONE, "This convar was added by Mapbase to toggle whether players automatically switch to their ''best'' weapon upon picking up ammo for it after it was dry." );
@@ -3328,6 +3332,18 @@ bool CHL2_Player::Weapon_CanUse( CBaseCombatWeapon *pWeapon )
 		return false;
 	}
 #endif
+#endif
+
+#ifdef EZ2_WEAPONS
+	if ( pWeapon->ClassMatches( "weapon_pulsepistol" ) && sv_pulsepistol_battery_pickup.GetBool() )
+	{
+		if (Weapon_OwnsThisType( "weapon_pulsepistol" ))
+		{
+			if (ApplyBattery( sv_pulsepistol_battery_pickup_amount.GetFloat() ))
+				UTIL_Remove( pWeapon );
+			return false;
+		}
+	}
 #endif
 
 	return BaseClass::Weapon_CanUse( pWeapon );
