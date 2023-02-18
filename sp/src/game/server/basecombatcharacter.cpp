@@ -4491,7 +4491,7 @@ void CBaseCombatCharacter::InputPickupWeaponInstant( inputdata_t &inputdata )
 	}
 	else
 	{
-		Warning("%s received PickupWeaponInstant with invalid entity %s\n", GetDebugName(), inputdata.value.Entity() ? "null" : inputdata.value.Entity()->GetDebugName());
+		Warning("%s received PickupWeaponInstant with invalid entity %s\n", GetDebugName(), inputdata.value.Entity() ? inputdata.value.Entity()->GetDebugName() : "<<null>>");
 	}
 }
 
