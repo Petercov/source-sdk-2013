@@ -27,7 +27,10 @@ public:
 
 	void PreDataUpdate( DataUpdateType_t updateType );
 	void PostDataUpdate( DataUpdateType_t updateType );
-	void ClientThink( void );
+#ifndef MAPBASE
+	void ClientThink(void);
+#endif // !MAPBASE
+
 
 protected:
 	int			m_iEffectIndex;
@@ -41,8 +44,9 @@ protected:
 	enum { kMAXCONTROLPOINTS = 63 }; ///< actually one less than the total number of cpoints since 0 is assumed to be me
 
 	
+#ifndef MAPBASE
 	EHANDLE		m_hControlPointEnts[kMAXCONTROLPOINTS];
-	Vector		m_vControlPointVecs[kMAXCONTROLPOINTS];
+#endif // !MAPBASE
 	//	SendPropArray3( SENDINFO_ARRAY3(m_iControlPointParents), SendPropInt( SENDINFO_ARRAY(m_iControlPointParents), 3, SPROP_UNSIGNED ) ),
 	unsigned char m_iControlPointParents[kMAXCONTROLPOINTS];
 
@@ -65,11 +69,47 @@ BEGIN_RECV_TABLE_NOBASE( C_ParticleSystem, DT_ParticleSystem )
 #endif
 	RecvPropFloat( RECVINFO( m_flStartTime ) ),
 
-	RecvPropArray3( RECVINFO_ARRAY(m_hControlPointEnts), RecvPropEHandle( RECVINFO( m_hControlPointEnts[0] ) ) ),
-	RecvPropArray3( RECVINFO_ARRAY(m_vControlPointVecs), RecvPropVector( RECVINFO( m_vControlPointVecs[0] ) ) ),
+#ifndef MAPBASE
+	RecvPropArray3(RECVINFO_ARRAY(m_hControlPointEnts), RecvPropEHandle(RECVINFO(m_hControlPointEnts[0]))),
+#endif // !MAPBASE
+
 	RecvPropArray3( RECVINFO_ARRAY(m_iControlPointParents), RecvPropInt( RECVINFO(m_iControlPointParents[0]))), 
 	RecvPropBool( RECVINFO( m_bWeatherEffect ) ),
 END_RECV_TABLE();
+
+#ifdef MAPBASE
+class C_ParticleSystemEnts : public C_ParticleSystem
+{
+	DECLARE_CLASS(C_ParticleSystemEnts, C_ParticleSystem);
+public:
+	DECLARE_CLIENTCLASS();
+	void ClientThink(void);
+protected:
+	EHANDLE		m_hControlPointEnts[kMAXCONTROLPOINTS];
+};
+
+IMPLEMENT_CLIENTCLASS(C_ParticleSystemEnts, DT_ParticleSystemEnts, CParticleSystemEnts);
+BEGIN_RECV_TABLE(C_ParticleSystemEnts, DT_ParticleSystemEnts)
+RecvPropArray3(RECVINFO_ARRAY(m_hControlPointEnts), RecvPropEHandle(RECVINFO(m_hControlPointEnts[0]))),
+END_RECV_TABLE();
+
+class C_ParticleSystemCoordinate : public C_ParticleSystem
+{
+	DECLARE_CLASS(C_ParticleSystemCoordinate, C_ParticleSystem);
+public:
+	DECLARE_CLIENTCLASS();
+	void ClientThink(void);
+protected:
+
+	Vector		m_vControlPointVecs[kMAXCONTROLPOINTS];
+};
+
+IMPLEMENT_CLIENTCLASS(C_ParticleSystemCoordinate, DT_ParticleSystemCoordinate, CParticleSystemCoordinate);
+BEGIN_RECV_TABLE(C_ParticleSystemCoordinate, DT_ParticleSystemCoordinate)
+RecvPropArray3(RECVINFO_ARRAY(m_vControlPointVecs), RecvPropVector(RECVINFO(m_vControlPointVecs[0]))),
+END_RECV_TABLE();
+#endif // MAPBASE
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -132,61 +172,45 @@ void C_ParticleSystem::PostDataUpdate( DataUpdateType_t updateType )
 	}
 }
 
+#ifdef MAPBASE
+#define C_ParticleSystem C_ParticleSystemEnts
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void C_ParticleSystem::ClientThink( void )
+void C_ParticleSystem::ClientThink(void)
 {
-	if ( m_bActive )
+	if (m_bActive)
 	{
-		const char *pszName = GetParticleSystemNameFromIndex( m_iEffectIndex );
-		if ( pszName && pszName[0] )
+		const char* pszName = GetParticleSystemNameFromIndex(m_iEffectIndex);
+		if (pszName && pszName[0])
 		{
-			if ( !GameRules()->AllowMapParticleEffect( pszName ) )
+			if (!GameRules()->AllowMapParticleEffect(pszName))
 				return;
 
-			if ( m_bWeatherEffect && !GameRules()->AllowWeatherParticles() )
+			if (m_bWeatherEffect && !GameRules()->AllowWeatherParticles())
 				return;
 
-			CNewParticleEffect *pEffect = ParticleProp()->Create( pszName, PATTACH_ABSORIGIN_FOLLOW );
-			AssertMsg1( pEffect, "Particle system couldn't make %s", pszName );
+			CNewParticleEffect* pEffect = ParticleProp()->Create(pszName, PATTACH_ABSORIGIN_FOLLOW);
+			AssertMsg1(pEffect, "Particle system couldn't make %s", pszName);
 			if (pEffect)
 			{
-				if (m_vControlPointVecs[0] != GetAbsOrigin() && m_hControlPointEnts[0] == NULL)
+				for (int i = 0; i < kMAXCONTROLPOINTS; ++i)
 				{
-					// we are using info_particle_system_coordinate
-					for (int i = 0; i < kMAXCONTROLPOINTS; ++i)
+					CBaseEntity* pOnEntity = m_hControlPointEnts[i].Get();
+					if (pOnEntity)
 					{
-						ParticleProp()->AddControlPoint(pEffect, i + 1, this, PATTACH_WORLDORIGIN, 0, m_vControlPointVecs[i] - GetAbsOrigin());
-
-						AssertMsg2(m_iControlPointParents[i] >= 0 && m_iControlPointParents[i] <= kMAXCONTROLPOINTS,
-							"Particle system specified bogus control point parent (%d) for point %d.",
-							m_iControlPointParents[i], i);
-
-						if (m_iControlPointParents[i] != 0)
-						{
-							pEffect->SetControlPointParent(i + 1, m_iControlPointParents[i]);
-						}
+						ParticleProp()->AddControlPoint(pEffect, i + 1, pOnEntity, PATTACH_ABSORIGIN_FOLLOW);
 					}
-				}
-				else
-				{
-					for ( int i = 0 ; i < kMAXCONTROLPOINTS ; ++i )
+
+					AssertMsg2(m_iControlPointParents[i] >= 0 && m_iControlPointParents[i] <= kMAXCONTROLPOINTS,
+						"Particle system specified bogus control point parent (%d) for point %d.",
+						m_iControlPointParents[i], i);
+
+					if (m_iControlPointParents[i] != 0)
 					{
-						CBaseEntity *pOnEntity = m_hControlPointEnts[i].Get();
-						if ( pOnEntity )
-						{
-							ParticleProp()->AddControlPoint( pEffect, i + 1, pOnEntity, PATTACH_ABSORIGIN_FOLLOW );
-						}
-
-						AssertMsg2( m_iControlPointParents[i] >= 0 && m_iControlPointParents[i] <= kMAXCONTROLPOINTS ,
-							"Particle system specified bogus control point parent (%d) for point %d.",
-							m_iControlPointParents[i], i );
-
-						if (m_iControlPointParents[i] != 0)
-						{
-							pEffect->SetControlPointParent(i+1, m_iControlPointParents[i]);
-						}
+						pEffect->SetControlPointParent(i + 1, m_iControlPointParents[i]);
 					}
 				}
 
@@ -194,19 +218,72 @@ void C_ParticleSystem::ClientThink( void )
 				//		 already past the end of it, denoting that we're finished.  In that case, just destroy us and be done. -- jdw
 
 				// TODO: This can go when the SkipToTime code below goes
-				ParticleProp()->OnParticleSystemUpdated( pEffect, 0.0f );
+				ParticleProp()->OnParticleSystemUpdated(pEffect, 0.0f);
 
 				// Skip the effect ahead if we're restarting it
 				float flTimeDelta = gpGlobals->curtime - m_flStartTime;
-				if ( flTimeDelta > 0.01f )
+				if (flTimeDelta > 0.01f)
 				{
-					VPROF_BUDGET( "C_ParticleSystem::ClientThink SkipToTime", "Particle Simulation" );
-					pEffect->SkipToTime( flTimeDelta );
+					VPROF_BUDGET("C_ParticleSystem::ClientThink SkipToTime", "Particle Simulation");
+					pEffect->SkipToTime(flTimeDelta);
 				}
 			}
 		}
 	}
 }
+#ifdef MAPBASE
+#undef C_ParticleSystem
+
+void C_ParticleSystemCoordinate::ClientThink()
+{
+	if (m_bActive)
+	{
+		const char* pszName = GetParticleSystemNameFromIndex(m_iEffectIndex);
+		if (pszName && pszName[0])
+		{
+			if (!GameRules()->AllowMapParticleEffect(pszName))
+				return;
+
+			if (m_bWeatherEffect && !GameRules()->AllowWeatherParticles())
+				return;
+
+			CNewParticleEffect* pEffect = ParticleProp()->Create(pszName, PATTACH_ABSORIGIN_FOLLOW);
+			AssertMsg1(pEffect, "Particle system couldn't make %s", pszName);
+			if (pEffect)
+			{
+				// we are using info_particle_system_coordinate
+				for (int i = 0; i < kMAXCONTROLPOINTS; ++i)
+				{
+					ParticleProp()->AddControlPoint(pEffect, i + 1, this, PATTACH_WORLDORIGIN, 0, m_vControlPointVecs[i] - GetAbsOrigin());
+
+					AssertMsg2(m_iControlPointParents[i] >= 0 && m_iControlPointParents[i] <= kMAXCONTROLPOINTS,
+						"Particle system specified bogus control point parent (%d) for point %d.",
+						m_iControlPointParents[i], i);
+
+					if (m_iControlPointParents[i] != 0)
+					{
+						pEffect->SetControlPointParent(i + 1, m_iControlPointParents[i]);
+					}
+				}
+
+				// NOTE: What we really want here is to compare our lifetime and that of our children and see if this delta is
+				//		 already past the end of it, denoting that we're finished.  In that case, just destroy us and be done. -- jdw
+
+				// TODO: This can go when the SkipToTime code below goes
+				ParticleProp()->OnParticleSystemUpdated(pEffect, 0.0f);
+
+				// Skip the effect ahead if we're restarting it
+				float flTimeDelta = gpGlobals->curtime - m_flStartTime;
+				if (flTimeDelta > 0.01f)
+				{
+					VPROF_BUDGET("C_ParticleSystem::ClientThink SkipToTime", "Particle Simulation");
+					pEffect->SkipToTime(flTimeDelta);
+				}
+			}
+		}
+	}
+}
+#endif // MAPBASE
 
 
 //======================================================================================================================

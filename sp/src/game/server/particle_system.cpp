@@ -29,9 +29,9 @@ IMPLEMENT_SERVERCLASS_ST_NOBASE(CParticleSystem, DT_ParticleSystem)
 	SendPropBool( SENDINFO(m_bDestroyImmediately) ),
 #endif
 	SendPropFloat( SENDINFO(m_flStartTime) ),
-
+#ifndef MAPBASE
 	SendPropArray3( SENDINFO_ARRAY3(m_hControlPointEnts), SendPropEHandle( SENDINFO_ARRAY(m_hControlPointEnts) ) ),
-	SendPropArray3( SENDINFO_ARRAY3(m_vControlPointVecs), SendPropVector( SENDINFO_ARRAY(m_vControlPointVecs) ) ),
+#endif
 	SendPropArray3( SENDINFO_ARRAY3(m_iControlPointParents), SendPropInt( SENDINFO_ARRAY(m_iControlPointParents), 3, SPROP_UNSIGNED ) ),
 	SendPropBool( SENDINFO(m_bWeatherEffect) ),
 END_SEND_TABLE()
@@ -118,9 +118,9 @@ BEGIN_DATADESC( CParticleSystem )
 	DEFINE_KEYFIELD( m_iControlPointParents[4], FIELD_CHARACTER, "cpoint5_parent" ),
 	DEFINE_KEYFIELD( m_iControlPointParents[5], FIELD_CHARACTER, "cpoint6_parent" ),
 	DEFINE_KEYFIELD( m_iControlPointParents[6], FIELD_CHARACTER, "cpoint7_parent" ),
-	
+#ifndef MAPBASE
 	DEFINE_AUTO_ARRAY( m_hControlPointEnts, FIELD_EHANDLE ),
-
+#endif
 	DEFINE_INPUTFUNC( FIELD_VOID, "Start", InputStart ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "Stop", InputStop ),
 #ifdef MAPBASE
@@ -131,8 +131,25 @@ BEGIN_DATADESC( CParticleSystem )
 
 END_DATADESC()
 
-LINK_ENTITY_TO_CLASS( info_particle_system, CParticleSystem );
-LINK_ENTITY_TO_CLASS( info_particle_system_coordinate, CParticleSystemCoordinate );
+#ifndef MAPBASE
+LINK_ENTITY_TO_CLASS(info_particle_system, CParticleSystem);
+#else
+LINK_ENTITY_TO_CLASS(info_particle_system, CParticleSystemEnts);
+LINK_ENTITY_TO_CLASS(info_particle_system_coordinate, CParticleSystemCoordinate);
+
+BEGIN_DATADESC(CParticleSystemEnts)
+DEFINE_AUTO_ARRAY(m_hControlPointEnts, FIELD_EHANDLE),
+END_DATADESC();
+
+IMPLEMENT_SERVERCLASS_ST(CParticleSystemEnts, DT_ParticleSystemEnts)
+SendPropArray3(SENDINFO_ARRAY3(m_hControlPointEnts), SendPropEHandle(SENDINFO_ARRAY(m_hControlPointEnts))),
+END_SEND_TABLE();
+
+IMPLEMENT_SERVERCLASS_ST(CParticleSystemCoordinate, DT_ParticleSystemCoordinate)
+SendPropArray3(SENDINFO_ARRAY3(m_vControlPointVecs), SendPropVector(SENDINFO_ARRAY(m_vControlPointVecs))),
+END_SEND_TABLE();
+#endif // !MAPBASE
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -252,8 +269,46 @@ void CParticleSystem::InputDestroyImmediately( inputdata_t &inputdata )
 	m_bDestroyImmediately = true;
 	StopParticleSystem();
 }
-#endif
 
+//-----------------------------------------------------------------------------
+// Purpose: Find each entity referred to by m_iszControlPointNames and 
+// resolve it into the corresponding slot in m_hControlPointEnts
+//-----------------------------------------------------------------------------
+void CParticleSystemEnts::ReadControlPointEnts(void)
+{
+	for (int i = 0; i < kMAXCONTROLPOINTS; ++i)
+	{
+		if (m_iszControlPointNames[i] == NULL_STRING)
+			continue;
+
+		CBaseEntity* pPointEnt = gEntList.FindEntityGeneric(NULL, STRING(m_iszControlPointNames[i]), this);
+		Assert(pPointEnt != NULL);
+		if (pPointEnt == NULL)
+		{
+			Warning("Particle system %s could not find control point entity (%s)\n", GetEntityName().ToCStr(), m_iszControlPointNames[i].ToCStr());
+			continue;
+		}
+
+		m_hControlPointEnts.Set(i, pPointEnt);
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Find each entity referred to by m_iszControlPointNames and 
+// resolve it into the corresponding slot in m_hControlPointEnts
+//-----------------------------------------------------------------------------
+void CParticleSystemCoordinate::ReadControlPointEnts(void)
+{
+	for (int i = 0; i < kMAXCONTROLPOINTS; ++i)
+	{
+		Vector vecCoords;
+		// cast str to vector, add vector to array
+		const char* pszVector = STRING(m_iszControlPointNames[i]);
+		UTIL_StringToVector(vecCoords.Base(), pszVector);
+		m_vControlPointVecs.Set(i, vecCoords);
+	}
+}
+#else
 //-----------------------------------------------------------------------------
 // Purpose: Find each entity referred to by m_iszControlPointNames and 
 // resolve it into the corresponding slot in m_hControlPointEnts
@@ -287,3 +342,4 @@ void CParticleSystem::ReadControlPointEnts( void )
 		}
 	}
 }
+#endif

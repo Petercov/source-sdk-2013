@@ -41,12 +41,14 @@ public:
 
 	enum { kMAXCONTROLPOINTS = 63 }; ///< actually one less than the total number of cpoints since 0 is assumed to be me
 
-	virtual bool UsesCoordinates( void ) { return false; }
-
 protected:
 
 	/// Load up and resolve the entities that are supposed to be the control points 
-	void ReadControlPointEnts( void );
+#ifdef MAPBASE
+	virtual void ReadControlPointEnts(void) = 0;
+#else
+	void ReadControlPointEnts(void);
+#endif // MAPBASE
 
 	bool				m_bStartActive;
 	string_t			m_iszEffectName;
@@ -59,10 +61,24 @@ protected:
 	CNetworkVar( float,	m_flStartTime );	// Time at which this effect was started.  This is used after restoring an active effect.
 
 	string_t			m_iszControlPointNames[kMAXCONTROLPOINTS];
-	CNetworkArray( EHANDLE, m_hControlPointEnts, kMAXCONTROLPOINTS );
-	CNetworkArray( Vector, m_vControlPointVecs, kMAXCONTROLPOINTS );
 	CNetworkArray( unsigned char, m_iControlPointParents, kMAXCONTROLPOINTS );
 	CNetworkVar( bool,	m_bWeatherEffect );
+};
+
+#ifdef MAPBASE
+//-----------------------------------------------------------------------------
+// Purpose: An entity that spawns and controls a particle system
+//-----------------------------------------------------------------------------
+class CParticleSystemEnts : public CParticleSystem
+{
+	DECLARE_CLASS(CParticleSystemEnts, CParticleSystem);
+public:
+	DECLARE_SERVERCLASS();
+	DECLARE_DATADESC();
+protected:
+	virtual void ReadControlPointEnts(void);
+
+	CNetworkArray(EHANDLE, m_hControlPointEnts, kMAXCONTROLPOINTS);
 };
 
 //-----------------------------------------------------------------------------
@@ -70,9 +86,14 @@ protected:
 //-----------------------------------------------------------------------------
 class CParticleSystemCoordinate : public CParticleSystem
 {
-	DECLARE_CLASS( CParticleSystemCoordinate, CParticleSystem );
+	DECLARE_CLASS(CParticleSystemCoordinate, CParticleSystem);
 public:
-	virtual bool UsesCoordinates( void ) { return true; }
+	DECLARE_SERVERCLASS();
+protected:
+	virtual void ReadControlPointEnts(void);
+
+	CNetworkArray(Vector, m_vControlPointVecs, kMAXCONTROLPOINTS);
 };
+#endif // MAPBASE
 
 #endif // PARTICLE_SYSTEM_H
