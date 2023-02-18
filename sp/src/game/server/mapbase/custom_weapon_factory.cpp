@@ -15,7 +15,6 @@
 #define GLOBAL_WEAPONS_MANIFEST "scripts/custom_weapon_manifest.txt"
 
 extern ConVar mapbase_load_default_manifest;
-extern ConVar mapbase_load_addon_manifest;
 
 IMPLEMENT_PRIVATE_SYMBOLTYPE(CustomWeaponSymbol);
 
@@ -36,37 +35,6 @@ void CCustomWeaponSystem::LevelInitPreEntity()
 	{
 		// Load the generic script instead.
 		ParseGenericManifest();
-	}
-
-	// Load addon manifests if we should
-	if (mapbase_load_addon_manifest.GetBool())
-	{
-		char searchPaths[4096];
-		filesystem->GetSearchPath( "ADDON", true, searchPaths, sizeof( searchPaths ) );
-
-		for ( char *path = strtok( searchPaths, ";" ); path; path = strtok( NULL, ";" ) )
-		{
-			char pathName[MAX_PATH];
-			V_StripTrailingSlash( path );
-			V_FileBase( path, pathName, sizeof( pathName ) );
-
-			KeyValues *pKV = new KeyValues( "DefaultAddonManifest" );
-
-			char manifestName[MAX_PATH];
-			V_snprintf( manifestName, sizeof( manifestName ), "%s_mapbase_manifest.txt", pathName );
-			if (filesystem->FileExists( manifestName, "ADDON" ))
-			{
-				if (pKV->LoadFromFile( filesystem, manifestName, "ADDON"))
-					AddManifestFile( pKV, pathName, false );
-			}
-			else
-			{
-				if (pKV->LoadFromFile( filesystem, GENERIC_MANIFEST_FILE_ADDON ))
-					AddManifestFile( pKV, pathName, true );
-			}
-
-			pKV->deleteThis();
-		}
 	}
 }
 
