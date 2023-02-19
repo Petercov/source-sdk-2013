@@ -91,11 +91,17 @@ void GamepadUI::Initialize( CreateInterfaceFn factory )
 
 void GamepadUI::Shutdown()
 {
-    if ( m_pGameUI )
-        m_pGameUI->SetMainMenuOverride( NULL );
+    if (m_pGameUI)
+    {
+        m_pGameUI->SetMainMenuOverride(NULL);
+        m_pGameUI->SetLoadingBackgroundDialog(NULL);
+    }
 
     if ( m_pBasePanel )
         m_pBasePanel->DeletePanel();
+
+    if (g_pGamepadUILoading)
+        g_pGamepadUILoading->DeletePanel();
 
 #ifdef HL2_RETAIL // not necessary on SDK2013 (Madi)
     m_SteamAPIContext.Clear();
@@ -157,6 +163,7 @@ void GamepadUI::VidInit()
     }
 
     m_pBasePanel->InvalidateLayout( false, true );
+    g_pGamepadUILoading->InvalidateLayout(false, true);
 }
 
 
