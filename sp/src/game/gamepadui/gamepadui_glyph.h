@@ -20,8 +20,12 @@ class GamepadUIGlyph
 public:
     GamepadUIGlyph()
     {
+#ifdef HL2_RETAIL
         m_nOriginTextures[0] = -1;
         m_nOriginTextures[1] = -1;
+#elif MAPBASE
+        m_wchGlyph = L'\0';
+#endif // HL2_RETAIL
     }
 
     ~GamepadUIGlyph()
@@ -123,9 +127,43 @@ public:
             }
             g_pMatSystemSurface->DrawSetTextureRGBAEx2( m_nOriginTextures[i], bitmap.GetBits(), bitmap.Width(), bitmap.Height(), ImageFormat::IMAGE_FORMAT_RGBA8888, true, false );
         }
+#elif MAPBASE
+        wchar_t* pwscGlyph = nullptr;
+        if (V_strcmp(pszAction, "menu_lb") == 0)
+        {
+            pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_L_SHOULDER");
+        }
+        else if (V_strcmp(pszAction, "menu_lr") == 0)
+        {
+            pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_R_SHOULDER");
+        }
+        else if (V_strcmp(pszAction, "menu_cancel") == 0)
+        {
+            pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_B_BUTTON");
+        }
+        else if (V_strcmp(pszAction, "menu_select") == 0)
+        {
+            pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_A_BUTTON");
+        }
+        else if (V_strcmp(pszAction, "menu_y") == 0)
+        {
+            pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_Y_BUTTON");
+        }
+        else if (V_strcmp(pszAction, "menu_x") == 0)
+        {
+            pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_X_BUTTON");
+        }
+        
+        if (pwscGlyph)
+        {
+            m_wchGlyph = pwscGlyph[0];
+        }
+        else
+        {
+            return false;
+        }
 #else
         return false;
-
 #endif // HL2_RETAIL
 
         return true;
@@ -133,32 +171,49 @@ public:
 
     void PaintGlyph( int nX, int nY, int nSize, int nBaseAlpha )
     {
+#ifdef HL2_RETAIL
         int nPressedAlpha = 255 - nBaseAlpha;
 
-        if ( nBaseAlpha )
+        if (nBaseAlpha)
         {
-            vgui::surface()->DrawSetColor( Color( 255, 255, 255, nBaseAlpha ) );
-            vgui::surface()->DrawSetTexture( m_nOriginTextures[0] );
-            vgui::surface()->DrawTexturedRect( nX, nY, nX + nSize, nY + nSize );
+            vgui::surface()->DrawSetColor(Color(255, 255, 255, nBaseAlpha));
+            vgui::surface()->DrawSetTexture(m_nOriginTextures[0]);
+            vgui::surface()->DrawTexturedRect(nX, nY, nX + nSize, nY + nSize);
         }
 
-        if ( nPressedAlpha )
+        if (nPressedAlpha)
         {
-            vgui::surface()->DrawSetColor( Color( 255, 255, 255, nPressedAlpha ) );
-            vgui::surface()->DrawSetTexture( m_nOriginTextures[1] );
-            vgui::surface()->DrawTexturedRect( nX, nY, nX + nSize, nY + nSize );
+            vgui::surface()->DrawSetColor(Color(255, 255, 255, nPressedAlpha));
+            vgui::surface()->DrawSetTexture(m_nOriginTextures[1]);
+            vgui::surface()->DrawTexturedRect(nX, nY, nX + nSize, nY + nSize);
         }
 
         vgui::surface()->DrawSetTexture(0);
+#elif MAPBASE
+        vgui::surface()->DrawSetTextColor(255, 255, 255, 255);
+        vgui::surface()->DrawSetTextFont(GamepadUI::GetInstance().GetButtonGlyphFont());
+        vgui::surface()->DrawSetTextPos(nX, nY);
+        //const float flScale = (float)nSize / 32.f;
+        //vgui::surface()->DrawSetTextScale(flScale, flScale);
+        vgui::surface()->DrawUnicodeChar(m_wchGlyph);
+#endif // HL2_RETAIL
     }
 
     bool IsValid()
     {
+#ifdef HL2_RETAIL
         return m_nOriginTextures[0] > 0 && m_nOriginTextures[1] > 0;
+#elif MAPBASE
+        return m_wchGlyph != L'\0';
+#else
+        return false;
+#endif // HL2_RETAIL
+
     }
 
     void Cleanup()
     {
+#ifdef HL2_RETAIL
         for ( int i = 0; i < 2; i++ )
         {
             if ( m_nOriginTextures[ i ] > 0 )
@@ -166,7 +221,6 @@ public:
             m_nOriginTextures[ i ] = -1;
         }
 
-#ifdef HL2_RETAIL
         m_eActionOrigin = k_EInputActionOrigin_None;
 #endif // HL2_RETAIL
     }
@@ -175,9 +229,10 @@ private:
 
 #ifdef HL2_RETAIL
     EInputActionOrigin m_eActionOrigin = k_EInputActionOrigin_None;
-#endif // HL2_RETAIL
-
     int m_nOriginTextures[2];
+#elif MAPBASE
+    wchar_t m_wchGlyph;
+#endif // HL2_RETAIL
 };
 
 #endif

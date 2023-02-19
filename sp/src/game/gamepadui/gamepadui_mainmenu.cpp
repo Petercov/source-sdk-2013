@@ -87,6 +87,12 @@ void GamepadUIMainMenu::ApplySchemeSettings( vgui::IScheme* pScheme )
     if ( pImage && *pImage )
         m_LogoImage.SetImage( pImage );
     m_hLogoFont = pScheme->GetFont( "Logo.Font", true );
+
+#ifdef MAPBASE
+    m_hButtonFont = pScheme->GetFont("XBoxButtons", true);
+    m_hButtonFontPS3 = pScheme->GetFont("PS3Buttons", true);
+#endif // MAPBASE
+
 }
 
 void GamepadUIMainMenu::LayoutMainMenu()
@@ -258,3 +264,12 @@ float GamepadUIMainMenu::GetCurrentLogoOffset()
 {
     return GetCurrentMenuState() == GamepadUIMenuStates::InGame ? m_flLogoOffsetYInGame : m_flLogoOffsetYMenu;
 }
+
+#ifdef MAPBASE
+vgui::HFont GamepadUIMainMenu::GetButtonGlyphFont()
+{
+    static ConVarRef cl_joy_glyphs_ps3("cl_joy_glyphs_ps3");
+    return cl_joy_glyphs_ps3.GetBool() ? m_hButtonFontPS3 : m_hButtonFont;
+}
+#endif // MAPBASE
+

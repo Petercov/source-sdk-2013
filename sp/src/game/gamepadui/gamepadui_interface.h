@@ -94,6 +94,9 @@ public:
     void SetCurrentChallengeNames( const char *pszFileName, const char *pszMapName, const char *pszChallengeName );
 #endif
 
+#ifdef MAPBASE
+    vgui::HFont GetButtonGlyphFont();
+#endif // MAPBASE
 private:
 
     IEngineSound            *m_pEngineSound            = NULL;

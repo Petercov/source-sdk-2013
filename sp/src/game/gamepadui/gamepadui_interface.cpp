@@ -91,11 +91,17 @@ void GamepadUI::Initialize( CreateInterfaceFn factory )
 
 void GamepadUI::Shutdown()
 {
-    if ( m_pGameUI )
-        m_pGameUI->SetMainMenuOverride( NULL );
+    if (m_pGameUI)
+    {
+        m_pGameUI->SetMainMenuOverride(NULL);
+        m_pGameUI->SetLoadingBackgroundDialog(NULL);
+    }
 
     if ( m_pBasePanel )
         m_pBasePanel->DeletePanel();
+
+    if (g_pGamepadUILoading)
+        g_pGamepadUILoading->DeletePanel();
 
 #ifdef HL2_RETAIL // not necessary on SDK2013 (Madi)
     m_SteamAPIContext.Clear();
@@ -159,6 +165,7 @@ void GamepadUI::VidInit()
     m_flScreenYRatio = 1.0f;
 
     m_pBasePanel->InvalidateLayout( false, true );
+    g_pGamepadUILoading->InvalidateLayout(false, true);
 }
 
 
@@ -269,5 +276,10 @@ void GamepadUI::SetCurrentChallengeNames( const char *pszFileName, const char *p
     Q_strncpy( m_szChallengeFileName, pszFileName, sizeof( m_szChallengeFileName ) );
     Q_strncpy( m_szChallengeMapName, pszMapName, sizeof( m_szChallengeMapName ) );
     Q_strncpy( m_szChallengeName, pszChallengeName, sizeof( m_szChallengeName ) );
+}
+
+vgui::HFont GamepadUI::GetButtonGlyphFont()
+{
+    return GetMainMenu()->GetButtonGlyphFont();
 }
 #endif
