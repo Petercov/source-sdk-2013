@@ -585,6 +585,11 @@ class CEventsSaveDataOps : public ISaveRestoreOps
 		ev->ParseEventAction( szValue );
 		return true;
 	}
+
+#ifdef MAPBASE
+	virtual bool Extract(const SaveRestoreFieldInfo_t& fieldInfo, char* szValue, int iMaxLen) { return false; }
+#endif // MAPBASE
+
 };
 
 CEventsSaveDataOps g_EventsSaveDataOps;
@@ -2029,6 +2034,13 @@ class CVariantSaveDataOps : public CDefSaveRestoreOps
 
 		*var = Variant_Parse(szValue);
 
+		return true;
+	}
+
+	virtual bool Extract(const SaveRestoreFieldInfo_t& fieldInfo, char* szValue, int iMaxLen)
+	{
+		variant_t* var = (variant_t*)fieldInfo.pField;
+		V_strncpy(szValue, var->ToString(), iMaxLen);
 		return true;
 	}
 #endif

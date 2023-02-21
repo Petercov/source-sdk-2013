@@ -331,6 +331,9 @@ public:
 	virtual bool IsEmpty( const SaveRestoreFieldInfo_t &fieldInfo ) = 0;
 	virtual void MakeEmpty( const SaveRestoreFieldInfo_t &fieldInfo ) = 0;
 	virtual bool Parse( const SaveRestoreFieldInfo_t &fieldInfo, char const* szValue ) = 0;
+#ifdef MAPBASE
+	virtual bool Extract(const SaveRestoreFieldInfo_t& fieldInfo, char* szValue, int iMaxLen) = 0;
+#endif // MAPBASE
 
 	//---------------------------------
 
@@ -354,6 +357,9 @@ public:
 	virtual bool IsEmpty( const SaveRestoreFieldInfo_t &fieldInfo ) { return false; }
 	virtual void MakeEmpty( const SaveRestoreFieldInfo_t &fieldInfo ) {}
 	virtual bool Parse( const SaveRestoreFieldInfo_t &fieldInfo, char const* szValue ) { return false; }
+#ifdef MAPBASE
+	virtual bool Extract(const SaveRestoreFieldInfo_t& fieldInfo, char* szValue, int iMaxLen) { return false; }
+#endif // MAPBASE
 };
 
 

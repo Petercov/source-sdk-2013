@@ -78,6 +78,13 @@ public:
 		pString->assign(szValue);
 		return true;
 	}
+
+	virtual bool Extract(const SaveRestoreFieldInfo_t& fieldInfo, char* szValue, int iMaxLen)
+	{
+		std::string* pString = (std::string*)fieldInfo.pField;
+		V_strncpy(szValue, pString->c_str(), iMaxLen);
+		return true;
+	}
 #endif
 };
 

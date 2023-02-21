@@ -225,6 +225,7 @@ bool ExtractKeyvalue( void *pObject, typedescription_t *pFields, int iNumFields,
 
 			case FIELD_CUSTOM:
 			{
+#ifndef MAPBASE
 				/*
 				SaveRestoreFieldInfo_t fieldInfo =
 				{
@@ -235,6 +236,15 @@ bool ExtractKeyvalue( void *pObject, typedescription_t *pFields, int iNumFields,
 				pField->pSaveRestoreOps->Parse( fieldInfo, szValue );
 				*/
 				return false;
+#else
+				SaveRestoreFieldInfo_t fieldInfo =
+				{
+					(char*)pObject + fieldOffset,
+					pObject,
+					pField
+				};
+				return pField->pSaveRestoreOps->Extract(fieldInfo, szValue, iMaxLen);
+#endif // !MAPBASE
 			}
 
 			default:
