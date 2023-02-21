@@ -595,6 +595,7 @@ public:
 	void	DryFire(void);
 
 	void	Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
+	virtual bool			NPC_HasAltFire(void) { return true; }
 
 	void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
 	void	FireNPCSecondaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
@@ -833,28 +834,33 @@ void CWeaponPulsePistol::DryFire(void)
 //-----------------------------------------------------------------------------
 void CWeaponPulsePistol::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
 {
-	if ((pEvent->type & AE_TYPE_NEWEVENTSYSTEM) && pEvent->event == AE_SLIDERETURN)
+	if (pEvent->type & AE_TYPE_NEWEVENTSYSTEM)
 	{
-	case AE_WPN_INCREMENTAMMO:
-	case AE_SLIDERETURN:
-		m_iClip1 = MAX( m_iClip1, sv_pulse_pistol_slide_return_charge.GetInt() );
-		WeaponSound( RELOAD, m_flNextPrimaryAttack );
-		break;
-
-	case EVENT_WEAPON_AR2_ALTFIRE:
+		if (pEvent->event == AE_SLIDERETURN)
+		{
+			m_iClip1 = MAX(m_iClip1, sv_pulse_pistol_slide_return_charge.GetInt());
+			WeaponSound(RELOAD, m_flNextPrimaryAttack);
+			return;
+		}
+	}
+	else
+		switch (pEvent->type)
+		{
+		case EVENT_WEAPON_AR2_ALTFIRE:
 		{
 			Vector vecShootOrigin, vecShootDir;
 			vecShootOrigin = pOperator->Weapon_ShootPosition();
 
-			CAI_BaseNPC *npc = pOperator->MyNPCPointer();
-			ASSERT( npc != NULL );
+			CAI_BaseNPC* npc = pOperator->MyNPCPointer();
+			ASSERT(npc != NULL);
 
-			vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
+			vecShootDir = npc->GetActualShootTrajectory(vecShootOrigin);
 
-			FireNPCSecondaryAttack( pOperator, vecShootOrigin, vecShootDir );
+			FireNPCSecondaryAttack(pOperator, vecShootOrigin, vecShootDir);
+			return;
 		}
 		break;
-	}
+		}
 
 	BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
 }
