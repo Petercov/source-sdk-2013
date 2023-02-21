@@ -224,7 +224,7 @@ void ImpactAirboatGunCallback( const CEffectData &data )
 	// If we hit, perform our custom effects and play the sound. Don't create decals
 	if ( Impact( vecOrigin, vecStart, iMaterial, iDamageType, iHitbox, pEntity, tr, IMPACT_NODECAL | IMPACT_REPORT_RAGDOLL_IMPACTS ) )
 	{
-		FX_AirboatGunImpact( vecOrigin, tr.plane.normal, 2 );
+		FX_AirboatGunImpact(tr.endpos, tr.plane.normal, 2);
 	}
 #else
 	FX_AirboatGunImpact( vecOrigin, tr.plane.normal, 1 );
@@ -259,7 +259,7 @@ void ImpactHelicopterCallback( const CEffectData &data )
 	// If we hit, perform our custom effects and play the sound. Don't create decals
 	if ( Impact( vecOrigin, vecStart, iMaterial, iDamageType, iHitbox, pEntity, tr, IMPACT_NODECAL | IMPACT_REPORT_RAGDOLL_IMPACTS ) )
 	{
-		FX_AirboatGunImpact( vecOrigin, tr.plane.normal, IsXbox() ? 1 : 2 );
+		FX_AirboatGunImpact(tr.endpos, tr.plane.normal, IsXbox() ? 1 : 2 );
 
 		// Only do metal + computer custom effects
 		if ( (iMaterial == CHAR_TEX_METAL) || (iMaterial == CHAR_TEX_COMPUTER) )
@@ -303,7 +303,7 @@ void AR2ImpactCallback(const CEffectData& data)
 		// Check for custom effects based on the Decal index
 		PerformCustomEffects(vecOrigin, tr, vecShotDir, iMaterial, 1.0);
 
-		Vector	offset = vecOrigin + (tr.plane.normal * 1.0f);
+		Vector	offset = tr.endpos + (tr.plane.normal * 1.0f);
 		FX_AddQuad(offset,
 			tr.plane.normal,
 			random->RandomFloat(24, 32),
