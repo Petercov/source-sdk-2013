@@ -120,7 +120,7 @@ public:
 
 	// Use secondary ammo as a way of checking if this is a weapon which can be alt-fired (e.g. AR2 or SMG)
 	virtual bool	IsAltFireCapable() { return (this->GetActiveWeapon() && this->GetActiveWeapon()->NPC_HasAltFire()); }
-#endif
+
 	virtual bool	IsGrenadeCapable() { return true; }
 	inline bool		HasGrenades() { return m_iNumGrenades > 0; }
 
@@ -649,7 +649,7 @@ void CAI_GrenadeUser<BASE_NPC>::DropGrenadeItemsOnDeath( const CTakeDamageInfo &
 		CBaseEntity *pItem;
 		if (this->GetActiveWeapon() && FClassnameIs( this->GetActiveWeapon(), "weapon_smg1" ))
 			pItem = this->DropItem( "item_ammo_smg1_grenade", this->WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-		else
+		else if (this->GetActiveWeapon() && (FClassnameIs(this->GetActiveWeapon(), "weapon_ar2") || FClassnameIs(this->GetActiveWeapon(), "weapon_ar2_proto")))
 			pItem = this->DropItem( "item_ammo_ar2_altfire", this->WorldSpaceCenter() + RandomVector( -4, 4 ), RandomAngle( 0, 360 ) );
 
 		if ( pItem )
