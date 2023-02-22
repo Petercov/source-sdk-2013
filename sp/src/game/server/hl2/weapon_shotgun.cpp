@@ -92,7 +92,7 @@ public:
 	virtual Activity GetDrawActivity( void );
 #endif
 
-#ifdef EZ2
+#ifdef EZ2_WEAPONS
 	virtual
 #endif
 	void FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
@@ -163,7 +163,11 @@ acttable_t	CWeaponShotgun::m_acttable[] =
 	{ ACT_RUN,						ACT_RUN_SHOTGUN,					true },
 	{ ACT_RUN_AIM,					ACT_RUN_AIM_SHOTGUN,				true },
 	{ ACT_RUN_CROUCH,				ACT_RUN_CROUCH_RIFLE,				true },
+#ifdef EZ2 // For some reason, soldiers get confused if this is required on shotguns
+	{ ACT_RUN_CROUCH_AIM,			ACT_RUN_CROUCH_AIM_RIFLE,			false },
+#else
 	{ ACT_RUN_CROUCH_AIM,			ACT_RUN_CROUCH_AIM_RIFLE,			true },
+#endif
 	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_GESTURE_RANGE_ATTACK_SHOTGUN,	true },
 	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_SHOTGUN_LOW,		true },
 	{ ACT_RELOAD_LOW,				ACT_RELOAD_SHOTGUN_LOW,				false },
