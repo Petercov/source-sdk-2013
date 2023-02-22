@@ -646,7 +646,7 @@ void CAI_GrenadeUser<BASE_NPC>::DropGrenadeItemsOnDeath( const CTakeDamageInfo &
 	// Elites drop alt-fire ammo, so long as they weren't killed by dissolving.
 	if( IsAltFireCapable() && ShouldDropAltFire() )
 	{
-		CBaseEntity *pItem;
+		CBaseEntity *pItem = nullptr;
 		if (this->GetActiveWeapon() && FClassnameIs( this->GetActiveWeapon(), "weapon_smg1" ))
 			pItem = this->DropItem( "item_ammo_smg1_grenade", this->WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		else if (this->GetActiveWeapon() && (FClassnameIs(this->GetActiveWeapon(), "weapon_ar2") || FClassnameIs(this->GetActiveWeapon(), "weapon_ar2_proto")))
