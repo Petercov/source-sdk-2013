@@ -8,6 +8,7 @@ $Configuration
 {
 	$Compiler
 	{
+		$AdditionalIncludeDirectories		"$BASE;.\hl1,$SRCDIR\game\shared\hl1"
 		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS"
 	}
 }
@@ -25,6 +26,29 @@ $Project
 		$Folder "Peter"
 		{
 			$File	"peter\hud_scope.cpp"
+		}
+
+		$Folder	"HL1 DLL"
+		{
+			//$File	"hl1\hl1_c_legacytempents.cpp"
+			$File	"hl1\hl1_c_rpg_rocket.cpp"
+			$File	"hl1\hl1_c_weapon__stubs.cpp"
+			$File	"hl1\hl1_fx_blood.cpp"
+			$File	"hl1\hl1_fx_gauss.cpp"
+			$File	"hl1\hl1_fx_gibs.cpp"
+			//$File	"hl1\hl1_fx_impacts.cpp"
+			$File	"hl1\hl1_fx_muzzleflash.cpp"
+			$File	"hl1\hl1_fx_shelleject.cpp"
+			$File	"hl1\hl1_fx_tracers.cpp"
+			$File	"hl1\hl1_hud_ammo.cpp"
+			$File	"hl1\hl1_hud_battery.cpp"
+			$File	"hl1\hl1_hud_damageindicator.cpp"
+			$File	"hl1\hl1_hud_damagetiles.cpp"
+			$File	"hl1\hl1_hud_flashlight.cpp"
+			$File	"hl1\hl1_hud_health.cpp"
+			$File	"hl1\hl1_hud_numbers.cpp"
+			$File	"hl1\hl1_hud_numbers.h"
+			$File	"hl1\hl1_hud_train.cpp"
 		}
 	}
 }
