@@ -16,12 +16,12 @@
 
 #define BATTERY_MODEL "models/w_battery.mdl"
 
-ConVar	sk_battery( "sk_battery","0" );			
+ConVar	sk_batteryhl1( "sk_battery_hl1","0" );			
 
-class CItemBattery : public CHL1Item
+class CItemBatteryHL1 : public CHL1Item
 {
 public:
-	DECLARE_CLASS( CItemBattery, CHL1Item );
+	DECLARE_CLASS(CItemBatteryHL1, CHL1Item );
 
 	void Spawn( void )
 	{ 
@@ -43,7 +43,7 @@ public:
 			int pct;
 			char szcharge[64];
 
-			pPlayer->IncrementArmorValue( sk_battery.GetFloat(), MAX_NORMAL_BATTERY );
+			pPlayer->IncrementArmorValue( sk_batteryhl1.GetFloat(), MAX_NORMAL_BATTERY );
 
 			CPASAttenuationFilter filter( pPlayer, "Item.Pickup" );
 			EmitSound( filter, pPlayer->entindex(), "Item.Pickup" );
@@ -73,6 +73,11 @@ public:
 	}
 };
 
-LINK_ENTITY_TO_CLASS(item_battery, CItemBattery);
+#ifdef HL1_DLL
+LINK_ENTITY_TO_CLASS(item_battery, CItemBatteryHL1);
 PRECACHE_REGISTER(item_battery);
+#else
+LINK_ENTITY_TO_CLASS(item_hl1_battery, CItemBatteryHL1);
+#endif // HL1_DLL
+
 

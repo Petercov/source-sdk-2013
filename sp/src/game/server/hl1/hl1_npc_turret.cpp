@@ -143,65 +143,65 @@ public:
 	DECLARE_DATADESC();
 };
 
-BEGIN_DATADESC( CNPC_BaseTurret )
+BEGIN_DATADESC(CNPC_BaseTurret)
 
-	//FIELDS
-	DEFINE_FIELD( m_flMaxSpin, FIELD_FLOAT ),
-	DEFINE_FIELD( m_iSpin, FIELD_INTEGER ),
+//FIELDS
+DEFINE_FIELD(m_flMaxSpin, FIELD_FLOAT),
+DEFINE_FIELD(m_iSpin, FIELD_INTEGER),
 
-	DEFINE_FIELD( m_pEyeGlow, FIELD_CLASSPTR ),
-	DEFINE_FIELD( m_eyeBrightness, FIELD_INTEGER ),
-	DEFINE_FIELD( m_iDeployHeight, FIELD_INTEGER ),
-	DEFINE_FIELD( m_iRetractHeight, FIELD_INTEGER ),
-	DEFINE_FIELD( m_iMinPitch, FIELD_INTEGER ),
+DEFINE_FIELD(m_pEyeGlow, FIELD_CLASSPTR),
+DEFINE_FIELD(m_eyeBrightness, FIELD_INTEGER),
+DEFINE_FIELD(m_iDeployHeight, FIELD_INTEGER),
+DEFINE_FIELD(m_iRetractHeight, FIELD_INTEGER),
+DEFINE_FIELD(m_iMinPitch, FIELD_INTEGER),
 
-	DEFINE_FIELD( m_fTurnRate, FIELD_FLOAT ),
-	DEFINE_FIELD( m_iOn, FIELD_INTEGER ),
-	DEFINE_FIELD( m_fBeserk, FIELD_INTEGER ),
-	DEFINE_FIELD( m_iAutoStart, FIELD_INTEGER ),
+DEFINE_FIELD(m_fTurnRate, FIELD_FLOAT),
+DEFINE_FIELD(m_iOn, FIELD_INTEGER),
+DEFINE_FIELD(m_fBeserk, FIELD_INTEGER),
+DEFINE_FIELD(m_iAutoStart, FIELD_INTEGER),
 
-	DEFINE_FIELD( m_vecLastSight, FIELD_POSITION_VECTOR ),
-	DEFINE_FIELD( m_flLastSight, FIELD_TIME ),
+DEFINE_FIELD(m_vecLastSight, FIELD_POSITION_VECTOR),
+DEFINE_FIELD(m_flLastSight, FIELD_TIME),
 
-	DEFINE_FIELD( m_flStartYaw, FIELD_FLOAT ),
-	DEFINE_FIELD( m_vecCurAngles, FIELD_VECTOR ),
-	DEFINE_FIELD( m_vecGoalAngles, FIELD_VECTOR ),
+DEFINE_FIELD(m_flStartYaw, FIELD_FLOAT),
+DEFINE_FIELD(m_vecCurAngles, FIELD_VECTOR),
+DEFINE_FIELD(m_vecGoalAngles, FIELD_VECTOR),
 
-	DEFINE_FIELD( m_flPingTime, FIELD_TIME ),
-	DEFINE_FIELD( m_flSpinUpTime, FIELD_TIME ),
+DEFINE_FIELD(m_flPingTime, FIELD_TIME),
+DEFINE_FIELD(m_flSpinUpTime, FIELD_TIME),
 
-	DEFINE_FIELD( m_flDamageTime, FIELD_TIME ),
-	//DEFINE_FIELD( m_iAmmoType, FIELD_INTEGER ),
+DEFINE_FIELD(m_flDamageTime, FIELD_TIME),
+//DEFINE_FIELD( m_iAmmoType, FIELD_INTEGER ),
 
-	//KEYFIELDS
-	DEFINE_KEYFIELD( m_flMaxWait, FIELD_FLOAT, "maxsleep" ),
-	DEFINE_KEYFIELD( m_iOrientation, FIELD_INTEGER, "orientation" ),
-	DEFINE_KEYFIELD( m_iSearchSpeed, FIELD_INTEGER, "searchspeed" ),
-	DEFINE_KEYFIELD( m_iBaseTurnRate, FIELD_INTEGER, "turnrate" ),
-	
-	//Use
-	DEFINE_USEFUNC( TurretUse ),
+//KEYFIELDS
+DEFINE_KEYFIELD(m_flMaxWait, FIELD_FLOAT, "maxsleep"),
+DEFINE_KEYFIELD(m_iOrientation, FIELD_INTEGER, "orientation"),
+DEFINE_KEYFIELD(m_iSearchSpeed, FIELD_INTEGER, "searchspeed"),
+DEFINE_KEYFIELD(m_iBaseTurnRate, FIELD_INTEGER, "turnrate"),
 
-	//Thinks
-	DEFINE_THINKFUNC( ActiveThink ),
-	DEFINE_THINKFUNC( SearchThink ),
-	DEFINE_THINKFUNC( AutoSearchThink ),
-	DEFINE_THINKFUNC( TurretDeath ),
-	DEFINE_THINKFUNC( SpinDownCall ),
-	DEFINE_THINKFUNC( SpinUpCall ),
-	DEFINE_THINKFUNC( Deploy ),
-	DEFINE_THINKFUNC( Retire ),
-	DEFINE_THINKFUNC( Initialize ),
+//Use
+DEFINE_USEFUNC(TurretUse),
 
-	//Inputs
-	DEFINE_INPUTFUNC( FIELD_VOID, "Activate",	InputActivate ),
-	DEFINE_INPUTFUNC( FIELD_VOID, "Deactivate",	InputDeactivate ),
+//Thinks
+DEFINE_THINKFUNC(ActiveThink),
+DEFINE_THINKFUNC(SearchThink),
+DEFINE_THINKFUNC(AutoSearchThink),
+DEFINE_THINKFUNC(TurretDeath),
+DEFINE_THINKFUNC(SpinDownCall),
+DEFINE_THINKFUNC(SpinUpCall),
+DEFINE_THINKFUNC(Deploy),
+DEFINE_THINKFUNC(Retire),
+DEFINE_THINKFUNC(Initialize),
 
-	//Outputs
-	DEFINE_OUTPUT( m_OnActivate,	"OnActivate"),
-	DEFINE_OUTPUT( m_OnDeactivate,	"OnDeactivate"),
+//Inputs
+DEFINE_INPUTFUNC(FIELD_VOID, "Activate", InputActivate),
+DEFINE_INPUTFUNC(FIELD_VOID, "Deactivate", InputDeactivate),
 
-END_DATADESC()
+//Outputs
+DEFINE_OUTPUT(m_OnActivate, "OnActivate"),
+DEFINE_OUTPUT(m_OnDeactivate, "OnDeactivate"),
+
+END_DATADESC();
 
 
 void CNPC_BaseTurret::Spawn()
@@ -215,6 +215,7 @@ void CNPC_BaseTurret::Spawn()
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	m_takedamage		= DAMAGE_YES;
 	AddFlag( FL_AIMTARGET );
+	SetBoneCacheFlags(BCF_NO_ANIMATION_SKIP);
 
 	AddFlag( FL_NPC );
 	SetUse( &CNPC_BaseTurret::TurretUse );

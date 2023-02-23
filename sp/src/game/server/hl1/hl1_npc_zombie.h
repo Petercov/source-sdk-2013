@@ -21,9 +21,9 @@
 
 //=========================================================
 //=========================================================
-class CNPC_Zombie : public CHL1BaseNPC
+class CNPC_HL1Zombie : public CHL1BaseNPC
 {
-	DECLARE_CLASS( CNPC_Zombie, CHL1BaseNPC );
+	DECLARE_CLASS( CNPC_HL1Zombie, CHL1BaseNPC );
 public:
 
 	void Spawn( void );

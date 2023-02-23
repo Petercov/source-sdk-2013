@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:		Base combat character with no AI
 //
@@ -11,8 +11,8 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#ifndef	HL1_NPC_BARNACLE_H
-#define	HL1_NPC_BARNACLE_H
+#ifndef	HL1_NPC_BarnacleHL1_H
+#define	HL1_NPC_BarnacleHL1_H
 
 #include "hl1_ai_basenpc.h"
 #include "rope_physics.h"
@@ -30,9 +30,9 @@
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class CNPC_Barnacle : public CHL1BaseNPC
+class CNPC_HL1Barnacle : public CHL1BaseNPC
 {
-	DECLARE_CLASS( CNPC_Barnacle, CHL1BaseNPC );
+	DECLARE_CLASS( CNPC_HL1Barnacle, CHL1BaseNPC );
 
 public:
 	void			Spawn( void );
@@ -60,4 +60,4 @@ public:
 	DEFINE_CUSTOM_AI;
 };
 
-#endif	//HL1_NPC_BARNACLE_H
+#endif	//HL1_NPC_BarnacleHL1_H

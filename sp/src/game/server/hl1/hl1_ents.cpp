@@ -861,8 +861,14 @@ LINK_ENTITY_TO_CLASS( monster_hevsuit_dead, CNPC_DeadHEV );
 //=========================================================
 void CNPC_DeadHEV::Spawn( void )
 {
+#ifdef HL1_DLL
 	PrecacheModel("models/player.mdl");
-	SetModel( "models/player.mdl" );
+	SetModel("models/player.mdl");
+#else
+	PrecacheModel("models/hl1plr.mdl");
+	SetModel("models/hl1plr.mdl");
+#endif // HL1_DLL
+
 
 	ClearEffects();
 	SetSequence( 0 );

@@ -68,8 +68,11 @@ BEGIN_DATADESC(CRechargeHL1)
 
 END_DATADESC()
 
-
+#if HL1_DLL
+LINK_ENTITY_TO_CLASS(func_recharge, CRechargeHL1);
+#else
 LINK_ENTITY_TO_CLASS(func_recharge_hl1, CRechargeHL1);
+#endif // HL1_DLL
 
 
 bool CRechargeHL1::KeyValue( const char *szKeyName, const char *szValue )

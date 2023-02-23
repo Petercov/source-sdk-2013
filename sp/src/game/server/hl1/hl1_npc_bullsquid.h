@@ -11,9 +11,9 @@
 #include "hl1_ai_basenpc.h"
 
 
-class CNPC_Bullsquid : public CHL1BaseNPC
+class CNPC_HL1Bullsquid : public CHL1BaseNPC
 {
-	DECLARE_CLASS( CNPC_Bullsquid, CHL1BaseNPC );
+	DECLARE_CLASS( CNPC_HL1Bullsquid, CHL1BaseNPC );
 
 public:
 	void Spawn( void );

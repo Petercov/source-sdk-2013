@@ -140,7 +140,7 @@ bool CNPC_Leech::ShouldGib(	const CTakeDamageInfo &info )
 void CNPC_Leech::Spawn( void )
 {
 	Precache();
-	SetModel( "models/leech.mdl" );
+	SetModel( "models/hl1lch.mdl" );
 
 	SetHullType(HULL_TINY_CENTERED); 
 	SetHullSizeNormal();
@@ -294,7 +294,7 @@ void CNPC_Leech::HandleAnimEvent( animevent_t *pEvent )
 
 void CNPC_Leech::Precache( void )
 {
-	PrecacheModel("models/leech.mdl");
+	PrecacheModel("models/hl1lch.mdl");
 
 	PrecacheScriptSound( "Leech.Attack" );
 	PrecacheScriptSound( "Leech.Alert" );

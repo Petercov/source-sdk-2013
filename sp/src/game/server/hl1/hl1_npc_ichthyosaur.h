@@ -23,12 +23,12 @@
 
 
 //
-// CNPC_Ichthyosaur
+// CNPC_HL1Ichthyosaur
 //
 
-class CNPC_Ichthyosaur : public CHL1BaseNPC
+class CNPC_HL1Ichthyosaur : public CHL1BaseNPC
 {
-	DECLARE_CLASS( CNPC_Ichthyosaur, CHL1BaseNPC );
+	DECLARE_CLASS( CNPC_HL1Ichthyosaur, CHL1BaseNPC );
 public:
 
 	void	Precache( void );

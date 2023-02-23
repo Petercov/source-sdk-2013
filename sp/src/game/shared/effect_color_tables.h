@@ -45,6 +45,10 @@ static colorentry_t bloodcolors[] =
 	{ BLOOD_COLOR_YELLOW,	195,	195,	0	},
 	{ BLOOD_COLOR_MECH,		20,		20,		20	},
 	{ BLOOD_COLOR_GREEN,	195,	195,	0	},
+#ifdef MAPBASE
+	{ BLOOD_COLOR_HL1_HUMAN, 72,	0,		0	},
+	{ BLOOD_COLOR_HL1_ALIEN, 195,	195,	0	},
+#endif // MAPBASE
 };
 
 #endif // EFFECT_COLOR_TABLES_H

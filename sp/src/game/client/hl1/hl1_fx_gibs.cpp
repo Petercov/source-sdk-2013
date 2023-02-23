@@ -24,7 +24,7 @@ const char *pAlienGibsModel = "models/gibs/agibs.mdl";
 
 void GetBloodColorHL1( int bloodtype, unsigned char &r, unsigned char &g, unsigned char &b )
 {
-	if (bloodtype == BLOOD_COLOR_RED)
+	if (bloodtype == BLOOD_COLOR_RED || bloodtype == BLOOD_COLOR_HL1_HUMAN)
 	{
 		r = 64;
 		g = 0;
@@ -36,7 +36,7 @@ void GetBloodColorHL1( int bloodtype, unsigned char &r, unsigned char &g, unsign
 		g = 195;
 		b = 0;
 	}
-	else if ( bloodtype == BLOOD_COLOR_YELLOW )
+	else if ( bloodtype == BLOOD_COLOR_YELLOW || bloodtype == BLOOD_COLOR_HL1_ALIEN )
 	{
 		r = 0;
 		g = 195;
@@ -70,12 +70,12 @@ public:
 		{
 			if ( !UTIL_IsLowViolence() ) // no blood decals if we're low violence.
 			{
-				index = decalsystem->GetDecalIndexForName( "Blood" );
+				index = decalsystem->GetDecalIndexForName( "HL1Blood" );
 			}
 		}
 		else
 		{
-			index = decalsystem->GetDecalIndexForName( "YellowBlood" );
+			index = decalsystem->GetDecalIndexForName( "HL1YellowBlood" );
 		}
 
 		if ( index >= 0 )

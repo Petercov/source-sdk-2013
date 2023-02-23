@@ -849,7 +849,11 @@ bool UTIL_ShouldShowBlood( int color )
 {
 	if ( color != DONT_BLEED )
 	{
-		if ( color == BLOOD_COLOR_RED )
+		if ( color == BLOOD_COLOR_RED
+#ifdef MAPBASE
+			|| color == BLOOD_COLOR_HL1_HUMAN
+#endif // MAPBASE
+			)
 		{
 			return violence_hblood.GetBool();
 		}
@@ -905,6 +909,14 @@ void UTIL_BloodDecalTrace( trace_t *pTrace, int bloodColor )
 #endif
 			UTIL_DecalTrace(pTrace, "GreenBlood");
 			break;
+#ifdef MAPBASE
+		case BLOOD_COLOR_HL1_ALIEN:
+			UTIL_DecalTrace(pTrace, "HL1YellowBlood");
+			break;
+		case BLOOD_COLOR_HL1_HUMAN:
+			UTIL_DecalTrace(pTrace, "HL1Blood");
+			break;
+#endif // MAPBASE
 		}
 #endif // !MAPBASE
 

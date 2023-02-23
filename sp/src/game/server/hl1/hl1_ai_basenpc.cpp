@@ -119,7 +119,7 @@ bool CHL1BaseNPC::HasHumanGibs( void )
 {
 	Class_T myClass = Classify();
 
-	if ( myClass == CLASS_HECU ||
+	if ( myClass == CLASS_HUMAN_MILITARY ||
 		 myClass == CLASS_PLAYER_ALLY	||
 		 myClass == CLASS_HUMAN_PASSIVE  ||
 		 myClass == CLASS_PLAYER )

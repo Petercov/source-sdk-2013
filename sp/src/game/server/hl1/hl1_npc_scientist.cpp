@@ -158,7 +158,7 @@ void CNPC_Scientist::Spawn( void )
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
-	m_bloodColor		= BLOOD_COLOR_RED;
+	m_bloodColor		= BLOOD_COLOR_HL1_HUMAN;
 	ClearEffects();
 	m_iHealth			= sk_scientist_health.GetFloat();
 	m_flFieldOfView		= VIEW_FIELD_WIDE;
@@ -916,7 +916,7 @@ void CNPC_DeadScientist::Spawn( void )
 	
 	ClearEffects();
 	SetSequence( 0 );
-	m_bloodColor		= BLOOD_COLOR_RED;
+	m_bloodColor		= BLOOD_COLOR_HL1_HUMAN;
 
 	SetRenderColor( 255, 255, 255, 255 );
 
@@ -999,7 +999,7 @@ void CNPC_SittingScientist::Spawn( )
 	SetMoveType( MOVETYPE_STEP );
 	m_iHealth			= 50;
 	
-	m_bloodColor		= BLOOD_COLOR_RED;
+	m_bloodColor		= BLOOD_COLOR_HL1_HUMAN;
 	m_flFieldOfView		= VIEW_FIELD_WIDE; // indicates the width of this monster's forward view cone ( as a dotproduct result )
 
 	m_NPCState			= NPC_STATE_NONE;

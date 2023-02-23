@@ -41,9 +41,9 @@
 
 extern short g_sModelIndexFireball;
 
-class CNPC_Apache : public CBaseHelicopter
+class CNPC_Apache : public CHL1BaseHelicopter
 {
-	DECLARE_CLASS( CNPC_Apache, CBaseHelicopter );
+	DECLARE_CLASS( CNPC_Apache, CHL1BaseHelicopter);
 public:
 	DECLARE_DATADESC();
 
@@ -174,7 +174,7 @@ void CNPC_Apache::Spawn( void )
 	SetSolid( SOLID_BBOX );
 	SetMoveType( MOVETYPE_STEP );
 	AddFlag( FL_FLY );
-
+	SetBoneCacheFlags(BCF_NO_ANIMATION_SKIP);
 
 	m_iHealth			=  sk_apache_health.GetFloat();
 

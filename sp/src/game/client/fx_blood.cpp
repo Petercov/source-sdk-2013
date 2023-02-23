@@ -482,6 +482,10 @@ ParticleForBlood_t	bloodCallbacks[] =
 	{ BLOOD_COLOR_ZOMBIE,			"blood_impact_zombie_01" },			// FIXME: Move to Base HL2
 	{ BLOOD_COLOR_ANTLION_WORKER,	"blood_impact_antlion_worker_01" },
 #endif // HL2_EPISODIC
+#ifdef MAPBASE
+	{BLOOD_COLOR_HL1_HUMAN, "hl1_blood_red"},
+	{BLOOD_COLOR_HL1_ALIEN, "hl1_blood_yellow"},
+#endif // MAPBASE
 };
 
 //-----------------------------------------------------------------------------

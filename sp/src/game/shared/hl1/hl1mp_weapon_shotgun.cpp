@@ -24,7 +24,7 @@
 
 
 #ifdef CLIENT_DLL
-#define CWeaponShotgun C_WeaponShotgun
+#define CHL1WeaponShotgun C_HL1WeaponShotgun
 #endif
 
 // special deathmatch shotgun spreads
@@ -32,9 +32,9 @@
 #define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
 
 
-class CWeaponShotgun : public CBaseHL1MPCombatWeapon
+class CHL1WeaponShotgun : public CBaseHL1MPCombatWeapon
 {
-	DECLARE_CLASS( CWeaponShotgun, CBaseHL1MPCombatWeapon );
+	DECLARE_CLASS( CHL1WeaponShotgun, CBaseHL1MPCombatWeapon );
 
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
@@ -59,7 +59,7 @@ public:
 //	DECLARE_SERVERCLASS();
 //	DECLARE_DATADESC();
 
-	CWeaponShotgun(void);
+	CHL1WeaponShotgun(void);
 
 //#ifndef CLIENT_DLL
 //	DECLARE_ACTTABLE();
@@ -67,38 +67,43 @@ public:
 };
 
 
-IMPLEMENT_NETWORKCLASS_ALIASED( WeaponShotgun, DT_WeaponShotgun );
+IMPLEMENT_NETWORKCLASS_ALIASED( HL1WeaponShotgun, DT_HL1WeaponShotgun );
 
-BEGIN_NETWORK_TABLE( CWeaponShotgun, DT_WeaponShotgun )
+BEGIN_NETWORK_TABLE(CHL1WeaponShotgun, DT_HL1WeaponShotgun)
 #ifdef CLIENT_DLL
-	RecvPropFloat( RECVINFO( m_flPumpTime ) ),
-	RecvPropInt( RECVINFO( m_fInSpecialReload ) ),
+RecvPropFloat(RECVINFO(m_flPumpTime)),
+RecvPropInt(RECVINFO(m_fInSpecialReload)),
 #else
-	SendPropFloat( SENDINFO( m_flPumpTime ) ),
-	SendPropInt( SENDINFO( m_fInSpecialReload ) ),
+SendPropFloat(SENDINFO(m_flPumpTime)),
+SendPropInt(SENDINFO(m_fInSpecialReload)),
 #endif
 END_NETWORK_TABLE()
 
-BEGIN_PREDICTION_DATA( CWeaponShotgun )
+BEGIN_PREDICTION_DATA(CHL1WeaponShotgun)
 #ifdef CLIENT_DLL
-	DEFINE_PRED_FIELD( m_flPumpTime, FIELD_FLOAT, FTYPEDESC_INSENDTABLE ),
-	DEFINE_PRED_FIELD( m_fInSpecialReload, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
+DEFINE_PRED_FIELD(m_flPumpTime, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
+DEFINE_PRED_FIELD(m_fInSpecialReload, FIELD_INTEGER, FTYPEDESC_INSENDTABLE),
 #endif
 END_PREDICTION_DATA()
 
-LINK_ENTITY_TO_CLASS( weapon_shotgun, CWeaponShotgun );
+#ifdef HL1_DLL
+LINK_ENTITY_TO_CLASS(weapon_shotgun, CHL1WeaponShotgun);
 PRECACHE_WEAPON_REGISTER(weapon_shotgun);
+#else
+LINK_ENTITY_TO_CLASS(weapon_hl1_shotgun, CHL1WeaponShotgun);
+#endif // HL1_DLL
 
-//IMPLEMENT_SERVERCLASS_ST( CWeaponShotgun, DT_WeaponShotgun )
+
+//IMPLEMENT_SERVERCLASS_ST( CHL1WeaponShotgun, DT_HL1WeaponShotgun )
 //END_SEND_TABLE()
 
-//BEGIN_DATADESC( CWeaponShotgun )
+//BEGIN_DATADESC( CHL1WeaponShotgun )
 //END_DATADESC()
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CWeaponShotgun::CWeaponShotgun( void )
+CHL1WeaponShotgun::CHL1WeaponShotgun( void )
 {
 	m_bReloadsSingly	= true;
 	m_bFiresUnderwater	= false;
@@ -107,12 +112,12 @@ CWeaponShotgun::CWeaponShotgun( void )
 }
 
 
-void CWeaponShotgun::Precache( void )
+void CHL1WeaponShotgun::Precache( void )
 {
 	BaseClass::Precache();
 }
 
-void CWeaponShotgun::PrimaryAttack( void )
+void CHL1WeaponShotgun::PrimaryAttack( void )
 {
 	// Only the player fires this way so we can cast
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
@@ -190,7 +195,7 @@ void CWeaponShotgun::PrimaryAttack( void )
 }
 
 
-void CWeaponShotgun::SecondaryAttack( void )
+void CHL1WeaponShotgun::SecondaryAttack( void )
 {
 	// Only the player fires this way so we can cast
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
@@ -279,7 +284,7 @@ void CWeaponShotgun::SecondaryAttack( void )
 }
 
 
-bool CWeaponShotgun::Reload( void )
+bool CHL1WeaponShotgun::Reload( void )
 {
 	CBaseCombatCharacter *pOwner  = GetOwner();
 	
@@ -333,7 +338,7 @@ bool CWeaponShotgun::Reload( void )
 }
 
 
-void CWeaponShotgun::FillClip( void )
+void CHL1WeaponShotgun::FillClip( void )
 {
 	CBaseCombatCharacter *pOwner  = GetOwner();
 	
@@ -346,7 +351,7 @@ void CWeaponShotgun::FillClip( void )
 }
 
 
-void CWeaponShotgun::DryFire( void )
+void CHL1WeaponShotgun::DryFire( void )
 {
 	WeaponSound( EMPTY );
 	m_flNextPrimaryAttack	= gpGlobals->curtime + 0.75;
@@ -354,7 +359,7 @@ void CWeaponShotgun::DryFire( void )
 }
 
 
-void CWeaponShotgun::WeaponIdle( void )
+void CHL1WeaponShotgun::WeaponIdle( void )
 {
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 

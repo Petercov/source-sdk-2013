@@ -26,19 +26,19 @@
 #include "engine/IEngineSound.h"
 
 #ifdef CLIENT_DLL
-#define CWeaponGlock C_WeaponGlock
+#define CHL1WeaponGlock C_HL1WeaponGlock
 #endif
 
-class CWeaponGlock : public CBaseHL1MPCombatWeapon
+class CHL1WeaponGlock : public CBaseHL1MPCombatWeapon
 {
-	DECLARE_CLASS( CWeaponGlock, CBaseHL1MPCombatWeapon );
+	DECLARE_CLASS( CHL1WeaponGlock, CBaseHL1MPCombatWeapon );
 
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
 
 public:
 
-	CWeaponGlock(void);
+	CHL1WeaponGlock(void);
 
 	void	Precache( void );
 	void	PrimaryAttack( void );
@@ -51,34 +51,38 @@ private:
 	void	GlockFire( float flSpread , float flCycleTime, bool fUseAutoAim );
 };
 
-IMPLEMENT_NETWORKCLASS_ALIASED( WeaponGlock, DT_WeaponGlock );
+IMPLEMENT_NETWORKCLASS_ALIASED( HL1WeaponGlock, DT_HL1WeaponGlock );
 
-BEGIN_NETWORK_TABLE( CWeaponGlock, DT_WeaponGlock )
+BEGIN_NETWORK_TABLE(CHL1WeaponGlock, DT_HL1WeaponGlock)
 END_NETWORK_TABLE()
 
-LINK_ENTITY_TO_CLASS( weapon_glock, CWeaponGlock );
-
-BEGIN_PREDICTION_DATA( CWeaponGlock )
+BEGIN_PREDICTION_DATA(CHL1WeaponGlock)
 END_PREDICTION_DATA()
 
-PRECACHE_WEAPON_REGISTER( weapon_glock );
+#ifdef HL1_DLL
+LINK_ENTITY_TO_CLASS(weapon_glock, CHL1WeaponGlock);
+
+PRECACHE_WEAPON_REGISTER(weapon_glock);
+#else
+LINK_ENTITY_TO_CLASS(weapon_hl1_glock, CHL1WeaponGlock);
+#endif // HL1_DLL
 
 
-CWeaponGlock::CWeaponGlock( void )
+CHL1WeaponGlock::CHL1WeaponGlock( void )
 {
 	m_bReloadsSingly	= false;
 	m_bFiresUnderwater	= true;
 }
 
 
-void CWeaponGlock::Precache( void )
+void CHL1WeaponGlock::Precache( void )
 {
 
 	BaseClass::Precache();
 }
 
 
-void CWeaponGlock::DryFire( void )
+void CHL1WeaponGlock::DryFire( void )
 {
 	WeaponSound( EMPTY );
 	SendWeaponAnim( ACT_VM_DRYFIRE );
@@ -87,19 +91,19 @@ void CWeaponGlock::DryFire( void )
 }
 
 
-void CWeaponGlock::PrimaryAttack( void )
+void CHL1WeaponGlock::PrimaryAttack( void )
 {
 	GlockFire( 0.01, 0.3, TRUE );
 }
 
 
-void CWeaponGlock::SecondaryAttack( void )
+void CHL1WeaponGlock::SecondaryAttack( void )
 {
 	GlockFire( 0.1, 0.2, FALSE );
 }
 
 
-void CWeaponGlock::GlockFire( float flSpread , float flCycleTime, bool fUseAutoAim )
+void CHL1WeaponGlock::GlockFire( float flSpread , float flCycleTime, bool fUseAutoAim )
 {
 	// Only the player fires this way so we can cast
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
@@ -175,7 +179,7 @@ void CWeaponGlock::GlockFire( float flSpread , float flCycleTime, bool fUseAutoA
 }
 
 
-bool CWeaponGlock::Reload( void )
+bool CHL1WeaponGlock::Reload( void )
 {
 	bool iResult;
 
@@ -189,7 +193,7 @@ bool CWeaponGlock::Reload( void )
 
 
 
-void CWeaponGlock::WeaponIdle( void )
+void CHL1WeaponGlock::WeaponIdle( void )
 {
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	if ( pPlayer )

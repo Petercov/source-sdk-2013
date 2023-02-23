@@ -16,10 +16,14 @@
 
 #ifdef CLIENT_DLL
 #include "c_baseplayer.h"
-#include "hl1/hl1_c_player.h"
+#ifdef HL1_DLL
+#include "hl1/hl1_c_player.h"  
+#endif // HL1_DLL
 #else
 #include "player.h"
-#include "hl1_player.h"
+#ifdef HL1_DLL
+#include "hl1_player.h"  
+#endif // HL1_DLL
 #endif
 
 //#include "player.h"
@@ -168,7 +172,7 @@ bool CWeaponEgon::Deploy( void )
 
 bool CWeaponEgon::HasAmmo( void )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	if ( !pPlayer )
 	{
 		return false;
@@ -182,7 +186,7 @@ bool CWeaponEgon::HasAmmo( void )
 
 void CWeaponEgon::UseAmmo( int count )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;
@@ -199,7 +203,7 @@ void CWeaponEgon::UseAmmo( int count )
 //-----------------------------------------------------------------------------
 void CWeaponEgon::PrimaryAttack( void )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;
@@ -288,7 +292,7 @@ void CWeaponEgon::PrimaryAttack( void )
 
 void CWeaponEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;
@@ -416,7 +420,7 @@ void CWeaponEgon::UpdateEffect( const Vector &startPoint, const Vector &endPoint
 void CWeaponEgon::CreateEffect( void )
 {
 #ifndef CLIENT_DLL    
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;

@@ -32,16 +32,16 @@ extern ConVar sk_plr_dmg_crowbar;
 
 
 #ifdef CLIENT_DLL
-#define CWeaponCrowbar C_WeaponCrowbar
+#define CHL1WeaponCrowbar C_HL1WeaponCrowbar
 #endif
 
 //-----------------------------------------------------------------------------
-// CWeaponCrowbar
+// CHL1WeaponCrowbar
 //-----------------------------------------------------------------------------
 
-class CWeaponCrowbar : public CBaseHL1MPCombatWeapon
+class CHL1WeaponCrowbar : public CBaseHL1MPCombatWeapon
 {
-	DECLARE_CLASS( CWeaponCrowbar, CBaseHL1MPCombatWeapon );
+	DECLARE_CLASS( CHL1WeaponCrowbar, CBaseHL1MPCombatWeapon );
 public:
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
@@ -49,7 +49,7 @@ public:
 	DECLARE_DATADESC();
 #endif
 
-	CWeaponCrowbar();
+	CHL1WeaponCrowbar();
 
 	void			Precache( void );
 	virtual void	ItemPostFrame( void );
@@ -70,27 +70,32 @@ public:
 
 };
 
-IMPLEMENT_NETWORKCLASS_ALIASED( WeaponCrowbar, DT_WeaponCrowbar );
+IMPLEMENT_NETWORKCLASS_ALIASED( HL1WeaponCrowbar, DT_HL1WeaponCrowbar );
 
-BEGIN_NETWORK_TABLE( CWeaponCrowbar, DT_WeaponCrowbar )
+BEGIN_NETWORK_TABLE(CHL1WeaponCrowbar, DT_HL1WeaponCrowbar)
 /// what
 END_NETWORK_TABLE()
 
-BEGIN_PREDICTION_DATA( CWeaponCrowbar )
+BEGIN_PREDICTION_DATA(CHL1WeaponCrowbar)
 END_PREDICTION_DATA()
 
-LINK_ENTITY_TO_CLASS( weapon_crowbar, CWeaponCrowbar );
-PRECACHE_WEAPON_REGISTER( weapon_crowbar );
+#ifdef HL1_DLL
+LINK_ENTITY_TO_CLASS(weapon_crowbar, CHL1WeaponCrowbar);
+PRECACHE_WEAPON_REGISTER(weapon_crowbar);
+#else
+LINK_ENTITY_TO_CLASS(weapon_hl1_crowbar, CHL1WeaponCrowbar);
+#endif // HL1_DLL
+
 
 #ifndef CLIENT_DLL
-BEGIN_DATADESC( CWeaponCrowbar )
+BEGIN_DATADESC( CHL1WeaponCrowbar )
 
 	// DEFINE_FIELD( m_trLineHit, trace_t ),
 	// DEFINE_FIELD( m_trHullHit, trace_t ),
 	// DEFINE_FIELD( m_nHitActivity, FIELD_INTEGER ),
 	// DEFINE_FIELD( m_traceHit, trace_t ),
 
-	// Class CWeaponCrowbar:
+	// Class CHL1WeaponCrowbar:
 	// DEFINE_FIELD( m_nHitActivity, FIELD_INTEGER ),
 
 	// Function Pointers
@@ -107,7 +112,7 @@ static const Vector g_bludgeonMaxs(BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM,BLUDGEON_
 //-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
-CWeaponCrowbar::CWeaponCrowbar()
+CHL1WeaponCrowbar::CHL1WeaponCrowbar()
 {
 	m_bFiresUnderwater = true;
 }
@@ -115,7 +120,7 @@ CWeaponCrowbar::CWeaponCrowbar()
 //-----------------------------------------------------------------------------
 // Purpose: Precache the weapon
 //-----------------------------------------------------------------------------
-void CWeaponCrowbar::Precache( void )
+void CHL1WeaponCrowbar::Precache( void )
 {
 	//Call base class first
 	BaseClass::Precache();
@@ -124,7 +129,7 @@ void CWeaponCrowbar::Precache( void )
 //------------------------------------------------------------------------------
 // Purpose : Update weapon
 //------------------------------------------------------------------------------
-void CWeaponCrowbar::ItemPostFrame( void )
+void CHL1WeaponCrowbar::ItemPostFrame( void )
 {
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 	
@@ -147,7 +152,7 @@ void CWeaponCrowbar::ItemPostFrame( void )
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-void CWeaponCrowbar::PrimaryAttack()
+void CHL1WeaponCrowbar::PrimaryAttack()
 {
 	Swing();
 }
@@ -156,7 +161,7 @@ void CWeaponCrowbar::PrimaryAttack()
 //------------------------------------------------------------------------------
 // Purpose: Implement impact function
 //------------------------------------------------------------------------------
-void CWeaponCrowbar::Hit( void )
+void CHL1WeaponCrowbar::Hit( void )
 {
 	//Make sound for the AI
 #ifndef CLIENT_DLL
@@ -197,7 +202,7 @@ void CWeaponCrowbar::Hit( void )
 // Input  : pHitEntity - entity that we hit
 // assumes pHitEntity is not null
 //-----------------------------------------------------------------------------
-void CWeaponCrowbar::ImpactSound( CBaseEntity *pHitEntity )
+void CHL1WeaponCrowbar::ImpactSound( CBaseEntity *pHitEntity )
 {
 	bool bIsWorld = ( pHitEntity->entindex() == 0 );
 #ifndef CLIENT_DLL
@@ -217,7 +222,7 @@ void CWeaponCrowbar::ImpactSound( CBaseEntity *pHitEntity )
 	}
 }
 
-Activity CWeaponCrowbar::ChooseIntersectionPointAndActivity( trace_t &hitTrace, const Vector &mins, const Vector &maxs, CBasePlayer *pOwner )
+Activity CHL1WeaponCrowbar::ChooseIntersectionPointAndActivity( trace_t &hitTrace, const Vector &mins, const Vector &maxs, CBasePlayer *pOwner )
 {
 	int			i, j, k;
 	float		distance;
@@ -306,7 +311,7 @@ DECLARE_CLIENT_EFFECT( "ImpactCrowbar", ImpactCrowbarCallback );
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponCrowbar::ImpactEffect( void )
+void CHL1WeaponCrowbar::ImpactEffect( void )
 {
 	//FIXME: need new decals
 #ifdef HL1MP_CLIENT_DLL
@@ -320,7 +325,7 @@ void CWeaponCrowbar::ImpactEffect( void )
 //------------------------------------------------------------------------------
 // Purpose : Starts the swing of the weapon and determines the animation
 //------------------------------------------------------------------------------
-void CWeaponCrowbar::Swing( void )
+void CHL1WeaponCrowbar::Swing( void )
 {
 	// Try a ray
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );

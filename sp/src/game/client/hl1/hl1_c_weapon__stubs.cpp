@@ -9,6 +9,7 @@
 #include "cbase.h"
 #include "c_weapon__stubs.h"
 #include "hl1_basecombatweapon_shared.h"
+#include "hl1mp_basecombatweapon_shared.h"
 
 #if defined(HL1_CLIENT_DLL) && !defined(HL2_CLIENT_DLL)
 STUB_WEAPON_CLASS( foo_weapon_basebludgeonweapon, BaseBludgeonWeapon, C_BaseCombatWeapon );

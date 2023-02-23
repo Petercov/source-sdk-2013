@@ -11,8 +11,8 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#ifndef	WEAPONMP5_H
-#define	WEAPONMP5_H
+#ifndef	HL1WeaponMP5_H
+#define	HL1WeaponMP5_H
 
 #ifdef CLIENT_DLL
 #else
@@ -26,18 +26,18 @@ class CGrenadeMP5;
 #endif
 
 #ifdef CLIENT_DLL
-#define CWeaponMP5 C_WeaponMP5
+#define CHL1WeaponMP5 C_HL1WeaponMP5
 #endif
 
-class CWeaponMP5 : public CBaseHL1MPCombatWeapon
+class CHL1WeaponMP5 : public CBaseHL1MPCombatWeapon
 {
-	DECLARE_CLASS( CWeaponMP5, CBaseHL1MPCombatWeapon );
+	DECLARE_CLASS( CHL1WeaponMP5, CBaseHL1MPCombatWeapon );
 public:
 
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
 
-	CWeaponMP5();
+	CHL1WeaponMP5();
 
 	void	Precache( void );
 	void	PrimaryAttack( void );
@@ -50,4 +50,4 @@ public:
 };
 
 
-#endif	//WEAPONMP5_H
+#endif	//HL1WeaponMP5_H

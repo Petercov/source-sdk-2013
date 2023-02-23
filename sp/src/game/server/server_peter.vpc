@@ -42,6 +42,8 @@ $Project
 			$File	"hl1\hl1_basecombatweapon.cpp"
 			$File	"$SRCDIR\game\shared\hl1\hl1_basecombatweapon_shared.cpp"
 			$File	"$SRCDIR\game\shared\hl1\hl1_basecombatweapon_shared.h"
+			$File	"$SRCDIR\game\shared\hl1\hl1mp_basecombatweapon_shared.cpp"
+			$File	"$SRCDIR\game\shared\hl1\hl1mp_basecombatweapon_shared.h"
 			$File	"hl1\hl1_weapon_snark.cpp"
 			$File	"hl1\hl1_weapon_tripmine.cpp"
 			$File	"hl1\hl1_weaponbox.cpp"

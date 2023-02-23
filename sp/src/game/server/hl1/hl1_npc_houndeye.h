@@ -12,9 +12,9 @@
 #include "hl1_ai_basenpc.h"
 #define	HOUNDEYE_MAX_ATTACK_RADIUS		384
 
-class CNPC_Houndeye : public CHL1BaseNPC
+class CNPC_HL1Houndeye : public CHL1BaseNPC
 {
-	DECLARE_CLASS( CNPC_Houndeye, CHL1BaseNPC );
+	DECLARE_CLASS( CNPC_HL1Houndeye, CHL1BaseNPC );
 	
 public:
 	void Spawn( void );

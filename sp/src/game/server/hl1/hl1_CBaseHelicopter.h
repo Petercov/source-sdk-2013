@@ -52,7 +52,7 @@ public:
 	int  BloodColor( void ) { return DONT_BLEED; }
 	void GibMonster( void );
 
-	Class_T Classify ( void ) { return CLASS_HECU; }
+	Class_T Classify ( void ) { return CLASS_HUMAN_MILITARY; }
 
 	void CallDyingThink( void ) { DyingThink(); }
 

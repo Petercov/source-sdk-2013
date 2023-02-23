@@ -73,15 +73,15 @@ private:
 
 #ifndef CLIENT_DLL
 //-----------------------------------------------------------------------------
-// CSatchelCharge
+// CHL1SatchelCharge
 //-----------------------------------------------------------------------------
 
-class CSatchelCharge : public CHL1BaseGrenade
+class CHL1SatchelCharge : public CHL1BaseGrenade
 {
 public:
-	DECLARE_CLASS( CSatchelCharge, CHL1BaseGrenade );
+	DECLARE_CLASS( CHL1SatchelCharge, CHL1BaseGrenade );
 
-	CSatchelCharge();
+	CHL1SatchelCharge();
 
 	void	Spawn( void );
 	void	Precache( void );

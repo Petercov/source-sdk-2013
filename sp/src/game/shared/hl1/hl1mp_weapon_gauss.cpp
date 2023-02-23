@@ -11,11 +11,13 @@
 //#include "basecombatcharacter.h"
 //#include "AI_BaseNPC.h"
 #include "takedamageinfo.h"
+#ifdef HL1_DLL
 #ifdef CLIENT_DLL
 #include "hl1/hl1_c_player.h"
 #else
 #include "hl1_player.h"
-#endif
+#endif  
+#endif // HL1_DLL
 #include "gamerules.h"
 #include "in_buttons.h"
 #ifdef CLIENT_DLL
@@ -84,6 +86,11 @@ private:
 	CNetworkVar( int, m_nAttackState);
 	CNetworkVar( bool, m_bPrimaryFire);
 
+	CNetworkVar(float, m_flStartCharge);
+	CNetworkVar(float, m_flAmmoStartCharge);
+	CNetworkVar(float, m_flPlayAftershock);
+	CNetworkVar(float, m_flNextAmmoBurn);	// while charging, when to absorb another unit of player's ammo?
+
 	CSoundPatch	*m_sndCharge;
 };
 
@@ -91,11 +98,21 @@ IMPLEMENT_NETWORKCLASS_ALIASED( WeaponGauss, DT_WeaponGauss );
 
 BEGIN_NETWORK_TABLE( CWeaponGauss, DT_WeaponGauss )
 #ifdef CLIENT_DLL
-	RecvPropInt( RECVINFO( m_nAttackState ) ),
-	RecvPropBool( RECVINFO( m_bPrimaryFire ) ),
+RecvPropInt(RECVINFO(m_nAttackState)),
+RecvPropBool(RECVINFO(m_bPrimaryFire)),
+
+RecvPropFloat(RECVINFO(m_flStartCharge)),
+RecvPropFloat(RECVINFO(m_flAmmoStartCharge)),
+RecvPropFloat(RECVINFO(m_flPlayAftershock)),
+RecvPropFloat(RECVINFO(m_flNextAmmoBurn)),
 #else
-	SendPropInt( SENDINFO( m_nAttackState ) ),
-	SendPropBool( SENDINFO( m_bPrimaryFire ) ),
+SendPropInt(SENDINFO(m_nAttackState)),
+SendPropBool(SENDINFO(m_bPrimaryFire)),
+
+SendPropFloat(SENDINFO(m_flStartCharge)),
+SendPropFloat(SENDINFO(m_flAmmoStartCharge)),
+SendPropFloat(SENDINFO(m_flPlayAftershock)),
+SendPropFloat(SENDINFO(m_flNextAmmoBurn)),
 #endif
 END_NETWORK_TABLE()
 
@@ -103,6 +120,11 @@ BEGIN_PREDICTION_DATA( CWeaponGauss )
 #ifdef CLIENT_DLL
 	DEFINE_PRED_FIELD( m_nAttackState, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_bPrimaryFire, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
+
+	DEFINE_PRED_FIELD(m_flStartCharge, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
+	DEFINE_PRED_FIELD(m_flAmmoStartCharge, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
+	DEFINE_PRED_FIELD(m_flPlayAftershock, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
+	DEFINE_PRED_FIELD(m_flNextAmmoBurn, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
 #endif
 END_PREDICTION_DATA()
 
@@ -117,6 +139,11 @@ BEGIN_DATADESC( CWeaponGauss )
 	DEFINE_FIELD( m_nAttackState, FIELD_INTEGER ),
 	DEFINE_FIELD( m_bPrimaryFire,	FIELD_BOOLEAN ),
 	DEFINE_SOUNDPATCH( m_sndCharge ),
+
+	DEFINE_FIELD(m_flStartCharge, FIELD_TIME),
+	DEFINE_FIELD(m_flAmmoStartCharge, FIELD_TIME),
+	DEFINE_FIELD(m_flPlayAftershock, FIELD_TIME),
+	DEFINE_FIELD(m_flNextAmmoBurn, FIELD_TIME),
 END_DATADESC()
 
 //-----------------------------------------------------------------------------
@@ -195,7 +222,7 @@ void CWeaponGauss::PrimaryAttack( void )
 //-----------------------------------------------------------------------------
 void CWeaponGauss::SecondaryAttack( void )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;
@@ -231,7 +258,7 @@ void CWeaponGauss::SecondaryAttack( void )
 		m_bPrimaryFire = false;
 
 		pPlayer->RemoveAmmo( 1, m_iPrimaryAmmoType );	// take one ammo just to start the spin
-		pPlayer->m_flNextAmmoBurn = gpGlobals->curtime;
+		m_flNextAmmoBurn = gpGlobals->curtime;
 
 		// spin up
 //FIXME		pPlayer->m_iWeaponVolume = GAUSS_PRIMARY_CHARGE_VOLUME;
@@ -239,8 +266,8 @@ void CWeaponGauss::SecondaryAttack( void )
 		SendWeaponAnim( ACT_GAUSS_SPINUP );
 		m_nAttackState = 1;
 		SetWeaponIdleTime( gpGlobals->curtime + 0.5 );
-		pPlayer->m_flStartCharge = gpGlobals->curtime;
-		pPlayer->m_flAmmoStartCharge = gpGlobals->curtime + GetFullChargeTime();
+		m_flStartCharge = gpGlobals->curtime;
+		m_flAmmoStartCharge = gpGlobals->curtime + GetFullChargeTime();
 
 		//Start looping sound
 		if ( m_sndCharge == NULL )
@@ -265,17 +292,17 @@ void CWeaponGauss::SecondaryAttack( void )
 	else
 	{
 		// during the charging process, eat one bit of ammo every once in a while
-		if ( gpGlobals->curtime >= pPlayer->m_flNextAmmoBurn && pPlayer->m_flNextAmmoBurn != 1000 )
+		if ( gpGlobals->curtime >= m_flNextAmmoBurn && m_flNextAmmoBurn != 1000 )
 		{
 			pPlayer->RemoveAmmo( 1, m_iPrimaryAmmoType );
 
 			if ( g_pGameRules->IsMultiplayer() )
 			{
-				pPlayer->m_flNextAmmoBurn = gpGlobals->curtime + 0.1;
+				m_flNextAmmoBurn = gpGlobals->curtime + 0.1;
 			}
 			else
 			{
-				pPlayer->m_flNextAmmoBurn = gpGlobals->curtime + 0.3;
+				m_flNextAmmoBurn = gpGlobals->curtime + 0.3;
 			}
 		}
 
@@ -289,13 +316,13 @@ void CWeaponGauss::SecondaryAttack( void )
 			return;
 		}
 		
-		if ( gpGlobals->curtime >= pPlayer->m_flAmmoStartCharge )
+		if ( gpGlobals->curtime >= m_flAmmoStartCharge )
 		{
 			// don't eat any more ammo after gun is fully charged.
-			pPlayer->m_flNextAmmoBurn = 1000;
+			m_flNextAmmoBurn = 1000;
 		}
 
-		int pitch = ( gpGlobals->curtime - pPlayer->m_flStartCharge ) * ( 150 / GetFullChargeTime() ) + 100;
+		int pitch = ( gpGlobals->curtime - m_flStartCharge ) * ( 150 / GetFullChargeTime() ) + 100;
 		if ( pitch > 250 ) 
 			 pitch = 250;
 		
@@ -312,7 +339,7 @@ void CWeaponGauss::SecondaryAttack( void )
 //FIXME		m_pPlayer->m_iWeaponVolume = GAUSS_PRIMARY_CHARGE_VOLUME;
 		
 		// m_flTimeWeaponIdle = gpGlobals->curtime + 0.1;
-		if ( pPlayer->m_flStartCharge < gpGlobals->curtime - 10 )
+		if ( m_flStartCharge < gpGlobals->curtime - 10 )
 		{
 			// Player charged up too long. Zap him.
 			EmitSound( "Weapon_Gauss.Zap1" );
@@ -349,7 +376,7 @@ void CWeaponGauss::StartFire( void )
 {
 	float flDamage;
 	
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;
@@ -358,13 +385,13 @@ void CWeaponGauss::StartFire( void )
 	Vector vecAiming	= pPlayer->GetAutoaimVector( 0 );
 	Vector vecSrc		= pPlayer->Weapon_ShootPosition( );
 
-	if ( gpGlobals->curtime - pPlayer->m_flStartCharge > GetFullChargeTime() )
+	if ( gpGlobals->curtime - m_flStartCharge > GetFullChargeTime() )
 	{
 		flDamage = 200;
 	}
 	else
 	{
-		flDamage = 200 * (( gpGlobals->curtime - pPlayer->m_flStartCharge) / GetFullChargeTime() );
+		flDamage = 200 * (( gpGlobals->curtime - m_flStartCharge) / GetFullChargeTime() );
 	}
 
 	if ( m_bPrimaryFire )
@@ -393,7 +420,7 @@ void CWeaponGauss::StartFire( void )
 	pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	// time until aftershock 'static discharge' sound
-	pPlayer->m_flPlayAftershock = gpGlobals->curtime + random->RandomFloat( 0.3, 0.8 );
+	m_flPlayAftershock = gpGlobals->curtime + random->RandomFloat( 0.3, 0.8 );
 
 	Fire( vecSrc, vecAiming, flDamage );
 }
@@ -634,17 +661,17 @@ void CWeaponGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 
 void CWeaponGauss::WeaponIdle( void )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
 	if ( !pPlayer )
 	{
 		return;
 	}
 
 	// play aftershock static discharge
-	if ( pPlayer->m_flPlayAftershock && pPlayer->m_flPlayAftershock < gpGlobals->curtime )
+	if ( m_flPlayAftershock && m_flPlayAftershock < gpGlobals->curtime )
 	{
 		EmitSound( "Weapon_Gauss.StaticDischarge" );
-		pPlayer->m_flPlayAftershock = 0.0;
+		m_flPlayAftershock = 0.0;
 	}
 
 	if ( !HasWeaponIdleTimeElapsed() )
@@ -682,16 +709,11 @@ void CWeaponGauss::AddViewKick( void )
 {
 }
 
-bool CWeaponGauss::Deploy( void )
+bool CWeaponGauss::Deploy(void)
 {
-	if ( DefaultDeploy( (char*)GetViewModel(), (char*)GetWorldModel(), ACT_VM_DRAW, (char*)GetAnimPrefix() ) )
+	if (DefaultDeploy((char*)GetViewModel(), (char*)GetWorldModel(), ACT_VM_DRAW, (char*)GetAnimPrefix()))
 	{
-		CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
-		if ( pPlayer )
-		{
-			pPlayer->m_flPlayAftershock = 0.0;
-		}
-
+		m_flPlayAftershock = 0.0;
 		return true;
 	}
 	else

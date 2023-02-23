@@ -23,21 +23,21 @@
 #include "engine/IEngineSound.h"
 
 #ifdef CLIENT_DLL
-#define CWeapon357 C_Weapon357
+#define CHL1Weapon357 C_HL1Weapon357
 #endif
 
 //-----------------------------------------------------------------------------
-// CWeapon357
+// CHL1Weapon357
 //-----------------------------------------------------------------------------
 
-class CWeapon357 : public CBaseHL1MPCombatWeapon
+class CHL1Weapon357 : public CBaseHL1MPCombatWeapon
 {
-	DECLARE_CLASS( CWeapon357, CBaseHL1CombatWeapon );
+	DECLARE_CLASS( CHL1Weapon357, CBaseHL1MPCombatWeapon);
 public:
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
 
-	CWeapon357( void );
+	CHL1Weapon357( void );
 
 	void	Precache( void );
 	bool	Deploy( void );
@@ -50,6 +50,8 @@ public:
 //	DECLARE_SERVERCLASS();
 //	DECLARE_DATADESC();
 
+	virtual bool			IsWeaponZoomed() { return m_fInZoom.Get(); }
+
 private:
 	void	ToggleZoom( void );
 
@@ -57,36 +59,41 @@ private:
 	CNetworkVar( float, m_fInZoom );
 };
 
-IMPLEMENT_NETWORKCLASS_ALIASED( Weapon357, DT_Weapon357 );
+IMPLEMENT_NETWORKCLASS_ALIASED( HL1Weapon357, DT_HL1Weapon357 );
 
-BEGIN_NETWORK_TABLE( CWeapon357, DT_Weapon357 )
+BEGIN_NETWORK_TABLE(CHL1Weapon357, DT_HL1Weapon357)
 #ifdef CLIENT_DLL
-	RecvPropFloat( RECVINFO( m_fInZoom ) ),
+RecvPropFloat(RECVINFO(m_fInZoom)),
 #else
-	SendPropFloat( SENDINFO( m_fInZoom ) ),
+SendPropFloat(SENDINFO(m_fInZoom)),
 #endif
 END_NETWORK_TABLE()
 
-BEGIN_PREDICTION_DATA( CWeapon357 )
+BEGIN_PREDICTION_DATA(CHL1Weapon357)
 #ifdef CLIENT_DLL
-	DEFINE_PRED_FIELD( m_fInZoom, FIELD_FLOAT, FTYPEDESC_INSENDTABLE ),
+DEFINE_PRED_FIELD(m_fInZoom, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
 #endif
 END_PREDICTION_DATA()
 
-LINK_ENTITY_TO_CLASS( weapon_357, CWeapon357 );
+#ifdef HL1_DLL
+LINK_ENTITY_TO_CLASS(weapon_357, CHL1Weapon357);
 
-PRECACHE_WEAPON_REGISTER( weapon_357 );
+PRECACHE_WEAPON_REGISTER(weapon_357);
+#else
+LINK_ENTITY_TO_CLASS(weapon_hl1_357, CHL1Weapon357);
+#endif // HL1_DLL
 
-//IMPLEMENT_SERVERCLASS_ST( CWeapon357, DT_Weapon357 )
+
+//IMPLEMENT_SERVERCLASS_ST( CHL1Weapon357, DT_HL1Weapon357 )
 //END_SEND_TABLE()
 
-//BEGIN_DATADESC( CWeapon357 )
+//BEGIN_DATADESC( CHL1Weapon357 )
 //END_DATADESC()
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CWeapon357::CWeapon357( void )
+CHL1Weapon357::CHL1Weapon357( void )
 {
 	m_bReloadsSingly	= false;
 	m_bFiresUnderwater	= false;
@@ -96,7 +103,7 @@ CWeapon357::CWeapon357( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeapon357::Precache( void )
+void CHL1Weapon357::Precache( void )
 {
 	BaseClass::Precache();
 
@@ -105,7 +112,7 @@ void CWeapon357::Precache( void )
 #endif
 }
 
-bool CWeapon357::Deploy( void )
+bool CHL1Weapon357::Deploy( void )
 {
 // Bodygroup stuff not currently working correctly
 //	if ( g_pGameRules->IsMultiplayer() )
@@ -124,7 +131,7 @@ bool CWeapon357::Deploy( void )
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void CWeapon357::PrimaryAttack( void )
+void CHL1Weapon357::PrimaryAttack( void )
 {
 	// Only the player fires this way so we can cast
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
@@ -190,7 +197,7 @@ void CWeapon357::PrimaryAttack( void )
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void CWeapon357::SecondaryAttack( void )
+void CHL1Weapon357::SecondaryAttack( void )
 {
 	// only in multiplayer
 	if ( !g_pGameRules->IsMultiplayer() )
@@ -210,7 +217,7 @@ void CWeapon357::SecondaryAttack( void )
 }
 
 
-bool CWeapon357::Reload( void )
+bool CHL1Weapon357::Reload( void )
 {
 	bool fRet;
 
@@ -227,7 +234,7 @@ bool CWeapon357::Reload( void )
 }
 
 
-void CWeapon357::WeaponIdle( void )
+void CHL1Weapon357::WeaponIdle( void )
 {
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	if ( pPlayer )
@@ -249,7 +256,7 @@ void CWeapon357::WeaponIdle( void )
 }
 
 
-bool CWeapon357::Holster( CBaseCombatWeapon *pSwitchingTo )
+bool CHL1Weapon357::Holster( CBaseCombatWeapon *pSwitchingTo )
 {
 	if ( m_fInZoom )
 	{
@@ -260,7 +267,7 @@ bool CWeapon357::Holster( CBaseCombatWeapon *pSwitchingTo )
 }
 
 
-void CWeapon357::ToggleZoom( void )
+void CHL1Weapon357::ToggleZoom( void )
 {
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	if ( !pPlayer )

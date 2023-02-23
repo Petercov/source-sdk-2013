@@ -333,7 +333,12 @@ void CNPC_HGrunt::Precache()
 
 	PrecacheScriptSound( "HGrunt.Reload" );
 	PrecacheScriptSound( "HGrunt.GrenadeLaunch" );
-	PrecacheScriptSound( "HGrunt.9MM" );
+#ifdef HL1_DLL
+	PrecacheScriptSound("HGrunt.9MM");
+#else
+	PrecacheScriptSound("HL1Weapon_MP5.NPC_Single");
+#endif // HL1_DLL
+
 	PrecacheScriptSound( "HGrunt.Shotgun" );
 	PrecacheScriptSound( "HGrunt.Pain" );
 	PrecacheScriptSound( "HGrunt.Die" );
@@ -1144,9 +1149,12 @@ void CNPC_HGrunt::HandleAnimEvent( animevent_t *pEvent )
 			{
 				Shoot();
 
-				CPASAttenuationFilter filter3( this );
+#ifdef HL1_DLL
+				CPASAttenuationFilter filter3(this);
 				// the first round of the three round burst plays the sound and puts a sound in the world sound list.
-				EmitSound( filter3, entindex(), "HGrunt.9MM" );
+				EmitSound(filter3, entindex(), "HGrunt.9MM");
+#endif // HL1_DLL
+
 			}
 			else
 			{
@@ -1225,6 +1233,11 @@ void CNPC_HGrunt::Shoot ( void )
 {
 	if ( GetEnemy() == NULL )
 		return;
+
+#ifndef HL1_DLL
+	CPASAttenuationFilter filter(this, "HL1Weapon_MP5.NPC_Single");
+	EmitSound(filter, entindex(), "HL1Weapon_MP5.NPC_Single");
+#endif // !HL1_DLL
 	
 	Vector vecShootOrigin = Weapon_ShootPosition();
 	Vector vecShootDir = GetShootEnemyDir( vecShootOrigin );

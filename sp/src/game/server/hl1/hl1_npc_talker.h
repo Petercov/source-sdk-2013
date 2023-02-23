@@ -48,6 +48,26 @@ public:
 	{
 	}
 
+	CAI_Motor* CreateMotor()
+	{
+		return CAI_BaseNPC::CreateMotor();
+	}
+
+	CAI_Navigator* CreateNavigator()
+	{
+		return CAI_BaseNPC::CreateNavigator();
+	}
+
+	float MaxYawSpeed(void)
+	{
+		return CAI_BaseNPC::MaxYawSpeed();
+	}
+
+	float GetTimeToNavGoal()
+	{
+		return CAI_BaseNPC::GetTimeToNavGoal();
+	}
+
 	virtual void Precache();
 
 	void	StartTask( const Task_t *pTask );

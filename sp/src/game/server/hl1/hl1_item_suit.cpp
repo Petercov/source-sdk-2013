@@ -22,10 +22,10 @@
 
 extern int gEvilImpulse101;
 
-class CItemSuit : public CHL1Item
+class CItemSuitHL1 : public CHL1Item
 {
 public:
-	DECLARE_CLASS( CItemSuit, CHL1Item );
+	DECLARE_CLASS( CItemSuitHL1, CHL1Item );
 
 	void Spawn( void )
 	{ 
@@ -57,5 +57,10 @@ public:
 	}
 };
 
-LINK_ENTITY_TO_CLASS(item_suit, CItemSuit);
+#ifdef HL1_DLL
+LINK_ENTITY_TO_CLASS(item_suit, CItemSuitHL1);
 PRECACHE_REGISTER(item_suit);
+#else
+LINK_ENTITY_TO_CLASS(item_hl1_suit, CItemSuitHL1);
+#endif // HL1_DLL
+
