@@ -33,10 +33,10 @@
 //-----------------------------------------------------------------------------
 
 
-#define SATCHEL_VIEW_MODEL			"models/v_satchel.mdl"
-#define SATCHEL_WORLD_MODEL			"models/w_satchel.mdl"
-#define SATCHELRADIO_VIEW_MODEL		"models/v_satchel_radio.mdl"
-#define SATCHELRADIO_WORLD_MODEL	"models/w_satchel.mdl"	// this needs fixing if we do multiplayer
+#define SATCHEL_VIEW_MODEL			"models/hl1/c_satchel.mdl"
+#define SATCHEL_WORLD_MODEL			"models/hl1/p_satchel.mdl"
+#define SATCHELRADIO_VIEW_MODEL		"models/hl1/c_satchel_radio.mdl"
+#define SATCHELRADIO_WORLD_MODEL	"models/hl1/p_satchel.mdl"	// this needs fixing if we do multiplayer
 
 IMPLEMENT_NETWORKCLASS_ALIASED( WeaponSatchel, DT_WeaponSatchel );
 
@@ -429,9 +429,12 @@ void CWeaponSatchel::OnRestore( void )
 
 #define SATCHEL_CHARGE_MODEL "models/w_satchel.mdl"
 
-
+#ifndef MAPBASE
 extern ConVar sk_plr_dmg_satchel;
-
+#else
+extern ConVar hl1_sk_plr_dmg_satchel;
+#define sk_plr_dmg_satchel hl1_sk_plr_dmg_satchel
+#endif // !MAPBASE
 
 BEGIN_DATADESC( CHL1SatchelCharge )
 	DEFINE_FIELD( m_flNextBounceSoundTime, FIELD_TIME ),

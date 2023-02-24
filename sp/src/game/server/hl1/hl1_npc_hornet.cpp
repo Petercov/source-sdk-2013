@@ -35,8 +35,17 @@ int iHornetPuff;
 
 LINK_ENTITY_TO_CLASS( hornet, CNPC_Hornet );
 
+#ifndef MAPBASE
 extern ConVar sk_npc_dmg_hornet;
 extern ConVar sk_plr_dmg_hornet;
+#else
+extern ConVar hl1_sk_npc_dmg_hornet;
+extern ConVar hl1_sk_plr_dmg_hornet;
+
+#define sk_npc_dmg_hornet hl1_sk_npc_dmg_hornet
+#define sk_plr_dmg_hornet hl1_sk_plr_dmg_hornet
+#endif // !MAPBASE
+
 
 BEGIN_DATADESC( CNPC_Hornet )
 	DEFINE_FIELD( m_flStopAttack, FIELD_TIME ),

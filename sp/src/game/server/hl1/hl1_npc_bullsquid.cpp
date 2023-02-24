@@ -80,10 +80,10 @@ enum
 
 LINK_ENTITY_TO_CLASS( monster_bullchicken, CNPC_HL1Bullsquid );
 
-int ACT_SQUID_EXCITED;
-int ACT_SQUID_EAT;
-int ACT_SQUID_DETECT_SCENT;
-int ACT_SQUID_INSPECT_FLOOR;
+extern int ACT_SQUID_EXCITED;
+extern int ACT_SQUID_EAT;
+extern int ACT_SQUID_DETECT_SCENT;
+extern int ACT_SQUID_INSPECT_FLOOR;
 
 //=========================================================
 // Bullsquid's spit projectile

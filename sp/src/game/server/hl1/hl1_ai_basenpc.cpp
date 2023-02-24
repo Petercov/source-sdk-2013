@@ -153,6 +153,9 @@ void CHL1BaseNPC::Precache( void )
 
 	PrecacheParticleSystem("burning_gib_01");
 
+	PrecacheParticleSystem("hl1_blood_red");
+	PrecacheParticleSystem("hl1_blood_yellow");
+
 	BaseClass::Precache();
 }
 

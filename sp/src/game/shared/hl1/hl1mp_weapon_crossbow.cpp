@@ -43,8 +43,17 @@
 #define BOLT_AIR_VELOCITY	2000
 #define BOLT_WATER_VELOCITY	1000
 
+#ifdef HL1_DLL
 extern ConVar sk_plr_dmg_xbow_bolt_plr;
 extern ConVar sk_plr_dmg_xbow_bolt_npc;
+#else
+extern ConVar hl1_sk_plr_dmg_xbow_bolt_plr;
+extern ConVar hl1_sk_plr_dmg_xbow_bolt_npc;
+
+#define sk_plr_dmg_xbow_bolt_plr hl1_sk_plr_dmg_xbow_bolt_plr
+#define sk_plr_dmg_xbow_bolt_npc hl1_sk_plr_dmg_xbow_bolt_npc
+#endif // HL1_DLL
+
 
 extern short	g_sModelIndexFireball;		// (in combatweapon.cpp) holds the index for the fireball 
 
@@ -180,7 +189,7 @@ void CHL1CrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		SetAbsVelocity( Vector( 0, 0, 0 ) );
 
 		// play body "thwack" sound
-		EmitSound( "Weapon_Crossbow.BoltHitBody" );
+		EmitSound( "HL1Weapon_Crossbow.BoltHitBody" );
 
 		Vector vForward;
 
@@ -210,7 +219,7 @@ void CHL1CrossbowBolt::BoltTouch( CBaseEntity *pOther )
 	}
 	else
 	{
-		EmitSound( "Weapon_Crossbow.BoltHitWorld" );
+		EmitSound( "HL1Weapon_Crossbow.BoltHitWorld" );
 
 		SetThink( &CHL1CrossbowBolt::SUB_Remove );
 		SetNextThink( gpGlobals->curtime );// this will get changed below if the bolt is allowed to stick in what it hit.
@@ -432,8 +441,8 @@ void CHL1WeaponCrossbow::Precache( void )
 #endif // HL1_DLL
 #endif
 
-	PrecacheScriptSound( "Weapon_Crossbow.BoltHitBody" );
-	PrecacheScriptSound( "Weapon_Crossbow.BoltHitWorld" );
+	PrecacheScriptSound( "HL1Weapon_Crossbow.BoltHitBody" );
+	PrecacheScriptSound( "HL1Weapon_Crossbow.BoltHitWorld" );
 
 	BaseClass::Precache();
 }

@@ -56,22 +56,22 @@ private:
 	void	ToggleZoom( void );
 
 private:
-	CNetworkVar( float, m_fInZoom );
+	CNetworkVar( bool, m_fInZoom );
 };
 
 IMPLEMENT_NETWORKCLASS_ALIASED( HL1Weapon357, DT_HL1Weapon357 );
 
 BEGIN_NETWORK_TABLE(CHL1Weapon357, DT_HL1Weapon357)
 #ifdef CLIENT_DLL
-RecvPropFloat(RECVINFO(m_fInZoom)),
+RecvPropBool(RECVINFO(m_fInZoom)),
 #else
-SendPropFloat(SENDINFO(m_fInZoom)),
+SendPropBool(SENDINFO(m_fInZoom)),
 #endif
 END_NETWORK_TABLE()
 
 BEGIN_PREDICTION_DATA(CHL1Weapon357)
 #ifdef CLIENT_DLL
-DEFINE_PRED_FIELD(m_fInZoom, FIELD_FLOAT, FTYPEDESC_INSENDTABLE),
+DEFINE_PRED_FIELD(m_fInZoom, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE),
 #endif
 END_PREDICTION_DATA()
 

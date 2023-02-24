@@ -54,7 +54,11 @@ void CBaseHL1CombatWeapon::Spawn( void )
 		m_iClip2 = WEAPON_NOCLIP;
 	}
 
-	SetModel( GetWorldModel() );
+#ifdef MAPBASE
+	SetModel((GetDroppedModel() && GetDroppedModel()[0]) ? GetDroppedModel() : GetWorldModel());
+#else
+	SetModel(GetWorldModel());
+#endif
 
 #if !defined( CLIENT_DLL )
 	FallInit();
@@ -93,8 +97,8 @@ void CBaseHL1CombatWeapon::Spawn( void )
 #define	HL1_BOB			0.002f
 #define	HL1_BOB_UP		0.5f
 
-float	g_lateralBob;
-float	g_verticalBob;
+float	g_hl1lateralBob;
+float	g_hl1verticalBob;
 
 static ConVar	cl_bobcycle( "cl_bobcycle","0.8" );
 static ConVar	cl_bob( "cl_bob","0.002" );
@@ -155,10 +159,10 @@ float CBaseHL1CombatWeapon::CalcViewmodelBob( void )
 		cycle = M_PI + M_PI*(cycle-HL1_BOB_UP)/(1.0 - HL1_BOB_UP);
 	}
 	
-	g_verticalBob = speed*0.005f;
-	g_verticalBob = g_verticalBob*0.3 + g_verticalBob*0.7*sin(cycle);
+	g_hl1verticalBob = speed*0.005f;
+	g_hl1verticalBob = g_hl1verticalBob*0.3 + g_hl1verticalBob*0.7*sin(cycle);
 
-	g_verticalBob = clamp( g_verticalBob, -7.0f, 4.0f );
+	g_hl1verticalBob = clamp( g_hl1verticalBob, -7.0f, 4.0f );
 
 	//Calculate the lateral bob
 	cycle = bobtime - (int)(bobtime/HL1_BOB_CYCLE_MAX*2)*HL1_BOB_CYCLE_MAX*2;
@@ -173,9 +177,9 @@ float CBaseHL1CombatWeapon::CalcViewmodelBob( void )
 		cycle = M_PI + M_PI*(cycle-HL1_BOB_UP)/(1.0 - HL1_BOB_UP);
 	}
 
-	g_lateralBob = speed*0.005f;
-	g_lateralBob = g_lateralBob*0.3 + g_lateralBob*0.7*sin(cycle);
-	g_lateralBob = clamp( g_lateralBob, -7.0f, 4.0f );
+	g_hl1lateralBob = speed*0.005f;
+	g_hl1lateralBob = g_hl1lateralBob*0.3 + g_hl1lateralBob*0.7*sin(cycle);
+	g_hl1lateralBob = clamp( g_hl1lateralBob, -7.0f, 4.0f );
 	
 	//NOTENOTE: We don't use this return value in our case (need to restructure the calculation function setup!)
 	return 0.0f;
@@ -195,18 +199,18 @@ void CBaseHL1CombatWeapon::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &o
 	CalcViewmodelBob();
 
 	// Apply bob, but scaled down to 40%
-	VectorMA( origin, g_verticalBob * 0.1f, forward, origin );
+	VectorMA( origin, g_hl1verticalBob * 0.1f, forward, origin );
 	
 	// Z bob a bit more
-	origin[2] += g_verticalBob * 0.1f;
+	origin[2] += g_hl1verticalBob * 0.1f;
 	
 	// bob the angles
-	angles[ ROLL ]	+= g_verticalBob * 0.5f;
-	angles[ PITCH ]	-= g_verticalBob * 0.4f;
+	angles[ ROLL ]	+= g_hl1verticalBob * 0.5f;
+	angles[ PITCH ]	-= g_hl1verticalBob * 0.4f;
 
-	angles[ YAW ]	-= g_lateralBob  * 0.3f;
+	angles[ YAW ]	-= g_hl1lateralBob  * 0.3f;
 
-	VectorMA( origin, g_lateralBob * 0.8f, right, origin );
+	VectorMA( origin, g_hl1lateralBob * 0.8f, right, origin );
 }
 
 

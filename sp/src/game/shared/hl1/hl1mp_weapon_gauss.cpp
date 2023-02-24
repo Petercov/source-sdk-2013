@@ -42,7 +42,13 @@
 #define GAUSS_BEAM_SPRITE	"sprites/smoke.vmt"
 
 
+#ifndef MAPBASE
 extern ConVar sk_plr_dmg_gauss;
+#else
+extern ConVar hl1_sk_plr_dmg_gauss;
+#define sk_plr_dmg_gauss hl1_sk_plr_dmg_gauss
+#endif // !MAPBASE
+
 
 #ifdef CLIENT_DLL
 #define CWeaponGauss C_WeaponGauss
@@ -167,11 +173,11 @@ void CWeaponGauss::Precache( void )
 	PrecacheModel( GAUSS_GLOW_SPRITE );
 	PrecacheModel( GAUSS_BEAM_SPRITE );
 
-	PrecacheScriptSound( "Weapon_Gauss.Zap1" );
-	PrecacheScriptSound( "Weapon_Gauss.Zap2" );
-	PrecacheScriptSound( "Weapon_Gauss.Fire" );
-	PrecacheScriptSound( "Weapon_Gauss.StaticDischarge" );
-	PrecacheScriptSound( "Weapon_Gauss.Spin" );
+	PrecacheScriptSound( "HL1Weapon_Gauss.Zap1" );
+	PrecacheScriptSound( "HL1Weapon_Gauss.Zap2" );
+	PrecacheScriptSound( "HL1Weapon_Gauss.Fire" );
+	PrecacheScriptSound( "HL1Weapon_Gauss.StaticDischarge" );
+	PrecacheScriptSound( "HL1Weapon_Gauss.Spin" );
 
 	BaseClass::Precache();
 }
@@ -233,7 +239,7 @@ void CWeaponGauss::SecondaryAttack( void )
 	{
 		if ( m_nAttackState != 0 )
 		{
-			EmitSound( "Weapon_Gauss.Zap1" );
+			EmitSound( "HL1Weapon_Gauss.Zap1" );
 			SendWeaponAnim( ACT_VM_IDLE );
 			m_nAttackState = 0;
 		}
@@ -273,7 +279,7 @@ void CWeaponGauss::SecondaryAttack( void )
 		if ( m_sndCharge == NULL )
 		{
 			CPASAttenuationFilter filter( this );
-			m_sndCharge	= (CSoundEnvelopeController::GetController()).SoundCreate( filter, entindex(), CHAN_WEAPON, "Weapon_Gauss.Spin", ATTN_NORM );
+			m_sndCharge	= (CSoundEnvelopeController::GetController()).SoundCreate( filter, entindex(), CHAN_WEAPON, "HL1Weapon_Gauss.Spin", ATTN_NORM );
 		}
 
 		if ( m_sndCharge != NULL )
@@ -342,8 +348,8 @@ void CWeaponGauss::SecondaryAttack( void )
 		if ( m_flStartCharge < gpGlobals->curtime - 10 )
 		{
 			// Player charged up too long. Zap him.
-			EmitSound( "Weapon_Gauss.Zap1" );
-			EmitSound( "Weapon_Gauss.Zap2" );
+			EmitSound( "HL1Weapon_Gauss.Zap1" );
+			EmitSound( "HL1Weapon_Gauss.Zap2" );
 			
 			m_nAttackState = 0;
 			SetWeaponIdleTime( gpGlobals->curtime + 1.0 );
@@ -651,7 +657,7 @@ void CWeaponGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 	CPASAttenuationFilter filter( this );
 
 	CSoundParameters params;
-	if ( GetParametersForSound( "Weapon_Gauss.Fire", params, NULL ) )
+	if ( GetParametersForSound( "HL1Weapon_Gauss.Fire", params, NULL ) )
 	{
 		EmitSound_t ep( params );
 		ep.m_flVolume = 0.5 + flDamage * (1.0 / 400.0);
@@ -670,7 +676,7 @@ void CWeaponGauss::WeaponIdle( void )
 	// play aftershock static discharge
 	if ( m_flPlayAftershock && m_flPlayAftershock < gpGlobals->curtime )
 	{
-		EmitSound( "Weapon_Gauss.StaticDischarge" );
+		EmitSound( "HL1Weapon_Gauss.StaticDischarge" );
 		m_flPlayAftershock = 0.0;
 	}
 

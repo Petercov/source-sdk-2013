@@ -346,6 +346,8 @@ void CHL1NPCTalker::Precache()
 	BaseClass::Precache();
 
 	PrecacheScriptSound( "Barney.Close" );
+
+	PrecacheParticleSystem("hl1_blood_red");
 }
 
 bool CHL1NPCTalker::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter* sourceEnt)

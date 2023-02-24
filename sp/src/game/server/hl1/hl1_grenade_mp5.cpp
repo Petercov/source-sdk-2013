@@ -22,6 +22,13 @@ extern short	g_sModelIndexWExplosion;
 extern ConVar sk_plr_dmg_mp5_grenade;
 extern ConVar sk_max_mp5_grenade;
 extern ConVar sk_mp5_grenade_radius;
+#elif defined(MAPBASE)
+extern ConVar hl1_sk_plr_dmg_mp5_grenade;
+extern ConVar hl1_sk_max_mp5_grenade;
+extern ConVar hl1_sk_mp5_grenade_radius;
+
+#define sk_plr_dmg_mp5_grenade hl1_sk_plr_dmg_mp5_grenade
+#define sk_mp5_grenade_radius hl1_sk_mp5_grenade_radius
 #else
 ConVar sk_plr_dmg_mp5_grenade("sk_plr_dmg_mp5_grenade", "0", FCVAR_REPLICATED);
 ConVar sk_max_mp5_grenade("sk_max_mp5_grenade", "0", FCVAR_REPLICATED);

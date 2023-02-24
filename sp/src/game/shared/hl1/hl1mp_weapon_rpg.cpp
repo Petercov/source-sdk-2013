@@ -34,7 +34,13 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#ifndef MAPBASE
 extern ConVar sk_plr_dmg_rpg;
+#else
+extern ConVar hl1_sk_plr_dmg_rpg;
+#define sk_plr_dmg_rpg hl1_sk_plr_dmg_rpg
+#endif // !MAPBASE
+
 
 
 void TE_BeamFollow( IRecipientFilter& filter, float delay,

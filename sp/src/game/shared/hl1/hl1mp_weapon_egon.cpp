@@ -55,7 +55,13 @@ enum EGON_FIRESTATE { FIRE_OFF, FIRE_STARTUP, FIRE_CHARGE };
 #define EGON_BEAM_SPRITE		"sprites/xbeam1.vmt"
 #define EGON_FLARE_SPRITE		"sprites/XSpark1.vmt"
 
+#ifndef MAPBASE
 extern ConVar sk_plr_dmg_egon_wide;
+#else
+extern ConVar hl1_sk_plr_dmg_egon_wide;
+#define sk_plr_dmg_egon_wide hl1_sk_plr_dmg_egon_wide
+#endif // HL1_DLL
+
 
 //-----------------------------------------------------------------------------
 // CWeaponEgon

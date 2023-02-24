@@ -21,8 +21,12 @@
 #include "hl1_basegrenade.h"
 #include "beam_shared.h"
 
+#ifndef MAPBASE
 extern ConVar sk_plr_dmg_tripmine;
-
+#else
+extern ConVar hl1_sk_plr_dmg_tripmine;
+#define sk_plr_dmg_tripmine hl1_sk_plr_dmg_tripmine
+#endif // !MAPBASE
 
 //-----------------------------------------------------------------------------
 // CWeaponTripMine

@@ -425,6 +425,57 @@ ConVar	sk_npc_dmg_gauss_pistol("sk_npc_dmg_gauss_pistol", "0", FCVAR_REPLICATED)
 ConVar	sk_max_gauss_pistol("sk_max_gauss_pistol", "0", FCVAR_REPLICATED);
 #endif // EZ2_WEAPONS
 
+#ifdef MAPBASE
+ConVar hl1_sk_plr_dmg_crowbar("sk_hl1_plr_dmg_crowbar", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_npc_dmg_9mm_bullet("sk_hl1_npc_dmg_9mm_bullet", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_plr_dmg_9mm_bullet("sk_hl1_plr_dmg_9mm_bullet", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_9mm_bullet("sk_hl1_max_9mm_bullet", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_npc_dmg_9mmAR_bullet("sk_hl1_npc_dmg_9mmAR_bullet", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_357_bullet("sk_hl1_plr_dmg_357_bullet", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_npc_dmg_357_bullet("sk_hl1_npc_dmg_357_bullet", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_357_bullet("sk_hl1_max_357_bullet", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_buckshot("sk_hl1_plr_dmg_buckshot", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_npc_dmg_buckshot("sk_hl1_npc_dmg_buckshot", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_buckshot("sk_hl1_max_buckshot", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_mp5_grenade("sk_hl1_plr_dmg_mp5_grenade", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_mp5_grenade("sk_hl1_max_mp5_grenade", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_mp5_grenade_radius("sk_hl1_mp5_grenade_radius", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_rpg("sk_hl1_plr_dmg_rpg", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_rpg_rocket("sk_hl1_max_rpg_rocket", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_xbow_bolt_plr("sk_hl1_plr_dmg_xbow_bolt_plr", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_plr_dmg_xbow_bolt_npc("sk_hl1_plr_dmg_xbow_bolt_npc", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_xbow_bolt("sk_hl1_max_xbow_bolt", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_egon_narrow("sk_hl1_plr_dmg_egon_narrow", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_plr_dmg_egon_wide("sk_hl1_plr_dmg_egon_wide", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_uranium("sk_hl1_max_uranium", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_gauss("sk_hl1_plr_dmg_gauss", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_grenade("sk_hl1_plr_dmg_grenade", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_grenade("sk_hl1_max_grenade", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_hornet("sk_hl1_plr_dmg_hornet", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_npc_dmg_hornet("sk_hl1_npc_dmg_hornet", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_hornet("sk_hl1_max_hornet", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_max_snark("sk_hl1_max_snark", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_tripmine("sk_hl1_plr_dmg_tripmine", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_tripmine("sk_hl1_max_tripmine", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_plr_dmg_satchel("sk_hl1_plr_dmg_satchel", "0", FCVAR_REPLICATED);
+ConVar hl1_sk_max_satchel("sk_hl1_max_satchel", "0", FCVAR_REPLICATED);
+
+ConVar hl1_sk_npc_dmg_12mm_bullet("sk_hl1_npc_dmg_12mm_bullet", "0", FCVAR_REPLICATED);
+#endif // MAPBASE
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -2284,6 +2335,24 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("OICW_Grenade", DMG_BURN | DMG_ALWAYSGIB, TRACER_NONE, "sk_plr_dmg_oicw_grenade", "sk_npc_dmg_oicw_grenade", "sk_max_oicw_grenade", 0, 0);
 		def.AddAmmoType("Incendiary", DMG_BURN | DMG_ENERGYBEAM, TRACER_NONE, "sk_plr_dmg_irifle", "sk_npc_dmg_irifle", "sk_max_incendiary", 0, 0);
 #endif // HL2BETA_WEAPONS
+
+#ifdef MAPBASE
+		def.AddAmmoType("9mmRound", DMG_BULLET | DMG_NEVERGIB, TRACER_LINE, "sk_hl1_plr_dmg_9mm_bullet", "sk_hl1_npc_dmg_9mm_bullet", "sk_hl1_max_9mm_bullet", BULLET_IMPULSE(500, 1325), 0);
+		def.AddAmmoType("357Round", DMG_BULLET | DMG_NEVERGIB, TRACER_NONE, "sk_hl1_plr_dmg_357_bullet", "sk_hl1_npc_dmg_357_bullet", "sk_hl1_max_357_bullet", BULLET_IMPULSE(650, 6000), 0);
+		def.AddAmmoType("BuckshotHL1", DMG_BULLET | DMG_BUCKSHOT, TRACER_LINE, "sk_hl1_plr_dmg_buckshot", "sk_hl1_npc_dmg_buckshot", "sk_hl1_max_buckshot", BULLET_IMPULSE(200, 1200), 0);
+		def.AddAmmoType("XBowBoltHL1", DMG_BULLET | DMG_NEVERGIB, TRACER_LINE, "sk_hl1_plr_dmg_xbow_bolt_plr", NULL, "sk_hl1_max_xbow_bolt", BULLET_IMPULSE(200, 1200), 0);
+		def.AddAmmoType("MP5_Grenade", DMG_BURN | DMG_BLAST, TRACER_NONE, "sk_hl1_plr_dmg_mp5_grenade", NULL, "sk_hl1_max_mp5_grenade", 0, 0);
+		def.AddAmmoType("RPG_Rocket", DMG_BURN | DMG_BLAST, TRACER_NONE, "sk_hl1_plr_dmg_rpg", NULL, "sk_hl1_max_rpg_rocket", 0, 0);
+		def.AddAmmoType("Uranium", DMG_ENERGYBEAM, TRACER_NONE, NULL, NULL, "sk_hl1_max_uranium", 0, 0);
+		def.AddAmmoType("GrenadeHL1", DMG_BURN | DMG_BLAST, TRACER_NONE, "sk_hl1_plr_dmg_grenade", NULL, "sk_hl1_max_grenade", 0, 0);
+		def.AddAmmoType("Hornet", DMG_BULLET, TRACER_NONE, "sk_hl1_plr_dmg_hornet", "sk_hl1_npc_dmg_hornet", "sk_hl1_max_hornet", BULLET_IMPULSE(100, 1200), 0);
+		def.AddAmmoType("Snark", DMG_SLASH, TRACER_NONE, "sk_hl1_snark_dmg_bite", NULL, "sk_hl1_max_snark", 0, 0);
+		def.AddAmmoType("TripMine", DMG_BURN | DMG_BLAST, TRACER_NONE, "sk_hl1_plr_dmg_tripmine", NULL, "sk_hl1_max_tripmine", 0, 0);
+		def.AddAmmoType("Satchel", DMG_BURN | DMG_BLAST, TRACER_NONE, "sk_hl1_plr_dmg_satchel", NULL, "sk_hl1_max_satchel", 0, 0);
+
+		def.AddAmmoType("12mmRound", DMG_BULLET | DMG_NEVERGIB, TRACER_LINE, NULL, "sk_hl1_npc_dmg_12mm_bullet", NULL, BULLET_IMPULSE(300, 1200), 0);
+#endif // MAPBASE
+
 	}
 
 	return &def;

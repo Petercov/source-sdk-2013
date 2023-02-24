@@ -35,7 +35,12 @@
 
 #ifndef CLIENT_DLL
 
+#ifdef HL1_DLL
 extern ConVar sk_plr_dmg_grenade;
+#elif defined(MAPBASE)
+extern ConVar hl1_sk_plr_dmg_grenade;
+#define sk_plr_dmg_grenade hl1_sk_plr_dmg_grenade
+#endif // HL1_DLL
 
 //-----------------------------------------------------------------------------
 // CHandGrenade

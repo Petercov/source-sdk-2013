@@ -12,7 +12,7 @@
 //#include "basecombatcharacter.h"
 //#include "AI_BaseNPC.h"
 #ifdef CLIENT_DLL
-#include "hl1/hl1_c_player.h"
+#include "c_baseplayer.h"
 #else
 #include "player.h"
 #endif
@@ -31,9 +31,20 @@
 #include "in_buttons.h"
 #include "engine/IEngineSound.h"
 
-extern ConVar    sk_plr_dmg_mp5_grenade;	
+#ifndef MAPBASE
+extern ConVar    sk_plr_dmg_mp5_grenade;
 extern ConVar    sk_max_mp5_grenade;
 extern ConVar	 sk_mp5_grenade_radius;
+#else
+extern ConVar hl1_sk_plr_dmg_mp5_grenade;
+extern ConVar hl1_sk_max_mp5_grenade;
+extern ConVar hl1_sk_mp5_grenade_radius;
+
+#define sk_plr_dmg_mp5_grenade hl1_sk_plr_dmg_mp5_grenade
+#define sk_plr_max_mp5_grenade hl1_sk_max_mp5_grenade
+#define sk_mp5_grenade_radius hl1_sk_mp5_grenade_radius
+#endif // !MAPBASE
+
 
 //=========================================================
 //=========================================================

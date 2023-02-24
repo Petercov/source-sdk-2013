@@ -10,6 +10,10 @@
 #include "effect_dispatch_data.h"
 #include "te_effect_dispatch.h"
 
+BEGIN_DATADESC(CBaseHL1CombatWeapon)
+DEFINE_THINKFUNC(FallThink),
+END_DATADESC();
+
 void CBaseHL1CombatWeapon::Precache()
 {
 	BaseClass::Precache();
@@ -22,7 +26,11 @@ void CBaseHL1CombatWeapon::Precache()
 //-----------------------------------------------------------------------------
 void CBaseHL1CombatWeapon::FallInit( void )
 {
-	SetModel( GetWorldModel() );
+#ifdef MAPBASE
+	SetModel((GetDroppedModel() && GetDroppedModel()[0]) ? GetDroppedModel() : GetWorldModel());
+#else
+	SetModel(GetWorldModel());
+#endif
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_TRIGGER );

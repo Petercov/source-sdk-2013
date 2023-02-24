@@ -115,7 +115,7 @@ void CHL1BaseGrenade::Explode( trace_t *pTrace, int64 bitsDamageType )
 	}
 }
 
-#if !defined(HL1_DLL) && !defined(HL2_LAZUL)
+#if !defined(HL1_DLL) && !defined(HL2_LAZUL) && !defined(MAPBASE)
 extern ConVar sk_plr_dmg_grenade;
 #define HANDGRENADE_MODEL "models/w_grenade.mdl"
 

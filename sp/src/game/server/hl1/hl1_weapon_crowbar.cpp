@@ -24,7 +24,7 @@
 
 #include "vstdlib/random.h"
 
-extern ConVar sk_plr_dmg_crowbar;
+extern ConVar hl1_sk_plr_dmg_crowbar;
 
 #define	CROWBAR_RANGE		64.0f
 #define	CROWBAR_REFIRE_MISS	0.5f
@@ -180,13 +180,13 @@ void CHL1WeaponCrowbar::Hit( void )
 		VectorNormalize( hitDirection );
 
 		ClearMultiDamage();
-		CTakeDamageInfo info( GetOwner(), GetOwner(), sk_plr_dmg_crowbar.GetFloat(), DMG_CLUB );
+		CTakeDamageInfo info( GetOwner(), GetOwner(), hl1_sk_plr_dmg_crowbar.GetFloat(), DMG_CLUB );
 		CalculateMeleeDamageForce( &info, hitDirection, m_traceHit.endpos );
 		pHitEntity->DispatchTraceAttack( info, hitDirection, &m_traceHit ); 
 		ApplyMultiDamage();
 
 		// Now hit all triggers along the ray that... 
-		TraceAttackToTriggers( CTakeDamageInfo( GetOwner(), GetOwner(), sk_plr_dmg_crowbar.GetFloat(), DMG_CLUB ), m_traceHit.startpos, m_traceHit.endpos, hitDirection );
+		TraceAttackToTriggers( CTakeDamageInfo( GetOwner(), GetOwner(), hl1_sk_plr_dmg_crowbar.GetFloat(), DMG_CLUB ), m_traceHit.startpos, m_traceHit.endpos, hitDirection );
 
 		//Play an impact sound	
 		ImpactSound( pHitEntity );

@@ -44,8 +44,17 @@ ConVar  sk_hgrunt_kick ( "sk_hgrunt_kick", "0" );
 ConVar  sk_hgrunt_pellets ( "sk_hgrunt_pellets", "0" );
 ConVar  sk_hgrunt_gspeed ( "sk_hgrunt_gspeed", "0" );
 
+#ifndef MAPBASE
 extern ConVar sk_plr_dmg_grenade;
 extern ConVar sk_plr_dmg_mp5_grenade;
+#else
+extern ConVar hl1_sk_plr_dmg_grenade;
+extern ConVar hl1_sk_plr_dmg_mp5_grenade;
+
+#define sk_plr_dmg_grenade hl1_sk_plr_dmg_grenade
+#define sk_plr_dmg_mp5_grenade hl1_sk_plr_dmg_grenade
+#endif // !MAPBASE
+
 
 #define SF_GRUNT_LEADER	( 1 << 5  )
 
