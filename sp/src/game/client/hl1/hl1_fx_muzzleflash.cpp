@@ -88,7 +88,7 @@ void HL1MuzzleFlash(const CEffectData& data)
 		clr.g = 140;
 		clr.b = 30;
 		clr.exponent = 4;
-		CreateMuzzleflashLight(vecPos, clr, 75, 75, data.m_hEntity);
+		CreateMuzzleflashLight(vecPos, clr, 64 * data.m_flScale, 75 * data.m_flScale, data.m_hEntity);
 	}
 }
 DECLARE_CLIENT_EFFECT("HL1MuzzleFlash", HL1MuzzleFlash);

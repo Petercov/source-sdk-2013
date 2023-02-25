@@ -16,6 +16,10 @@
 #include "c_baseplayer.h"
 #else
 #include "player.h"
+#ifdef MAPBASE
+#include "te_effect_dispatch.h"
+#include "ai_basenpc.h"
+#endif // MAPBASE
 #endif
 #include "gamerules.h"		// For g_pGameRules
 #include "in_buttons.h"
@@ -58,6 +62,21 @@ public:
 
 //	DECLARE_SERVERCLASS();
 //	DECLARE_DATADESC();
+
+#if defined(MAPBASE) && !defined(CLIENT_DLL)
+	virtual int				CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
+	virtual	acttable_t*		ActivityList(void);
+	virtual	int				ActivityListCount(void);
+	virtual void			NPC_PrimaryFire();
+
+	virtual float			GetFireRate(void) { return 0.75f; }
+	virtual int				GetMinBurst() { return 1; }
+	virtual int				GetMaxBurst() { return 2; }
+	virtual float			GetMinRestTime() { return 1.f; }
+	virtual float			GetMaxRestTime() { return 1.6f; }
+
+	virtual const Vector& GetBulletSpread(void);
+#endif
 
 	CHL1WeaponShotgun(void);
 
@@ -420,3 +439,51 @@ void CHL1WeaponShotgun::WeaponIdle( void )
 		}
 	}
 }
+
+#if defined(MAPBASE) && !defined(CLIENT_DLL)
+extern acttable_t* GetShotgunActtable();
+extern int GetShotgunActtableCount();
+
+acttable_t* CHL1WeaponShotgun::ActivityList(void)
+{
+	return GetShotgunActtable();
+}
+
+int CHL1WeaponShotgun::ActivityListCount(void)
+{
+	return GetShotgunActtableCount();
+}
+
+void CHL1WeaponShotgun::NPC_PrimaryFire()
+{
+	CAI_BaseNPC* pAI = GetOwner()->MyNPCPointer();
+	if (!pAI)
+		return;
+
+	Vector vecShootOrigin = pAI->Weapon_ShootPosition();
+	Vector vecShootDir = pAI->GetActualShootPosition(vecShootOrigin) - vecShootOrigin;
+	VectorNormalize(vecShootDir);
+
+	WeaponSound(SINGLE_NPC);
+
+	CSoundEnt::InsertSound(SOUND_COMBAT | SOUND_CONTEXT_GUNFIRE, pAI->GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, pAI, SOUNDENT_CHANNEL_WEAPON, pAI->GetEnemy());
+	pAI->FireBullets(6, vecShootOrigin, vecShootDir, GetBulletSpread(),
+		MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2, entindex(), 0);
+
+	CEffectData data;
+	data.m_vOrigin = vecShootOrigin;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1; // LookupAttachment("muzzle");
+	data.m_flScale = 2.5f;
+	data.m_nColor = 0;
+	DispatchEffect("HL1MuzzleFlash", data);
+
+	m_iClip1 = m_iClip1 - 1;
+
+}
+const Vector& CHL1WeaponShotgun::GetBulletSpread(void)
+{
+	static Vector cone = VECTOR_CONE_5DEGREES;
+	return cone;
+}
+#endif // MAPBASE

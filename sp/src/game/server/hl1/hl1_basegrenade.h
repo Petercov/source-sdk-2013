@@ -21,7 +21,7 @@ public:
 
 	virtual void Precache();
 
-	void Explode( trace_t *pTrace, int64 bitsDamageType );
+	virtual void Explode( trace_t *pTrace, int bitsDamageType );
 	unsigned int	PhysicsSolidMaskForEntity( void ) const;
 };
 

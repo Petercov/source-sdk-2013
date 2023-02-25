@@ -31,10 +31,11 @@ void CHL1BaseGrenade::Precache()
 	BaseClass::Precache();
 
 	PrecacheScriptSound( "BaseGrenade.Explode" );
+	PrecacheScriptSound("HL1ExplosionEffect.Sound");
 }
 
 
-void CHL1BaseGrenade::Explode( trace_t *pTrace, int64 bitsDamageType )
+void CHL1BaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 {
 	float		flRndSound;// sound randomizer
 
@@ -62,11 +63,13 @@ void CHL1BaseGrenade::Explode( trace_t *pTrace, int64 bitsDamageType )
 			!( contents & MASK_WATER ) ? g_sModelIndexFireball : g_sModelIndexWExplosion,
 			m_DmgRadius * .03, 
 			25,
-			TE_EXPLFLAG_NONE,
+			TE_EXPLFLAG_NOSOUND,
 			m_DmgRadius,
 			m_flDamage,
 			&vecNormal,
 			(char) pdata->game.material );
+
+		EmitSound(filter, SOUND_FROM_WORLD, "HL1ExplosionEffect.Sound", &vecAbsOrigin);
 	}
 	else
 	{
@@ -76,9 +79,11 @@ void CHL1BaseGrenade::Explode( trace_t *pTrace, int64 bitsDamageType )
 			!( contents & MASK_WATER ) ? g_sModelIndexFireball : g_sModelIndexWExplosion,
 			m_DmgRadius * .03, 
 			25,
-			TE_EXPLFLAG_NONE,
+			TE_EXPLFLAG_NOSOUND,
 			m_DmgRadius,
 			m_flDamage );
+
+		EmitSound(filter, SOUND_FROM_WORLD, "HL1ExplosionEffect.Sound", &vecAbsOrigin);
 	}
 
 	CSoundEnt::InsertSound ( SOUND_COMBAT, GetAbsOrigin(), BASEGRENADE_EXPLOSION_VOLUME, 3.0 );

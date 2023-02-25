@@ -43,6 +43,7 @@ extern ConVar	 sk_mp5_grenade_radius;
 extern ConVar hl1_sk_plr_dmg_mp5_grenade;
 extern ConVar hl1_sk_max_mp5_grenade;
 extern ConVar hl1_sk_mp5_grenade_radius;
+extern ConVar sk_hgrunt_gspeed;
 
 #define sk_plr_dmg_mp5_grenade hl1_sk_plr_dmg_mp5_grenade
 #define sk_plr_max_mp5_grenade hl1_sk_max_mp5_grenade
@@ -129,6 +130,60 @@ int CHL1WeaponMP5::WeaponSoundRealtime(WeaponSound_t shoot_type)
 	}
 
 	return numBullets;
+}
+
+float GetCurrentGravity(void);
+void CHL1WeaponMP5::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
+{
+	switch (pEvent->event)
+	{
+	case EVENT_WEAPON_AR2_ALTFIRE:
+		{
+			WeaponSound(DOUBLE_NPC);
+
+			CAI_BaseNPC* npc = pOperator->MyNPCPointer();
+			if (!npc)
+				return;
+
+			Vector vecShootOrigin;
+			vecShootOrigin = pOperator->Weapon_ShootPosition();
+
+			Vector vecTarget = npc->GetAltFireTarget();
+			Vector vecThrow;
+			if (vecTarget == vec3_origin || sk_hgrunt_gspeed.GetFloat() <= 0)
+				AngleVectors(npc->EyeAngles(), &vecThrow); // Not much else to do, unfortunately
+			else
+			{
+				// Because this is happening right now, we can't "VecCheckThrow" and can only "VecDoThrow", you know what I mean?
+				// ...Anyway, this borrows from that so we'll never return vec3_origin.
+				//vecThrow = VecCheckThrow( this, vecShootOrigin, vecTarget, 600.0, 0.5 );
+
+				vecThrow = (vecTarget - vecShootOrigin);
+
+				// throw at a constant time
+				float time = vecThrow.Length() / sk_hgrunt_gspeed.GetFloat();
+				vecThrow = vecThrow * (1.0 / time);
+
+				// adjust upward toss to compensate for gravity loss
+				vecThrow.z += (GetCurrentGravity() * 0.5) * time * 0.5;
+			}
+
+			CGrenadeMP5* pGrenade = (CGrenadeMP5*)Create("grenade_mp5", vecShootOrigin, npc->EyeAngles(), npc);
+			pGrenade->SetAbsVelocity(vecThrow);
+			pGrenade->SetLocalAngularVelocity(QAngle(random->RandomFloat(-100, -500), 0, 0));
+			pGrenade->SetMoveType(MOVETYPE_FLYGRAVITY);
+			pGrenade->SetThrower(npc);
+			pGrenade->SetDamage(sk_plr_dmg_mp5_grenade.GetFloat());
+
+			variant_t var;
+			var.SetEntity(pGrenade);
+			npc->FireNamedOutput("OnThrowGrenade", var, pGrenade, npc);
+		}
+		break;
+	default:
+		BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
+		break;
+	}
 }
 
 void CHL1WeaponMP5::NPC_PrimaryFire()

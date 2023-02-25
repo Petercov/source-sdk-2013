@@ -50,16 +50,18 @@ public:
 	virtual	acttable_t*		ActivityList(void);
 	virtual	int				ActivityListCount(void);
 	virtual void			NPC_PrimaryFire();
+	virtual bool			NPC_HasAltFire(void) { return true; }
 
 	virtual float			GetFireRate(void) { return 0.1f; }
 	virtual int				GetMinBurst() { return 3; }
 	virtual int				GetMaxBurst() { return 3; }
-	virtual float			GetMinRestTime() { return 0.1; }
-	virtual float			GetMaxRestTime() { return 0.15; }
+	virtual float			GetMinRestTime() { return 0.15; }
+	virtual float			GetMaxRestTime() { return 0.2; }
 
 	virtual const Vector& GetBulletSpread(void);
 
 	int				WeaponSoundRealtime(WeaponSound_t shoot_type);
+	void Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
 
 protected:
 	float m_flNextSoundTime;
