@@ -45,7 +45,7 @@ public:
 	void	DryFire( void );
 	void	WeaponIdle( void );
 
-#ifdef MAPBASE
+#if defined(MAPBASE) && !defined(CLIENT_DLL)
 	virtual int				CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 	virtual	acttable_t*		ActivityList(void);
 	virtual	int				ActivityListCount(void);

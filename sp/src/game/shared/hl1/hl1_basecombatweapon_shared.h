@@ -41,6 +41,7 @@ public:
 	Vector GetSoundEmissionOrigin() const;
 
 #ifdef MAPBASE
+	virtual void	SetActivity(Activity act) { return BaseClass::SetActivity(act); }
 	virtual void	SetActivity(Activity act, float duration);
 	virtual void	NPC_PrimaryFire() { return; }
 #endif // MAPBASE

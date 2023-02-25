@@ -85,7 +85,7 @@ CHL1WeaponMP5::CHL1WeaponMP5( )
 	m_bFiresUnderwater	= false;
 }
 
-#ifdef MAPBASE
+#if defined(MAPBASE) && !defined(CLIENT_DLL)
 extern acttable_t* GetSMG1Acttable();
 extern int GetSMG1ActtableCount();
 

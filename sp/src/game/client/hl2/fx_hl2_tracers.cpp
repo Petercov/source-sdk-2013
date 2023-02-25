@@ -438,7 +438,7 @@ void CreateMuzzleflashELight( const Vector &origin, int exponent, int nMinRadius
 #else
 	ColorRGBExp32 clr;
 	clr.r = 255;
-	clr.g - 192;
+	clr.g = 192;
 	clr.b = 64;
 	clr.exponent = exponent;
 	CreateMuzzleflashLight(origin, clr, nMinRadius, nMaxRadius, hEntity);
