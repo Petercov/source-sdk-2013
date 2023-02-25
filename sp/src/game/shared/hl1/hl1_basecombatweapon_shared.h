@@ -26,6 +26,7 @@ public:
 public:
 	void Spawn( void );
 
+	const char* GetTracerType(void) { return "HL1Tracer"; }
 public:
 // Server Only Methods
 #if !defined( CLIENT_DLL )

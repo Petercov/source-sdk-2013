@@ -61,6 +61,7 @@ class CNPC_BaseTurret : public CAI_BaseNPC
 public:
 	void Spawn(void);
 	virtual void Precache(void);
+	const char* GetTracerType(void) { return "HL1Tracer"; }
 	void EXPORT TurretUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	
 	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator );

@@ -49,6 +49,8 @@ public:
 	void Event_Killed( const CTakeDamageInfo &info );
 	void StopLoopingSounds();
 
+	const char* GetTracerType(void) { return "HL1TracerLarge"; }
+
 	int  BloodColor( void ) { return DONT_BLEED; }
 	void GibMonster( void );
 

@@ -68,6 +68,8 @@ public:
 		return CAI_BaseNPC::GetTimeToNavGoal();
 	}
 
+	const char* GetTracerType(void) { return "HL1Tracer"; }
+
 	virtual void Precache();
 
 	void	StartTask( const Task_t *pTask );
