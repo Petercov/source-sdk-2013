@@ -86,3 +86,15 @@ void CBaseHL1CombatWeapon::FallThink ( void )
 	}
 }
 
+#ifdef MAPBASE
+void CBaseHL1CombatWeapon::SetActivity(Activity act, float duration)
+{
+	if (GetOwner() && GetOwner()->IsNPC() && act == ActivityOverride(ACT_RANGE_ATTACK1, 0))
+	{
+		NPC_PrimaryFire();
+	}
+
+	BaseClass::SetActivity(act, duration);
+}
+#endif // MAPBASE
+

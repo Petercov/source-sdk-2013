@@ -45,6 +45,28 @@ public:
 	void	DryFire( void );
 	void	WeaponIdle( void );
 
+#ifdef MAPBASE
+	virtual int				CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
+	virtual	acttable_t*		ActivityList(void);
+	virtual	int				ActivityListCount(void);
+	virtual void			NPC_PrimaryFire();
+
+	virtual float			GetFireRate(void) { return 0.1f; }
+	virtual int				GetMinBurst() { return 3; }
+	virtual int				GetMaxBurst() { return 3; }
+	virtual float			GetMinRestTime() { return 0.1; }
+	virtual float			GetMaxRestTime() { return 0.15; }
+
+	virtual const Vector& GetBulletSpread(void);
+
+	int				WeaponSoundRealtime(WeaponSound_t shoot_type);
+
+protected:
+	float m_flNextSoundTime;
+public:
+#endif // MAPBASE
+
+
 //	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 };

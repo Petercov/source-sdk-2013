@@ -39,6 +39,12 @@ public:
 	void EjectShell( CBaseEntity *pPlayer, int iType );
 
 	Vector GetSoundEmissionOrigin() const;
+
+#ifdef MAPBASE
+	virtual void	SetActivity(Activity act, float duration);
+	virtual void	NPC_PrimaryFire() { return; }
+#endif // MAPBASE
+
 #else
 
 	virtual void	AddViewmodelBob( CBaseViewModel *viewmodel, Vector &origin, QAngle &angles );

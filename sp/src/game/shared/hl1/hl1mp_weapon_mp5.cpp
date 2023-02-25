@@ -27,6 +27,10 @@
 #else
 #include "soundent.h"
 #include "game.h"
+#ifdef MAPBASE
+#include "ai_basenpc.h"
+#include "te_effect_dispatch.h"
+#endif // MAPBASE
 #endif
 #include "in_buttons.h"
 #include "engine/IEngineSound.h"
@@ -69,14 +73,97 @@ LINK_ENTITY_TO_CLASS(weapon_hl1_mp5, CHL1WeaponMP5);
 //IMPLEMENT_SERVERCLASS_ST( CHL1WeaponMP5, DT_HL1WeaponMP5 )
 //END_SEND_TABLE()
 
-BEGIN_DATADESC( CHL1WeaponMP5 )
-END_DATADESC()
+BEGIN_DATADESC(CHL1WeaponMP5)
+#if defined(MAPBASE) && defined(GAME_DLL)
+DEFINE_FIELD(m_flNextSoundTime, FIELD_TIME),
+#endif
+END_DATADESC();
 
 CHL1WeaponMP5::CHL1WeaponMP5( )
 {
 	m_bReloadsSingly	= false;
 	m_bFiresUnderwater	= false;
 }
+
+#ifdef MAPBASE
+extern acttable_t* GetSMG1Acttable();
+extern int GetSMG1ActtableCount();
+
+acttable_t* CHL1WeaponMP5::ActivityList(void)
+{
+	return GetSMG1Acttable();
+}
+
+int CHL1WeaponMP5::ActivityListCount(void)
+{
+	return GetSMG1ActtableCount();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Make enough sound events to fill the estimated think interval
+// returns: number of shots needed
+//-----------------------------------------------------------------------------
+int CHL1WeaponMP5::WeaponSoundRealtime(WeaponSound_t shoot_type)
+{
+	int numBullets = 0;
+
+	// ran out of time, clamp to current
+	if (m_flNextSoundTime < gpGlobals->curtime)
+	{
+		m_flNextSoundTime = gpGlobals->curtime;
+	}
+
+	// make enough sound events to fill up the next estimated think interval
+	float dt = clamp(m_flAnimTime - m_flPrevAnimTime, 0, 0.2);
+	if (m_flNextSoundTime < gpGlobals->curtime + dt)
+	{
+		WeaponSound(SINGLE_NPC, m_flNextSoundTime);
+		m_flNextSoundTime += GetFireRate();
+		numBullets++;
+	}
+	if (m_flNextSoundTime < gpGlobals->curtime + dt)
+	{
+		WeaponSound(SINGLE_NPC, m_flNextSoundTime);
+		m_flNextSoundTime += GetFireRate();
+		numBullets++;
+	}
+
+	return numBullets;
+}
+
+void CHL1WeaponMP5::NPC_PrimaryFire()
+{
+	CAI_BaseNPC* pAI = GetOwner()->MyNPCPointer();
+	if (!pAI)
+		return;
+
+	Vector vecShootOrigin = pAI->Weapon_ShootPosition();
+	Vector vecShootDir = pAI->GetActualShootTrajectory(vecShootOrigin);
+
+	WeaponSoundRealtime(SINGLE_NPC);
+
+	CSoundEnt::InsertSound(SOUND_COMBAT | SOUND_CONTEXT_GUNFIRE, pAI->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pAI, SOUNDENT_CHANNEL_WEAPON, pAI->GetEnemy());
+	pAI->FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED,
+		MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2, entindex(), 0);
+
+	
+	CEffectData data;
+	data.m_vOrigin = vecShootOrigin;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1; // LookupAttachment("muzzle");
+	data.m_flScale = 1.f;
+	data.m_nColor = 1;
+	DispatchEffect("HL1MuzzleFlash", data);
+
+	m_iClip1 = m_iClip1 - 1;
+
+}
+const Vector& CHL1WeaponMP5::GetBulletSpread(void)
+{
+	static Vector cone = VECTOR_CONE_4DEGREES;
+	return cone;
+}
+#endif // MAPBASE
 
 void CHL1WeaponMP5::Precache( void )
 {
