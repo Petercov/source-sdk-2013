@@ -28,6 +28,7 @@
 #include	"engine/IEngineSound.h"
 #include	"ammodef.h"
 #include	"Sprite.h"
+#include	"te_effect_dispatch.h"
 
 #define TURRET_SHOTS	2
 #define TURRET_RANGE	(100 * 12)
@@ -1239,6 +1240,14 @@ void CNPC_Turret::Shoot(Vector &vecSrc, Vector &vecDirToEnemy)
 	EmitSound( filter, entindex(), "Turret.Shoot" );
 
 	DoMuzzleFlash();
+
+	CEffectData data;
+	data.m_vOrigin = vecSrc;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1;
+	data.m_flScale = 2.f;
+	data.m_nColor = 1;
+	DispatchEffect("HL1MuzzleFlash", data);
 }
 
 void CNPC_Turret::SpinUpCall(void)
@@ -1350,7 +1359,15 @@ void CNPC_MiniTurret::Shoot(Vector &vecSrc, Vector &vecDirToEnemy)
 
 	EmitSound( filter, entindex(), "Turret.Shoot" );
 	
-	DoMuzzleFlash();
+	DoMuzzleFlash(); 
+	
+	CEffectData data;
+	data.m_vOrigin = vecSrc;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1;
+	data.m_flScale = 2.f;
+	data.m_nColor = 0;
+	DispatchEffect("HL1MuzzleFlash", data);
 }
 
 //=========================================================
@@ -1436,6 +1453,14 @@ void CNPC_Sentry::Shoot(Vector &vecSrc, Vector &vecDirToEnemy)
 	EmitSound( filter, entindex(), "Sentry.Shoot" );
 	
 	DoMuzzleFlash();
+
+	CEffectData data;
+	data.m_vOrigin = vecSrc;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1;
+	data.m_flScale = 1.5f;
+	data.m_nColor = 1;
+	DispatchEffect("HL1MuzzleFlash", data);
 }
 
 int CNPC_Sentry::OnTakeDamage_Alive(const CTakeDamageInfo &info)

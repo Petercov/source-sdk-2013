@@ -37,6 +37,7 @@
 #include	"ai_behavior_follow.h"
 #include	"AI_Criteria.h"
 #include	"SoundEmitterSystem/isoundemittersystembase.h"
+#include	"te_effect_dispatch.h"
 
 #define BA_ATTACK	"BA_ATTACK"
 #define BA_MAD		"BA_MAD"
@@ -306,6 +307,14 @@ void CNPC_HL1Barney::BarneyFirePistol ( void )
 	VectorAngles( vecShootDir, angDir );
 //	SetBlending( 0, angDir.x );
 	DoMuzzleFlash();
+
+	CEffectData data;
+	data.m_vOrigin = vecShootOrigin;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1;
+	data.m_flScale = 1.f;
+	data.m_nColor = 0;
+	DispatchEffect("HL1MuzzleFlash", data);
 
 	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, m_iAmmoType );
 	

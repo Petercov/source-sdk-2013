@@ -38,6 +38,7 @@
 #include	"scripted.h"
 #include	"hl1_basegrenade.h"
 #include	"hl1_grenade_mp5.h"
+#include	"te_effect_dispatch.h"
 
 ConVar	sk_hgrunt_health( "sk_hgrunt_health","0");
 ConVar  sk_hgrunt_kick ( "sk_hgrunt_kick", "0" );
@@ -1257,6 +1258,14 @@ void CNPC_HGrunt::Shoot ( void )
 	Vector	vecShellVelocity = right * random->RandomFloat(40,90) + up * random->RandomFloat( 75,200 ) + forward * random->RandomFloat( -40, 40 );
 	EjectShell( vecShootOrigin - vecShootDir * 24, vecShellVelocity, GetAbsAngles().y, 0 );
 	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, m_iAmmoType ); // shoot +-5 degrees
+
+	CEffectData data;
+	data.m_vOrigin = vecShootOrigin;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1;
+	data.m_flScale = 2.f;
+	data.m_nColor = 1;
+	DispatchEffect("HL1MuzzleFlash", data);
 	
 	DoMuzzleFlash();
 	
@@ -1282,6 +1291,14 @@ void CNPC_HGrunt::Shotgun ( void )
 	Vector	vecShellVelocity = right * random->RandomFloat(40,90) + up * random->RandomFloat( 75,200 ) + forward * random->RandomFloat( -40, 40 );
 	EjectShell( vecShootOrigin - vecShootDir * 24, vecShellVelocity, GetAbsAngles().y, 1 );
 	FireBullets( sk_hgrunt_pellets.GetFloat(), vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, m_iAmmoType, 0 ); // shoot +-7.5 degrees
+
+	CEffectData data;
+	data.m_vOrigin = vecShootOrigin;
+	data.m_nEntIndex = entindex();
+	data.m_nAttachmentIndex = 1;
+	data.m_flScale = 3.f;
+	data.m_nColor = 0;
+	DispatchEffect("HL1MuzzleFlash", data);
 
 	DoMuzzleFlash();
 	

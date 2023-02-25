@@ -32,6 +32,7 @@
 #include	"smoke_trail.h"
 #include	"beam_shared.h"
 #include	"grenade_homer.h"
+#include	"te_effect_dispatch.h"
 
 #define	 HOMER_TRAIL0_LIFE		0.1
 #define	 HOMER_TRAIL1_LIFE		0.2
@@ -497,7 +498,7 @@ bool CNPC_Apache::FireGun( )
 
 	Vector posBarrel;
 	QAngle angBarrel;
-	GetAttachment( 0, posBarrel, angBarrel );
+	GetAttachment( 1, posBarrel, angBarrel );
 
 	Vector forward;
 	AngleVectors( angBarrel + m_angGun, &forward );
@@ -521,6 +522,14 @@ bool CNPC_Apache::FireGun( )
 
 		// gun is a bit dodgy, just fire at the target if we are close
 		FireBullets( 1, posGun, vecTarget, VECTOR_CONE_4DEGREES, 8192, m_iAmmoType, 2 );
+
+		CEffectData data;
+		data.m_vOrigin = posGun;
+		data.m_nEntIndex = entindex();
+		data.m_nAttachmentIndex = 1;
+		data.m_flScale = 5.f;
+		data.m_nColor = 0;
+		DispatchEffect("HL1MuzzleFlash", data);
 
 		return true;
 	}
