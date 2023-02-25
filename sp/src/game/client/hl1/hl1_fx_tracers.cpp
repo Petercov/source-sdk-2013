@@ -54,14 +54,14 @@ void HL1TracerCallback(const CEffectData& data)
 	dist = VectorNormalize(dir);
 
 	// Don't make short tracers.
-	if (dist < 128)
-		return;
+	if (dist >= 128)
+	{
+		float length = random->RandomFloat(64.0f, 128.0f);
+		float life = (dist + length) / flVelocity;	//NOTENOTE: We want the tail to finish its run as well
 
-	float length = random->RandomFloat(128.0f, 256.0f);
-	float life = (dist + length) / flVelocity;	//NOTENOTE: We want the tail to finish its run as well
-
-	//Add it
-	FX_AddDiscreetLine(vecStart, dir, flVelocity, length, dist, random->RandomFloat(0.5f, 1.5f), life, "hl1/tracer_middle");
+		//Add it
+		FX_AddDiscreetLine(vecStart, dir, flVelocity, length, dist, random->RandomFloat(0.8f, 1.2f), life, "hl1/tracer_middle");
+	}
 
 	if (bWhiz)
 	{
@@ -91,14 +91,14 @@ void HL1TracerLargeCallback(const CEffectData& data)
 	dist = VectorNormalize(dir);
 
 	// Don't make short tracers.
-	if (dist < 256)
-		return;
+	if (dist >= 256)
+	{
+		float length = random->RandomFloat(256.0f, 384.0f);
+		float life = (dist + length) / flVelocity;	//NOTENOTE: We want the tail to finish its run as well
 
-	float length = random->RandomFloat(256.0f, 384.0f);
-	float life = (dist + length) / flVelocity;	//NOTENOTE: We want the tail to finish its run as well
-
-	//Add it
-	FX_AddDiscreetLine(vecStart, dir, flVelocity, length, dist, 5.f, life, "hl1/tracer_middle");
+		//Add it
+		FX_AddDiscreetLine(vecStart, dir, flVelocity, length, dist, 5.f, life, "hl1/tracer_middle");
+	}
 
 	if (bWhiz)
 	{
