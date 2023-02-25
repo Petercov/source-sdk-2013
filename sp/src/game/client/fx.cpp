@@ -61,6 +61,57 @@ ConVar muzzleflash_light( "muzzleflash_light", "1", FCVAR_ARCHIVE );
 
 extern void FX_TracerSound( const Vector &start, const Vector &end, int iTracerType );
 
+#ifdef MAPBASE
+//-----------------------------------------------------------------------------
+// Creates a muzzleflash elight
+//-----------------------------------------------------------------------------
+void CreateMuzzleflashLight(const Vector& origin, const ColorRGBExp32& color, int nMinRadius, int nMaxRadius, ClientEntityHandle_t hEntity)
+{
+	if (muzzleflash_light.GetInt())
+	{
+		int entityIndex = ClientEntityList().HandleToEntIndex(hEntity);
+		if (entityIndex >= 0)
+		{
+			const int lightIndex = LIGHT_INDEX_MUZZLEFLASH + entityIndex;
+			dlight_t* el = muzzleflash_light.GetInt() == 1 ? effects->CL_AllocElight(lightIndex) : effects->CL_AllocDlight(lightIndex);
+
+			el->origin = origin;
+
+			el->color = color;
+
+			el->radius = random->RandomInt(nMinRadius, nMaxRadius);
+			el->decay = el->radius / 0.05f;
+			el->die = gpGlobals->curtime + 0.1f;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Creates a muzzleflash elight
+//-----------------------------------------------------------------------------
+void CreateMuzzleflashLight(const ColorRGBExp32& color, int nMinRadius, int nMaxRadius, ClientEntityHandle_t hEntity, int nAttachment)
+{
+	if (muzzleflash_light.GetInt())
+	{
+		C_BaseEntity* pEnt = ClientEntityList().GetBaseEntityFromHandle(hEntity);
+		Vector vecOrigin;
+		if (pEnt && pEnt->GetAttachment(nAttachment, vecOrigin))
+		{
+			const int lightIndex = LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex();
+			dlight_t* el = muzzleflash_light.GetInt() == 1 ? effects->CL_AllocElight(lightIndex) : effects->CL_AllocDlight(lightIndex);
+
+			el->origin = vecOrigin;
+
+			el->color = color;
+
+			el->radius = random->RandomInt(nMinRadius, nMaxRadius);
+			el->decay = el->radius / 0.05f;
+			el->die = gpGlobals->curtime + 0.1f;
+		}
+	}
+}
+#endif // MAPBASE
+
 
 //===================================================================
 //===================================================================

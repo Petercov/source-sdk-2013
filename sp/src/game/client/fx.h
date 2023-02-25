@@ -107,4 +107,12 @@ extern PMaterialHandle g_Mat_BloodPuff[2];
 extern PMaterialHandle g_Mat_Fleck_Glass[2];
 extern PMaterialHandle g_Mat_SMG_Muzzleflash[4];
 extern PMaterialHandle g_Mat_Combine_Muzzleflash[3];
+
+#ifdef MAPBASE
+// Creates a muzzleflash elight or dlight
+void CreateMuzzleflashLight(const Vector& origin, const ColorRGBExp32& color, int nMinRadius, int nMaxRadius, ClientEntityHandle_t hEntity);
+// Creates a muzzleflash elight or dlight
+void CreateMuzzleflashLight(const ColorRGBExp32& color, int nMinRadius, int nMaxRadius, ClientEntityHandle_t hEntity, int nAttachment);
+#endif // MAPBASE
+
 #endif // FX_H

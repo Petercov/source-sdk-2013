@@ -2630,6 +2630,18 @@ void CTempEnts::MuzzleFlash_Combine_Player( ClientEntityHandle_t hEntity, int at
 	
 	pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 	pParticle->m_flRollDelta	= 0.0f;
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 64;
+		clr.g = 128;
+		clr.b = 255;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 128, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //-----------------------------------------------------------------------------
@@ -2802,6 +2814,7 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 	pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 	pParticle->m_flRollDelta	= 0.0f;
 
+#ifndef MAPBASE
 	matrix3x4_t	matAttachment;
 	Vector		origin;
 	
@@ -2819,25 +2832,37 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 		return;
 	}
 
-	if ( muzzleflash_light.GetBool() )
+	if (muzzleflash_light.GetBool())
 	{
-		C_BaseEntity *pEnt = ClientEntityList().GetBaseEntityFromHandle( hEntity );
-		if ( pEnt )
+		C_BaseEntity* pEnt = ClientEntityList().GetBaseEntityFromHandle(hEntity);
+		if (pEnt)
 		{
-			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+			dlight_t* el = effects->CL_AllocElight(LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex());
 
-			el->origin	= origin;
+			el->origin = origin;
 
 			el->color.r = 64;
 			el->color.g = 128;
 			el->color.b = 255;
 			el->color.exponent = 5;
 
-			el->radius	= random->RandomInt( 32, 128 );
-			el->decay	= el->radius / 0.05f;
-			el->die		= gpGlobals->curtime + 0.05f;
+			el->radius = random->RandomInt(32, 128);
+			el->decay = el->radius / 0.05f;
+			el->die = gpGlobals->curtime + 0.05f;
 		}
 	}
+#else
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 64;
+		clr.g = 128;
+		clr.b = 255;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 128, hEntity, attachmentIndex);
+	}
+#endif // !MAPBASE
+
 }
 
 void CTempEnts::MuzzleFlash_Combine_Pistol_NPC(ClientEntityHandle_t hEntity, int attachmentIndex)
@@ -2905,6 +2930,18 @@ void CTempEnts::MuzzleFlash_Combine_Pistol_NPC(ClientEntityHandle_t hEntity, int
 		pParticle->m_flRoll = random->RandomInt(0, 360);
 		pParticle->m_flRollDelta = 0.0f;
 	}
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 64;
+		clr.g = 128;
+		clr.b = 255;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 void CTempEnts::MuzzleFlash_Combine_SMG_NPC(ClientEntityHandle_t hEntity, int attachmentIndex)
@@ -2972,6 +3009,18 @@ void CTempEnts::MuzzleFlash_Combine_SMG_NPC(ClientEntityHandle_t hEntity, int at
 		pParticle->m_flRoll = random->RandomInt(0, 360);
 		pParticle->m_flRollDelta = 0.0f;
 	}
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 64;
+		clr.g = 128;
+		clr.b = 255;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 128, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //==================================================
@@ -2983,6 +3032,18 @@ void CTempEnts::MuzzleFlash_AR2_NPC(ClientEntityHandle_t hEntity, int attachment
 {
 	//Draw the cloud of fire
 	FX_MuzzleEffectAttached(1.0f, hEntity, attachmentIndex);
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //-----------------------------------------------------------------------------
@@ -2992,6 +3053,18 @@ void CTempEnts::MuzzleFlash_SMG1_NPC( ClientEntityHandle_t hEntity, int attachme
 {
 	//Draw the cloud of fire
 	FX_MuzzleEffectAttached( 1.0f, hEntity, attachmentIndex, NULL, true );
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //-----------------------------------------------------------------------------
@@ -3038,6 +3111,18 @@ void CTempEnts::MuzzleFlash_SMG1_Player( ClientEntityHandle_t hEntity, int attac
 		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 		pParticle->m_flRollDelta	= 0.0f;
 	}
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 60, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //==================================================
@@ -3097,6 +3182,18 @@ void CTempEnts::MuzzleFlash_Shotgun_Player( ClientEntityHandle_t hEntity, int at
 		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 		pParticle->m_flRollDelta	= 0.0f;
 	}
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 64, 128, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //==================================================
@@ -3213,6 +3310,19 @@ void CTempEnts::MuzzleFlash_Shotgun_NPC( ClientEntityHandle_t hEntity, int attac
 		pTrailParticle->m_flLength	= 0.05f;
 		pTrailParticle->m_flWidth	= random->RandomFloat( 0.25f, 0.5f );
 	}
+
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 64, 128, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //==================================================
@@ -3298,6 +3408,18 @@ void CTempEnts::MuzzleFlash_357_Player( ClientEntityHandle_t hEntity, int attach
 		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 		pParticle->m_flRollDelta	= 0.0f;
 	}
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 64, 80, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //==================================================
@@ -3387,6 +3509,18 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 		pParticle->m_flRollDelta	= 0.0f;
 	}
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 //==================================================
@@ -3397,6 +3531,18 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 void CTempEnts::MuzzleFlash_Pistol_NPC( ClientEntityHandle_t hEntity, int attachmentIndex )
 {
 	FX_MuzzleEffectAttached( 0.5f, hEntity, attachmentIndex, NULL, true );
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 32, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 
@@ -3418,6 +3564,18 @@ void CTempEnts::MuzzleFlash_Sniper_NPC(ClientEntityHandle_t hEntity, int attachm
 {
 	//Draw the cloud of fire
 	FX_MuzzleEffectAttached(2.5f, hEntity, attachmentIndex);
+
+#ifdef MAPBASE
+	if (muzzleflash_light.GetBool())
+	{
+		ColorRGBExp32 clr;
+		clr.r = 255;
+		clr.g = 192;
+		clr.b = 64;
+		clr.exponent = 5;
+		CreateMuzzleflashLight(clr, 60, 64, hEntity, attachmentIndex);
+	}
+#endif // MAPBASE
 }
 
 

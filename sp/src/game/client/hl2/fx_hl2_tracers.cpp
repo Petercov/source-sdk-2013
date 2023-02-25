@@ -415,25 +415,34 @@ DECLARE_CLIENT_EFFECT("AR2Impact", AR2ImpactCallback);
 //-----------------------------------------------------------------------------
 void CreateMuzzleflashELight( const Vector &origin, int exponent, int nMinRadius, int nMaxRadius, ClientEntityHandle_t hEntity )
 {
-	if ( muzzleflash_light.GetInt() )
+#ifndef MAPBASE
+	if (muzzleflash_light.GetInt())
 	{
-		int entityIndex = ClientEntityList().HandleToEntIndex( hEntity );
-		if ( entityIndex >= 0 )
+		int entityIndex = ClientEntityList().HandleToEntIndex(hEntity);
+		if (entityIndex >= 0)
 		{
-			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + entityIndex );
+			dlight_t* el = effects->CL_AllocElight(LIGHT_INDEX_MUZZLEFLASH + entityIndex);
 
-			el->origin	= origin;
+			el->origin = origin;
 
 			el->color.r = 255;
 			el->color.g = 192;
 			el->color.b = 64;
 			el->color.exponent = exponent;
 
-			el->radius	= random->RandomInt( nMinRadius, nMaxRadius );
-			el->decay	= el->radius / 0.05f;
-			el->die		= gpGlobals->curtime + 0.1f;
+			el->radius = random->RandomInt(nMinRadius, nMaxRadius);
+			el->decay = el->radius / 0.05f;
+			el->die = gpGlobals->curtime + 0.1f;
 		}
 	}
+#else
+	ColorRGBExp32 clr;
+	clr.r = 255;
+	clr.g - 192;
+	clr.b = 64;
+	clr.exponent = exponent;
+	CreateMuzzleflashLight(origin, clr, nMinRadius, nMaxRadius, hEntity);
+#endif // !MAPBASE
 }
 
 
