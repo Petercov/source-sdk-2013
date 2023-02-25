@@ -17,7 +17,7 @@
 #include "vstdlib/random.h"
 #include "engine/IEngineSound.h"
 
-ConVar sk_bullsquid_dmg_spit ( "sk_bullsquid_dmg_spit", "10" );
+ConVar sk_bullsquid_hl1_dmg_spit ( "sk_bullsquid_hl1_dmg_spit", "10" );
 
 BEGIN_DATADESC( CGrenadeSpitHL1 )
 
@@ -53,7 +53,7 @@ void CGrenadeSpitHL1::Spawn( void )
 	SetTouch( &CGrenadeSpitHL1::GrenadeSpitHL1Touch );
 	SetNextThink( gpGlobals->curtime + 0.1f );
 
-	m_flDamage		= sk_bullsquid_dmg_spit.GetFloat();
+	m_flDamage		= sk_bullsquid_hl1_dmg_spit.GetFloat();
 	m_DmgRadius		= 60.0f;
 	m_takedamage	= DAMAGE_YES;
 	m_iHealth		= 1;

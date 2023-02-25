@@ -35,7 +35,7 @@
 ConVar sk_bullsquid_hl1_health ( "sk_bullsquid_hl1_health", "0" );
 ConVar sk_bullsquid_hl1_dmg_bite ( "sk_bullsquid_hl1_dmg_bite", "0" );
 ConVar sk_bullsquid_hl1_dmg_whip ( "sk_bullsquid_hl1_dmg_whip", "0" );
-extern ConVar sk_bullsquid_dmg_spit;
+extern ConVar sk_bullsquid_hl1_dmg_spit;
 
 //=========================================================
 // monster-specific schedule types
@@ -225,7 +225,7 @@ void CSquidSpit::Touch ( CBaseEntity *pOther )
 	}
 	else
 	{
-		CTakeDamageInfo info( this, this, sk_bullsquid_dmg_spit.GetFloat(), DMG_BULLET );
+		CTakeDamageInfo info( this, this, sk_bullsquid_hl1_dmg_spit.GetFloat(), DMG_BULLET );
 		CalculateBulletDamageForce( &info, GetAmmoDef()->Index("9mmRound"), GetAbsVelocity(), GetAbsOrigin() );
 		pOther->TakeDamage( info );
 	}

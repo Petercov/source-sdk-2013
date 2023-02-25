@@ -337,10 +337,10 @@ float CNPC_Scientist::MaxYawSpeed( void )
 {
 	switch( GetActivity() )
 	{
-	case ACT_TURN_LEFT:
+	/*case ACT_TURN_LEFT:
 	case ACT_TURN_RIGHT:
 		return 160;
-		break;
+		break;*/
 	case ACT_RUN:
 		return 160;
 		break;
