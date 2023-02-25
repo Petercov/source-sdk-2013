@@ -24,10 +24,11 @@ void HL1MuzzleFlash(const CEffectData& data)
 		if (pParticle)
 		{
 			pParticle->m_vecVelocity = vec3_origin;
-			pParticle->m_flDieTime = RandomFloat(.04f, .07f);
+			pParticle->m_flDieTime = 0.1f;
 			pParticle->m_uchStartAlpha = 255;
-			pParticle->m_uchStartSize = RandomFloat(1.f, 1.2f) * data.m_flScale;
-			pParticle->m_uchEndSize = RandomFloat(4.f, 6.f) * data.m_flScale;
+			pParticle->m_uchEndAlpha = 255;
+			pParticle->m_uchStartSize = RandomFloat(4.f, 6.f) * data.m_flScale;
+			pParticle->m_uchEndSize = pParticle->m_uchStartSize;
 			pParticle->m_flRoll = RandomFloat(-180.f, 180.f);
 			pParticle->m_flRollDelta = RandomFloat(-1.f, 1.f);
 			pParticle->m_uchColor[0] = 255;
@@ -42,10 +43,11 @@ void HL1MuzzleFlash(const CEffectData& data)
 		if (pParticle)
 		{
 			pParticle->m_vecVelocity = vec3_origin;
-			pParticle->m_flDieTime = RandomFloat(.04f, .07f);
+			pParticle->m_flDieTime = .07f;
 			pParticle->m_uchStartAlpha = 255;
-			pParticle->m_uchStartSize = RandomFloat(.1f, 2.f) * data.m_flScale;
-			pParticle->m_uchEndSize = RandomFloat(8.f, 14.f) * data.m_flScale;
+			pParticle->m_uchEndAlpha = 255;
+			pParticle->m_uchStartSize = RandomFloat(8.f, 10.f) * data.m_flScale;
+			pParticle->m_uchEndSize = pParticle->m_uchStartSize;
 			pParticle->m_flRoll = RandomFloat(-180.f, 180.f);
 			pParticle->m_flRollDelta = RandomFloat(-1.f, 1.f);
 			pParticle->m_uchColor[0] = 255;
@@ -71,7 +73,7 @@ void HL1MuzzleFlash(const CEffectData& data)
 				pParticle->m_flDieTime = RandomFloat(.1f, .5f);
 				pParticle->m_uchStartAlpha = RandomInt(160, 255);
 				pParticle->m_uchEndAlpha = 0;
-				pParticle->m_uchStartSize = RandomFloat(0.f, 1.f) * data.m_flScale;
+				pParticle->m_uchStartSize = 4 * data.m_flScale;
 				pParticle->m_uchEndSize = RandomFloat(5.f, 15.f) * data.m_flScale;
 				pParticle->m_flRoll = RandomFloat(-180.f, 180.f);
 				pParticle->m_flRollDelta = RandomFloat(-3.f, 3.f);
