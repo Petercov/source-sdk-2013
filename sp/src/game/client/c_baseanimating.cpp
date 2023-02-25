@@ -56,6 +56,7 @@
 #include "tier1/callqueue.h"
 #ifdef MAPBASE
 #include "viewrender.h"
+#include "materialsystem/imaterialvar.h"
 #endif
 
 #ifdef TF_CLIENT_DLL
@@ -5250,9 +5251,34 @@ void C_BaseAnimating::OnDataChanged( DataUpdateType_t updateType )
 
 	if ( (updateType == DATA_UPDATE_CREATED) || modelchanged )
 	{
+		bool bMouthLight = false;
 		ResetLatched();
+
+#ifdef MAPBASE
+		if (pModel)
+		{
+			int nMaterials = modelinfo->GetModelMaterialCount(pModel);
+			if (nMaterials > 0)
+			{
+				IMaterial** ppMaterials = (IMaterial**)stackalloc(sizeof(intp) * nMaterials);
+				modelinfo->GetModelMaterials(pModel, nMaterials, ppMaterials);
+
+				for (int i = 0; i < nMaterials; i++)
+				{
+					static unsigned int nMouthLightCache = 0;
+					IMaterialVar* pVar = ppMaterials[i]->FindVarFast("$mouthlight", &nMouthLightCache);
+					if (pVar && pVar->IsDefined() && pVar->GetIntValue() != 0)
+					{
+						bMouthLight = true;
+						break;
+					}
+				}
+			}
+		}
+#endif // MAPBASE
+
 		// if you have this pose parameter, activate HL1-style lipsync/wave envelope tracking
-		if ( LookupPoseParameter( LIPSYNC_POSEPARAM_NAME ) != -1 )
+		if ( bMouthLight || LookupPoseParameter( LIPSYNC_POSEPARAM_NAME ) != -1 )
 		{
 			MouthInfo().ActivateEnvelope();
 		}

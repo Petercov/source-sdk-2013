@@ -74,6 +74,8 @@ $Project
 			$File	"mapbase\c_vgui_text_display.cpp"
 			$File	"mapbase\c_weapon_custom_hl2.cpp"
 			$File	"mapbase\mapbase_autocubemap.cpp"
+
+			$File	"materialproxy_lightedmouth.cpp"
 		}
 		
 		$Folder "HL2 DLL"
