@@ -1225,3 +1225,17 @@ void CWeaponFlechetteShotgun::SecondaryAttack( void )
 	gamestats->Event_WeaponFired( pPlayer, false, GetClassname() );
 }
 #endif
+
+#ifdef GOREAGULATION_WEAPONS
+class CWeaponGorePumper : public CWeaponShotgun
+{
+public:
+	DECLARE_CLASS(CWeaponGorePumper, CWeaponShotgun);
+	DECLARE_SERVERCLASS();
+};
+
+LINK_ENTITY_TO_CLASS(weapon_gore_shotgun, CWeaponGorePumper);
+
+IMPLEMENT_SERVERCLASS_ST(CWeaponGorePumper, DT_WeaponGorePumper)
+END_SEND_TABLE();
+#endif // GOREAGULATION_WEAPONS

@@ -619,3 +619,17 @@ const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
 
 	return proficiencyTable;
 }
+
+#ifdef GOREAGULATION_WEAPONS
+class CWeaponGoreGun : public CWeaponSMG1
+{
+public:
+	DECLARE_CLASS(CWeaponGoreGun, CWeaponSMG1);
+	DECLARE_SERVERCLASS();
+};
+
+LINK_ENTITY_TO_CLASS(weapon_gore_smg1, CWeaponGoreGun);
+
+IMPLEMENT_SERVERCLASS_ST(CWeaponGoreGun, DT_WeaponGoreGun)
+END_SEND_TABLE();
+#endif // GOREAGULATION_WEAPONS

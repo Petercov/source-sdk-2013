@@ -76,4 +76,12 @@ STUB_WEAPON_CLASS( weapon_arbeit_clipboard, WeaponArbeitClipboard, C_WeaponCitiz
 STUB_WEAPON_CLASS( weapon_flechette_shotgun, WeaponFlechetteShotgun, C_BaseHLCombatWeapon );
 #endif
 
+#ifdef GOREAGULATION_WEAPONS
+STUB_WEAPON_CLASS(weapon_gore_smg1, WeaponGoreGun, C_WeaponSMG1);
+STUB_WEAPON_CLASS(weapon_gore_shotgun, WeaponGorePumper, C_WeaponShotgun);
+STUB_WEAPON_CLASS(weapon_gore_357, WeaponGoreSpinner, C_Weapon357);
+STUB_WEAPON_CLASS(weapon_gore_crowbar, WeaponGoreClub, C_WeaponCrowbar);
+STUB_WEAPON_CLASS(weapon_gore_crossbow, WeaponGoreBow, C_WeaponCrossbow);
+#endif // GOREAGULATION_WEAPONS
+
 #endif

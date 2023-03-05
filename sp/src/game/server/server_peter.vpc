@@ -10,7 +10,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS"
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS"
 	}
 }
 

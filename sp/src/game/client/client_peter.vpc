@@ -9,7 +9,7 @@ $Configuration
 	$Compiler
 	{
 		$AdditionalIncludeDirectories		"$BASE;.\hl1,$SRCDIR\game\shared\hl1"
-		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS"
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS"
 	}
 }
 

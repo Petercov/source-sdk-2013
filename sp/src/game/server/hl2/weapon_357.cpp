@@ -398,3 +398,17 @@ void CWeapon357::PrimaryAttack( void )
 		pPlayer->SetSuitUpdate( "!HEV_AMO0", FALSE, 0 ); 
 	}
 }
+
+#ifdef GOREAGULATION_WEAPONS
+class CWeaponGoreSpinner : public CWeapon357
+{
+public:
+	DECLARE_CLASS(CWeaponGoreSpinner, CWeapon357);
+	DECLARE_SERVERCLASS();
+};
+
+LINK_ENTITY_TO_CLASS(weapon_gore_357, CWeaponGoreSpinner);
+
+IMPLEMENT_SERVERCLASS_ST(CWeaponGoreSpinner, DT_WeaponGoreSpinner)
+END_SEND_TABLE();
+#endif // GOREAGULATION_WEAPONS

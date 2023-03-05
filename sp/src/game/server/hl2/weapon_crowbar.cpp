@@ -224,3 +224,17 @@ void CWeaponCrowbar::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatC
 		break;
 	}
 }
+
+#ifdef GOREAGULATION_WEAPONS
+class CWeaponGoreClub : public CWeaponCrowbar
+{
+public:
+	DECLARE_CLASS(CWeaponGoreClub, CWeaponCrowbar);
+	DECLARE_SERVERCLASS();
+};
+
+LINK_ENTITY_TO_CLASS(weapon_gore_crowbar, CWeaponGoreClub);
+
+IMPLEMENT_SERVERCLASS_ST(CWeaponGoreClub, DT_WeaponGoreClub)
+END_SEND_TABLE();
+#endif // GOREAGULATION_WEAPONS

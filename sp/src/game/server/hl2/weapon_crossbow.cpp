@@ -75,7 +75,7 @@ public:
 	bool CreateVPhysics( void );
 	unsigned int PhysicsSolidMaskForEntity() const;
 #ifdef MAPBASE
-	static CCrossbowBolt *BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner = NULL );
+	static CCrossbowBolt *BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner = NULL, const char* pszModel = NULL);
 
 	void InputSetDamage( inputdata_t &inputdata );
 	float m_flDamage;
@@ -97,35 +97,38 @@ protected:
 };
 LINK_ENTITY_TO_CLASS( crossbow_bolt, CCrossbowBolt );
 
-BEGIN_DATADESC( CCrossbowBolt )
-	// Function Pointers
-	DEFINE_FUNCTION( BubbleThink ),
-	DEFINE_FUNCTION( BoltTouch ),
+BEGIN_DATADESC(CCrossbowBolt)
+// Function Pointers
+DEFINE_FUNCTION(BubbleThink),
+DEFINE_FUNCTION(BoltTouch),
 
-	// These are recreated on reload, they don't need storage
-	DEFINE_FIELD( m_pGlowSprite, FIELD_EHANDLE ),
-	//DEFINE_FIELD( m_pGlowTrail, FIELD_EHANDLE ),
+// These are recreated on reload, they don't need storage
+DEFINE_FIELD(m_pGlowSprite, FIELD_EHANDLE),
+//DEFINE_FIELD( m_pGlowTrail, FIELD_EHANDLE ),
 
 #ifdef MAPBASE
-	DEFINE_KEYFIELD( m_flDamage, FIELD_FLOAT, "Damage" ),
+DEFINE_KEYFIELD(m_flDamage, FIELD_FLOAT, "Damage"),
 
-	// Inputs
-	DEFINE_INPUTFUNC( FIELD_FLOAT, "SetDamage", InputSetDamage ),
+// Inputs
+DEFINE_INPUTFUNC(FIELD_FLOAT, "SetDamage", InputSetDamage),
 #endif
 
 END_DATADESC()
 
-IMPLEMENT_SERVERCLASS_ST( CCrossbowBolt, DT_CrossbowBolt )
-END_SEND_TABLE()
+IMPLEMENT_SERVERCLASS_ST(CCrossbowBolt, DT_CrossbowBolt)
+END_SEND_TABLE();
 
 #ifdef MAPBASE
-CCrossbowBolt *CCrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner )
+CCrossbowBolt *CCrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner, const char* pszModel)
 #else
 CCrossbowBolt *CCrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBasePlayer *pentOwner )
 #endif
 {
 	// Create a new entity with CCrossbowBolt private data
 	CCrossbowBolt *pBolt = (CCrossbowBolt *)CreateEntityByName( "crossbow_bolt" );
+#ifdef MAPBASE
+	pBolt->SetModelName(AllocPooledString(pszModel));
+#endif // MAPBASE
 	UTIL_SetOrigin( pBolt, vecOrigin );
 	pBolt->SetAbsAngles( angAngles );
 	pBolt->Spawn();
@@ -206,9 +209,22 @@ bool CCrossbowBolt::CreateSprites( void )
 //-----------------------------------------------------------------------------
 void CCrossbowBolt::Spawn( void )
 {
+#ifdef MAPBASE
+	const char* szModel = STRING(GetModelName());
+	if (!szModel || !*szModel)
+	{
+		SetModelName(AllocPooledString("models/crossbow_bolt.mdl"));
+	}
+#endif // MAPBASE
+
 	Precache( );
 
-	SetModel( "models/crossbow_bolt.mdl" );
+#ifndef MAPBASE
+	SetModel("models/crossbow_bolt.mdl");
+#else
+	SetModel(szModel);
+#endif // !MAPBASE
+
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
 	UTIL_SetSize( this, -Vector(0.3f,0.3f,0.3f), Vector(0.3f,0.3f,0.3f) );
 	SetSolid( SOLID_BBOX );
@@ -231,10 +247,14 @@ void CCrossbowBolt::Spawn( void )
 
 void CCrossbowBolt::Precache( void )
 {
-	PrecacheModel( BOLT_MODEL );
+#ifndef MAPBASE
+	PrecacheModel(BOLT_MODEL);
 
 	// This is used by C_TEStickyBolt, despte being different from above!!!
-	PrecacheModel( "models/crossbow_bolt.mdl" );
+	PrecacheModel("models/crossbow_bolt.mdl");
+#else
+	PrecacheModel(STRING(GetModelName()));
+#endif // !MAPBASE
 
 	PrecacheModel( "sprites/light_glow02_noz.vmt" );
 }
@@ -985,7 +1005,11 @@ void CWeaponCrossbow::FireBolt( void )
 	}
 #endif
 
-	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecSrc, angAiming, pOwner );
+	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecSrc, angAiming, pOwner
+#ifdef MAPBASE
+		, GetSecondaryWorldModel()
+#endif // MAPBASE
+	);
 
 	if ( pOwner->GetWaterLevel() == 3 )
 	{
@@ -1046,7 +1070,11 @@ void CWeaponCrossbow::FireNPCBolt( CAI_BaseNPC *pOwner, Vector &vecShootOrigin, 
 	QAngle angAiming;
 	VectorAngles( vecShootDir, angAiming );
 
-	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecShootOrigin, angAiming, pOwner );
+	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecShootOrigin, angAiming, pOwner
+#ifdef MAPBASE
+		, GetSecondaryWorldModel()
+#endif // MAPBASE
+	);
 
 	if ( pOwner->GetWaterLevel() == 3 )
 	{
@@ -1403,3 +1431,17 @@ void CWeaponCrossbow::Drop( const Vector &vecVelocity )
 	StopEffects();
 	BaseClass::Drop( vecVelocity );
 }
+
+#ifdef GOREAGULATION_WEAPONS
+class CWeaponGoreBow : public CWeaponCrossbow
+{
+public:
+	DECLARE_CLASS(CWeaponGoreBow, CWeaponCrossbow);
+	DECLARE_SERVERCLASS();
+};
+
+LINK_ENTITY_TO_CLASS(weapon_gore_crossbow, CWeaponGoreBow);
+
+IMPLEMENT_SERVERCLASS_ST(CWeaponGoreBow, DT_WeaponGoreBow)
+END_SEND_TABLE();
+#endif // GOREAGULATION_WEAPONS
