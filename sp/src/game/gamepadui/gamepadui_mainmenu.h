@@ -42,6 +42,9 @@ public:
 
     void OnKeyCodeReleased( vgui::KeyCode code );
 
+#ifdef MAPBASE
+    vgui::HFont GetButtonGlyphFont();
+#endif // MAPBASE
 private:
 
     void UpdateButtonVisibility();
@@ -67,6 +70,10 @@ private:
     GAMEPADUI_PANEL_PROPERTY( Color, m_colLogoColor, "Logo", "255 255 255 255", SchemeValueTypes::Color );
 
     vgui::HFont m_hLogoFont;
+
+#ifdef MAPBASE
+    vgui::HFont m_hButtonFont, m_hButtonFontPS3;
+#endif // MAPBASE
 };
 
 #endif

@@ -224,3 +224,10 @@ GamepadUIMainMenu* GamepadUI::GetMainMenu() const
 {
     return static_cast<GamepadUIMainMenu*>( GetMainMenuPanel() );
 }
+
+#ifdef MAPBASE
+vgui::HFont GamepadUI::GetButtonGlyphFont()
+{
+    return GetMainMenu()->GetButtonGlyphFont();
+}
+#endif // MAPBASE

@@ -80,6 +80,9 @@ public:
 	
     float GetScreenRatio() const { return m_flScreenRatio; }
 
+#ifdef MAPBASE
+    vgui::HFont GetButtonGlyphFont();
+#endif // MAPBASE
 private:
 
     IEngineSound            *m_pEngineSound            = NULL;

@@ -30,11 +30,15 @@ struct chapter_t;
 // TODO - merge these into scheme config?
 bool GameHasCommentary()
 {
-    const char *pszGameDir = CommandLine()->ParmValue( "-game", CommandLine()->ParmValue( "-defaultgamedir", "hl2" ) );
-    return !V_strcmp( pszGameDir, "episodic" ) ||
-           !V_strcmp( pszGameDir, "ep2" ) ||
-           !V_strcmp( pszGameDir, "portal" ) ||
-           !V_strcmp( pszGameDir, "lostcoast" );
+#ifndef MAPBASE
+    const char* pszGameDir = CommandLine()->ParmValue("-game", CommandLine()->ParmValue("-defaultgamedir", "hl2"));
+    return !V_strcmp(pszGameDir, "episodic") ||
+        !V_strcmp(pszGameDir, "ep2") ||
+        !V_strcmp(pszGameDir, "portal") ||
+        !V_strcmp(pszGameDir, "lostcoast");
+#else
+    return true;
+#endif // !MAPBASE
 }
 
 bool GameHasBonusMaps()
