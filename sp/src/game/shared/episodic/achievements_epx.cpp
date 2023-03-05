@@ -24,11 +24,13 @@ protected:
 		SetFlags( ACH_SAVE_GLOBAL );
 		SetGoal( 1 );
 
-		if ( IsPC() )
+#ifndef MAPBASE
+		if (IsPC())
 		{
 			// only in Ep2 for PC. (Shared across EPX for X360.)
-			SetGameDirFilter( "ep2" );
+			SetGameDirFilter("ep2");
 		}
+#endif // !MAPBASE
 	}
 
 	virtual void ListenForEvents()
@@ -69,11 +71,13 @@ protected:
 		SetFlags( ACH_SAVE_WITH_GAME );
 		SetGoal( 15 );
 
-		if ( IsPC() )
+#ifndef MAPBASE
+		if (IsPC())
 		{
 			// only in Ep1 for PC. (Shared across EPX for X360.)
-			SetGameDirFilter( "episodic" );
+			SetGameDirFilter("episodic");
 		}
+#endif // !MAPBASE
 	}
 
 	virtual void ListenForEvents()

@@ -12,7 +12,9 @@
 #include "achievementmgr.h"
 #include "baseachievement.h"
 
-CAchievementMgr g_AchievementMgrHL2;	// global achievement mgr for HL2
+#ifndef HL2_EPISODIC
+CAchievementMgr g_AchievementMgrHL2;	// global achievement mgr for HL2  
+#endif // !HL2_EPISODIC
 
 class CAchievementHL2KillBarnaclesWithOneBarrel : public CBaseAchievement
 {

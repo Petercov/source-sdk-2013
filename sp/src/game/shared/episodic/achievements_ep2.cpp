@@ -24,7 +24,9 @@ protected:
 	{
 		SetVictimFilter( "npc_antlion" );
 		SetFlags( ACH_LISTEN_PLAYER_KILL_ENEMY_EVENTS | ACH_SAVE_WITH_GAME );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( 1 );
 	}
 
@@ -47,7 +49,9 @@ protected:
 	{
 		SetVictimFilter( "npc_antlion_grub" );
 		SetFlags( ACH_LISTEN_KILL_EVENTS | ACH_SAVE_WITH_GAME );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( 333 );
 	}
 };
@@ -61,7 +65,9 @@ protected:
 	{
 		SetFlags( ACH_LISTEN_KILL_ENEMY_EVENTS | ACH_SAVE_WITH_GAME );
 		SetInflictorFilter( "prop_vehicle_jeep" );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( 20 );
 	}
 
@@ -86,7 +92,9 @@ protected:
 		SetFlags( ACH_LISTEN_KILL_EVENTS | ACH_SAVE_WITH_GAME );
 		SetVictimFilter( "npc_hunter" );
 		SetInflictorFilter( "hunter_flechette" );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( 1 );
 	}
 };
@@ -105,7 +113,9 @@ class CAchievementEp2FindAllWebCaches : public CBaseAchievement
 		m_pszComponentNames = szComponents;
 		m_iNumComponents = ARRAYSIZE( szComponents );
 		SetComponentPrefix( "EP2_WEBCACHE" );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( m_iNumComponents );
 	}
 
@@ -121,7 +131,9 @@ protected:
 	void Init() 
 	{
 		SetFlags( ACH_LISTEN_MAP_EVENTS | ACH_SAVE_WITH_GAME );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( 1 );
 	}
 
@@ -157,18 +169,29 @@ class CAchievementEp2FindAllRadarCaches : public CBaseAchievement
 		m_pszComponentNames = szComponents;
 		m_iNumComponents = ARRAYSIZE( szComponents );
 		SetComponentPrefix( "EP2_RADARCACHE" );
-		SetGameDirFilter( "ep2" );
+#ifndef MAPBASE
+		SetGameDirFilter("ep2");
+#endif // !MAPBASE
 		SetGoal( m_iNumComponents );
 	}
 };
 DECLARE_ACHIEVEMENT( CAchievementEp2FindAllRadarCaches, ACHIEVEMENT_EP2_FIND_ALLRADARCACHES, "EP2_FIND_ALLRADARCACHES", 10 );
 
+#ifndef MAPBASE
 // Ep2-specific macro that sets game dir filter.  We need this because Ep1/Ep2/... share a binary so we need runtime check against running game.
 #define DECLARE_EP2_MAP_EVENT_ACHIEVEMENT( achievementID, achievementName, iPointValue )					\
 	DECLARE_MAP_EVENT_ACHIEVEMENT_( achievementID, achievementName, "ep2", iPointValue, false )
 
 #define DECLARE_EP2_MAP_EVENT_ACHIEVEMENT_HIDDEN( achievementID, achievementName, iPointValue )					\
-	DECLARE_MAP_EVENT_ACHIEVEMENT_( achievementID, achievementName, "ep2", iPointValue, true )
+	DECLARE_MAP_EVENT_ACHIEVEMENT_( achievementID, achievementName, "ep2", iPointValue, true ) 
+#else
+#define DECLARE_EP2_MAP_EVENT_ACHIEVEMENT( achievementID, achievementName, iPointValue )					\
+	DECLARE_MAP_EVENT_ACHIEVEMENT_( achievementID, achievementName, NULL, iPointValue, false )
+
+#define DECLARE_EP2_MAP_EVENT_ACHIEVEMENT_HIDDEN( achievementID, achievementName, iPointValue )					\
+	DECLARE_MAP_EVENT_ACHIEVEMENT_( achievementID, achievementName, NULL, iPointValue, true ) 
+#endif // !MAPBASE
+
 
 // achievements which are won by a map event firing once
 DECLARE_EP2_MAP_EVENT_ACHIEVEMENT( ACHIEVEMENT_EP2_BEAT_ANTLIONINVASION, "EP2_BEAT_ANTLIONINVASION", 5 );
