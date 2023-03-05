@@ -23,6 +23,10 @@
 #include "soundent.h"
 #include "entitylist.h"
 #include "game.h"
+#include "hl1_basegrenade.h"
+#ifdef MAPBASE
+#include "ai_basenpc.h"
+#endif // MAPBASE
 #endif
 #include "vstdlib/random.h"
 #include "engine/IEngineSound.h"
@@ -84,7 +88,7 @@ public:
 	bool CreateVPhysics( void );
 	unsigned int PhysicsSolidMaskForEntity() const;
 
-	static CHL1CrossbowBolt *BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBasePlayer *pentOwner = NULL );
+	static CHL1CrossbowBolt *BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner = NULL );
 
 	DECLARE_DATADESC();
 
@@ -98,14 +102,14 @@ LINK_ENTITY_TO_CLASS(hl1_crossbow_bolt, CHL1CrossbowBolt);
 #endif // HL1_DLL
 
 
-BEGIN_DATADESC( CHL1CrossbowBolt )
-	// Function Pointers
-	DEFINE_FUNCTION( BubbleThink ),
-	DEFINE_FUNCTION( BoltTouch ),
-    DEFINE_FUNCTION( ExplodeThink ),
-END_DATADESC()
+BEGIN_DATADESC(CHL1CrossbowBolt)
+// Function Pointers
+DEFINE_FUNCTION(BubbleThink),
+DEFINE_FUNCTION(BoltTouch),
+DEFINE_FUNCTION(ExplodeThink),
+END_DATADESC();
 
-CHL1CrossbowBolt *CHL1CrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBasePlayer *pentOwner )
+CHL1CrossbowBolt *CHL1CrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner )
 {
 	// Create a new entity with CHL1CrossbowBolt private data
 #ifdef HL1_DLL
@@ -212,7 +216,7 @@ void CHL1CrossbowBolt::BoltTouch( CBaseEntity *pOther )
 			DispatchEffect( "BoltImpact", data );
 		}
 
-        if ( !g_pGameRules->IsMultiplayer() || !m_bExplode )
+        if ( /*!g_pGameRules->IsMultiplayer() ||*/ !m_bExplode )
 		{
 			UTIL_Remove( this );
 		}
@@ -246,7 +250,7 @@ void CHL1CrossbowBolt::BoltTouch( CBaseEntity *pOther )
 	}
 
     // Set up an explosion in one tenth of a second
-	if ( g_pGameRules->IsMultiplayer() && m_bExplode )
+	if ( /*g_pGameRules->IsMultiplayer() &&*/ m_bExplode )
 	{
         SetThink( &CHL1CrossbowBolt::ExplodeThink );
         SetNextThink( gpGlobals->curtime + 0.1f );
@@ -269,13 +273,15 @@ void CHL1CrossbowBolt::ExplodeThink( void )
                    g_sModelIndexFireball, /* modelindex */
                    0.2,                   /* scale  */
                    25,                    /* framerate */
-                   TE_EXPLFLAG_NONE,      /* flags */
+				   TE_EXPLFLAG_NOSOUND,      /* flags */
                    128,                   /* radius */
                    64,                    /* magnitude */
                    NULL,                  /* normal */
                    'C' );                 /* materialType */
 
-	//CSoundEnt::InsertSound ( SOUND_COMBAT, GetAbsOrigin(), BASEGRENADE_EXPLOSION_VOLUME, 3.0 );
+	EmitSound(filter, SOUND_FROM_WORLD, "HL1ExplosionEffect.Sound", &GetAbsOrigin());
+
+	CSoundEnt::InsertSound ( SOUND_COMBAT, GetAbsOrigin(), BASEGRENADE_EXPLOSION_VOLUME, 3.0 );
 	EmitSound( "BaseGrenade.Explode" );    
 #endif
 
@@ -353,8 +359,29 @@ public:
 //	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 
+#ifdef MAPBASE
+	DECLARE_ACTTABLE();
 #ifndef CLIENT_DLL
-//	DECLARE_ACTTABLE();
+	virtual void	NPC_PrimaryFire();
+	virtual bool	NPC_HasAltFire(void) { return true; }
+	virtual void	Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
+
+	int		CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
+
+	virtual int	GetMinBurst() { return 1; }
+	virtual int	GetMaxBurst() { return 3; }
+
+	virtual float	GetMinRestTime(void) { return 3.0f; } // 1.5f
+	virtual float	GetMaxRestTime(void) { return 5.0f; } // 2.0f
+
+	virtual float GetFireRate(void) { return 1.0f; }
+
+	virtual const Vector& GetBulletSpread(void)
+	{
+		static Vector NPCCone = VECTOR_CONE_2DEGREES;
+		return NPCCone;
+	}
+#endif // MAPBASE
 #endif
 
 	virtual bool			IsWeaponZoomed() { return m_fInZoom.Get(); }
@@ -417,6 +444,133 @@ IMPLEMENT_ACTTABLE(CHL1WeaponCrossbow);
 
 #endif
 #endif
+
+#ifdef MAPBASE
+acttable_t	CHL1WeaponCrossbow::m_acttable[] =
+{
+#if EXPANDED_HL2_WEAPON_ACTIVITIES
+	{ ACT_RANGE_ATTACK1,			ACT_RANGE_ATTACK_CROSSBOW,		true },
+	{ ACT_RELOAD,					ACT_RELOAD_SMG1,			true },
+	{ ACT_IDLE,						ACT_IDLE_CROSSBOW,				true },
+	{ ACT_IDLE_ANGRY,				ACT_IDLE_ANGRY_CROSSBOW,		true },
+
+// Readiness activities (not aiming)
+	{ ACT_IDLE_RELAXED,				ACT_IDLE_CROSSBOW_RELAXED,			false },//never aims
+	{ ACT_IDLE_STIMULATED,			ACT_IDLE_CROSSBOW_STIMULATED,		false },
+	{ ACT_IDLE_AGITATED,			ACT_IDLE_ANGRY_CROSSBOW,			false },//always aims
+
+	{ ACT_WALK_RELAXED,				ACT_WALK_CROSSBOW_RELAXED,			false },//never aims
+	{ ACT_WALK_STIMULATED,			ACT_WALK_CROSSBOW_STIMULATED,		false },
+	{ ACT_WALK_AGITATED,			ACT_WALK_AIM_CROSSBOW,				false },//always aims
+
+	{ ACT_RUN_RELAXED,				ACT_RUN_CROSSBOW_RELAXED,			false },//never aims
+	{ ACT_RUN_STIMULATED,			ACT_RUN_CROSSBOW_STIMULATED,		false },
+	{ ACT_RUN_AGITATED,				ACT_RUN_AIM_CROSSBOW,				false },//always aims
+
+// Readiness activities (aiming)
+	{ ACT_IDLE_AIM_RELAXED,			ACT_IDLE_CROSSBOW_RELAXED,			false },//never aims	
+	{ ACT_IDLE_AIM_STIMULATED,		ACT_IDLE_AIM_CROSSBOW_STIMULATED,	false },
+	{ ACT_IDLE_AIM_AGITATED,		ACT_IDLE_ANGRY_CROSSBOW,			false },//always aims
+
+	{ ACT_WALK_AIM_RELAXED,			ACT_WALK_CROSSBOW_RELAXED,			false },//never aims
+	{ ACT_WALK_AIM_STIMULATED,		ACT_WALK_AIM_CROSSBOW_STIMULATED,	false },
+	{ ACT_WALK_AIM_AGITATED,		ACT_WALK_AIM_CROSSBOW,				false },//always aims
+
+	{ ACT_RUN_AIM_RELAXED,			ACT_RUN_CROSSBOW_RELAXED,			false },//never aims
+	{ ACT_RUN_AIM_STIMULATED,		ACT_RUN_AIM_CROSSBOW_STIMULATED,	false },
+	{ ACT_RUN_AIM_AGITATED,			ACT_RUN_AIM_CROSSBOW,				false },//always aims
+//End readiness activities
+
+	{ ACT_WALK,						ACT_WALK_CROSSBOW,				true },
+	{ ACT_WALK_AIM,					ACT_WALK_AIM_CROSSBOW,				true },
+	{ ACT_WALK_CROUCH,				ACT_WALK_CROUCH_RIFLE,				true },
+	{ ACT_WALK_CROUCH_AIM,			ACT_WALK_CROUCH_AIM_RIFLE,			true },
+	{ ACT_RUN,						ACT_RUN_CROSSBOW,					true },
+	{ ACT_RUN_AIM,					ACT_RUN_AIM_CROSSBOW,				true },
+	{ ACT_RUN_CROUCH,				ACT_RUN_CROUCH_RIFLE,				true },
+	{ ACT_RUN_CROUCH_AIM,			ACT_RUN_CROUCH_AIM_RIFLE,			true },
+	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_GESTURE_RANGE_ATTACK_CROSSBOW,	true },
+	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_CROSSBOW_LOW,		true },
+	{ ACT_COVER_LOW,				ACT_COVER_CROSSBOW_LOW,				false },
+	{ ACT_RANGE_AIM_LOW,			ACT_RANGE_AIM_CROSSBOW_LOW,			false },
+	{ ACT_RELOAD_LOW,				ACT_RELOAD_SMG1_LOW,			false },
+	{ ACT_GESTURE_RELOAD,			ACT_GESTURE_RELOAD_SMG1,		true },
+
+	{ ACT_ARM,						ACT_ARM_RIFLE,					false },
+	{ ACT_DISARM,					ACT_DISARM_RIFLE,				false },
+#else
+	{ ACT_RANGE_ATTACK1,			ACT_RANGE_ATTACK_SMG1,			true },
+	{ ACT_RELOAD,					ACT_RELOAD_SMG1,				true },
+	{ ACT_IDLE,						ACT_IDLE_SMG1,					true },
+	{ ACT_IDLE_ANGRY,				ACT_IDLE_ANGRY_SMG1,			true },
+
+	{ ACT_WALK,						ACT_WALK_RIFLE,					true },
+	{ ACT_WALK_AIM,					ACT_WALK_AIM_RIFLE,				true  },
+	
+// Readiness activities (not aiming)
+	{ ACT_IDLE_RELAXED,				ACT_IDLE_SMG1_RELAXED,			false },//never aims
+	{ ACT_IDLE_STIMULATED,			ACT_IDLE_SMG1_STIMULATED,		false },
+	{ ACT_IDLE_AGITATED,			ACT_IDLE_ANGRY_SMG1,			false },//always aims
+
+	{ ACT_WALK_RELAXED,				ACT_WALK_RIFLE_RELAXED,			false },//never aims
+	{ ACT_WALK_STIMULATED,			ACT_WALK_RIFLE_STIMULATED,		false },
+	{ ACT_WALK_AGITATED,			ACT_WALK_AIM_RIFLE,				false },//always aims
+
+	{ ACT_RUN_RELAXED,				ACT_RUN_RIFLE_RELAXED,			false },//never aims
+	{ ACT_RUN_STIMULATED,			ACT_RUN_RIFLE_STIMULATED,		false },
+	{ ACT_RUN_AGITATED,				ACT_RUN_AIM_RIFLE,				false },//always aims
+
+// Readiness activities (aiming)
+	{ ACT_IDLE_AIM_RELAXED,			ACT_IDLE_SMG1_RELAXED,			false },//never aims	
+	{ ACT_IDLE_AIM_STIMULATED,		ACT_IDLE_AIM_RIFLE_STIMULATED,	false },
+	{ ACT_IDLE_AIM_AGITATED,		ACT_IDLE_ANGRY_SMG1,			false },//always aims
+
+	{ ACT_WALK_AIM_RELAXED,			ACT_WALK_RIFLE_RELAXED,			false },//never aims
+	{ ACT_WALK_AIM_STIMULATED,		ACT_WALK_AIM_RIFLE_STIMULATED,	false },
+	{ ACT_WALK_AIM_AGITATED,		ACT_WALK_AIM_RIFLE,				false },//always aims
+
+	{ ACT_RUN_AIM_RELAXED,			ACT_RUN_RIFLE_RELAXED,			false },//never aims
+	{ ACT_RUN_AIM_STIMULATED,		ACT_RUN_AIM_RIFLE_STIMULATED,	false },
+	{ ACT_RUN_AIM_AGITATED,			ACT_RUN_AIM_RIFLE,				false },//always aims
+//End readiness activities
+
+	{ ACT_WALK_AIM,					ACT_WALK_AIM_RIFLE,				true },
+	{ ACT_WALK_CROUCH,				ACT_WALK_CROUCH_RIFLE,			true },
+	{ ACT_WALK_CROUCH_AIM,			ACT_WALK_CROUCH_AIM_RIFLE,		true },
+	{ ACT_RUN,						ACT_RUN_RIFLE,					true },
+	{ ACT_RUN_AIM,					ACT_RUN_AIM_RIFLE,				true },
+	{ ACT_RUN_CROUCH,				ACT_RUN_CROUCH_RIFLE,			true },
+	{ ACT_RUN_CROUCH_AIM,			ACT_RUN_CROUCH_AIM_RIFLE,		true },
+	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_GESTURE_RANGE_ATTACK_SMG1,	true },
+	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_SMG1_LOW,		true },
+	{ ACT_COVER_LOW,				ACT_COVER_SMG1_LOW,				false },
+	{ ACT_RANGE_AIM_LOW,			ACT_RANGE_AIM_SMG1_LOW,			false },
+	{ ACT_RELOAD_LOW,				ACT_RELOAD_SMG1_LOW,			false },
+	{ ACT_GESTURE_RELOAD,			ACT_GESTURE_RELOAD_SMG1,		true },
+#endif
+
+#if EXPANDED_HL2_COVER_ACTIVITIES
+	{ ACT_RANGE_AIM_MED,			ACT_RANGE_AIM_CROSSBOW_MED,			false },
+	{ ACT_RANGE_ATTACK1_MED,		ACT_RANGE_ATTACK_CROSSBOW_MED,		false },
+#endif
+
+	// HL2:DM activities (for third-person animations in SP)
+	{ ACT_HL2MP_IDLE,                    ACT_HL2MP_IDLE_CROSSBOW,                    false },
+	{ ACT_HL2MP_RUN,                    ACT_HL2MP_RUN_CROSSBOW,                    false },
+	{ ACT_HL2MP_IDLE_CROUCH,            ACT_HL2MP_IDLE_CROUCH_CROSSBOW,            false },
+	{ ACT_HL2MP_WALK_CROUCH,            ACT_HL2MP_WALK_CROUCH_CROSSBOW,            false },
+	{ ACT_HL2MP_GESTURE_RANGE_ATTACK,    ACT_HL2MP_GESTURE_RANGE_ATTACK_CROSSBOW,    false },
+	{ ACT_HL2MP_GESTURE_RELOAD,            ACT_HL2MP_GESTURE_RELOAD_SMG1,        false },
+	{ ACT_HL2MP_JUMP,                    ACT_HL2MP_JUMP_CROSSBOW,                    false },
+#if EXPANDED_HL2DM_ACTIVITIES
+	{ ACT_HL2MP_WALK,					ACT_HL2MP_WALK_CROSSBOW,					false },
+	{ ACT_HL2MP_GESTURE_RANGE_ATTACK2,	ACT_HL2MP_GESTURE_RANGE_ATTACK2_CROSSBOW,    false },
+#endif
+};
+
+IMPLEMENT_ACTTABLE(CHL1WeaponCrossbow);
+#endif // MAPBASE
+
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
@@ -681,3 +835,83 @@ void CHL1WeaponCrossbow::ToggleZoom( void )
 	}
 #endif
 }
+
+#ifdef MAPBASE
+#ifndef CLIENT_DLL
+void CHL1WeaponCrossbow::NPC_PrimaryFire()
+{
+	if (m_iClip1 <= 0)
+	{
+		WeaponSound(EMPTY);
+		return;
+	}
+
+	WeaponSound(SINGLE_NPC);
+
+	CAI_BaseNPC* pNPC = GetOwner()->MyNPCPointer();
+	if (!pNPC)
+		return;
+
+	Vector vecSrc = pNPC->Weapon_ShootPosition();
+	Vector vecShootDir = pNPC->GetActualShootTrajectory(vecSrc);
+
+	QAngle angAiming;
+	VectorAngles(vecShootDir, angAiming);
+	CHL1CrossbowBolt* pBolt = CHL1CrossbowBolt::BoltCreate(vecSrc, angAiming, pNPC);
+
+	if (pNPC->GetWaterLevel() == 3)
+	{
+		pBolt->SetAbsVelocity(vecShootDir * BOLT_WATER_VELOCITY);
+	}
+	else
+	{
+		pBolt->SetAbsVelocity(vecShootDir * BOLT_AIR_VELOCITY);
+	}
+
+	pBolt->SetLocalAngularVelocity(QAngle(0, 0, 10));
+	pBolt->SetExplode(false);
+
+	m_iClip1--;
+}
+
+void CHL1WeaponCrossbow::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
+{
+	switch (pEvent->event)
+	{
+	case EVENT_WEAPON_AR2_ALTFIRE:
+	{
+		WeaponSound(SINGLE_NPC);
+
+		CAI_BaseNPC* pNPC = GetOwner()->MyNPCPointer();
+		if (!pNPC)
+			return;
+
+		Vector vecSrc = pNPC->Weapon_ShootPosition();
+		Vector vecTarget = pNPC->GetAltFireTarget();
+		Vector vecShootDir = vecTarget - vecSrc;
+		VectorNormalize(vecShootDir);
+
+		QAngle angAiming;
+		VectorAngles(vecShootDir, angAiming);
+		CHL1CrossbowBolt* pBolt = CHL1CrossbowBolt::BoltCreate(vecSrc, angAiming, pNPC);
+
+		if (pNPC->GetWaterLevel() == 3)
+		{
+			pBolt->SetAbsVelocity(vecShootDir * BOLT_WATER_VELOCITY);
+		}
+		else
+		{
+			pBolt->SetAbsVelocity(vecShootDir * BOLT_AIR_VELOCITY);
+		}
+
+		pBolt->SetLocalAngularVelocity(QAngle(0, 0, 10));
+		pBolt->SetExplode(true);
+	}
+	break;
+	default:
+		BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
+		break;
+	}
+}
+#endif // !CLIENT_DLL
+#endif // MAPBASE

@@ -71,13 +71,18 @@ public:
 		}
 		return false;
 	}
+
+#ifdef MAPBASE
+	// Used to access item_healthkit values, etc. from outside of the class
+	virtual float GetItemAmount() { return sk_batteryhl1.GetFloat(); }
+#endif // MAPBASE
 };
 
 #ifdef HL1_DLL
 LINK_ENTITY_TO_CLASS(item_battery, CItemBatteryHL1);
 PRECACHE_REGISTER(item_battery);
 #else
-LINK_ENTITY_TO_CLASS(item_hl1_battery, CItemBatteryHL1);
+LINK_ENTITY_TO_CLASS(item_battery_hl1, CItemBatteryHL1);
 #endif // HL1_DLL
 
 

@@ -122,9 +122,11 @@ void CGrenadeMP5::Detonate(void)
 		GetWaterLevel() == 0 ? g_sModelIndexFireball : g_sModelIndexWExplosion,
 		(m_flDamage - 50) * .60, 
 		15,
-		TE_EXPLFLAG_NONE,
+		TE_EXPLFLAG_NOSOUND,
 		m_DmgRadius,
 		m_flDamage );
+
+	EmitSound(filter, SOUND_FROM_WORLD, "HL1ExplosionEffect.Sound", &GetAbsOrigin());
 
 	trace_t tr;	
 	tr = CBaseEntity::GetTouchTrace();

@@ -330,6 +330,12 @@ int CHL1Weapon357::ActivityListCount(void)
 
 void CHL1Weapon357::NPC_PrimaryFire()
 {
+	if (m_iClip1 <= 0)
+	{
+		WeaponSound(EMPTY);
+		return;
+	}
+
 	CAI_BaseNPC* pAI = GetOwner()->MyNPCPointer();
 	if (!pAI)
 		return;

@@ -61,6 +61,6 @@ public:
 LINK_ENTITY_TO_CLASS(item_suit, CItemSuitHL1);
 PRECACHE_REGISTER(item_suit);
 #else
-LINK_ENTITY_TO_CLASS(item_hl1_suit, CItemSuitHL1);
+LINK_ENTITY_TO_CLASS(item_suit_hl1, CItemSuitHL1);
 #endif // HL1_DLL
 

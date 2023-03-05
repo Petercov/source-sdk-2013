@@ -28,13 +28,18 @@ public:
 	void Spawn( void );
 	void Precache( void );
 	bool MyTouch( CBasePlayer *pPlayer );
+
+#ifdef MAPBASE
+	// Used to access item_healthkit values, etc. from outside of the class
+	virtual float GetItemAmount() { return sk_healthkit_hl1.GetFloat(); }
+#endif // MAPBASE
 };
 
 #ifdef HL1_DLL
 LINK_ENTITY_TO_CLASS(item_healthkit, CHealthKitHL1);
 PRECACHE_REGISTER(item_healthkit);
 #else
-LINK_ENTITY_TO_CLASS(item_hl1_healthkit, CHealthKitHL1);
+LINK_ENTITY_TO_CLASS(item_healthkit_hl1, CHealthKitHL1);
 #endif // HL1_DLL
 
 
@@ -147,13 +152,18 @@ public:
 
 		return false;
 	}
+
+#ifdef MAPBASE
+	// Used to access item_healthkit values, etc. from outside of the class
+	virtual float GetItemAmount() { return sk_healthvial_hl1.GetFloat(); }
+#endif // MAPBASE
 };
 
 #ifdef HL1_DLL
 LINK_ENTITY_TO_CLASS(item_healthvial, CHealthVialHL1);
 PRECACHE_REGISTER(item_healthvial);
 #else
-LINK_ENTITY_TO_CLASS(item_hl1_healthvial, CHealthVialHL1);
+LINK_ENTITY_TO_CLASS(item_healthvial_hl1, CHealthVialHL1);
 #endif // HL1_DLL
 
 //-----------------------------------------------------------------------------
