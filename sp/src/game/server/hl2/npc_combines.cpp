@@ -31,6 +31,7 @@
 #ifdef MAPBASE
 #define COMBINE_SKIN_DEFAULT		0
 #define COMBINE_SKIN_SHOTGUNNER		1
+#define COMBINE_SKIN_GRENADIER		2
 
 ConVar sk_combine_armor_chance("sk_combine_armor_chance", "0.25");
 ConVar sk_combine_armor_dmgscale("sk_combine_armor_damage_scale", "0.4");
@@ -96,9 +97,19 @@ void CNPC_CombineS::Spawn( void )
 
 #ifdef MAPBASE
 	// This was moved from CalcWeaponProficiency() so soldiers don't change skin unnaturally and uncontrollably
-	if (!IsElite() && GetActiveWeapon() && EntIsClass(GetActiveWeapon(), gm_isz_class_Shotgun) && m_nSkin == COMBINE_SKIN_DEFAULT)
+	if (!IsElite() && GetActiveWeapon() && m_nSkin == COMBINE_SKIN_DEFAULT)
 	{
-		m_nSkin = COMBINE_SKIN_SHOTGUNNER;
+		switch (GetActiveWeapon()->WeaponClassify())
+		{
+		case WEPCLASS_SHOTGUN:
+			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
+			break;
+		case WEPCLASS_HEAVY:
+			m_nSkin = COMBINE_SKIN_GRENADIER;
+			break;
+		default:
+			break;
+		}
 	}
 
 	int iArmor = FindBodygroupByName("chestplate");
