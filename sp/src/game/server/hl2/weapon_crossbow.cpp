@@ -416,6 +416,7 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 				data.m_vOrigin = tr2.endpos;
 				data.m_vNormal = vForward;
 				data.m_nEntIndex = tr2.fraction != 1.0f;
+				data.m_nMaterial = GetModelIndex();
 			
 				DispatchEffect( "BoltImpact", data );
 			}
@@ -479,6 +480,7 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 				data.m_vOrigin = tr.endpos;
 				data.m_vNormal = vForward;
 				data.m_nEntIndex = 0;
+				data.m_nMaterial = GetModelIndex();
 			
 				DispatchEffect( "BoltImpact", data );
 				
