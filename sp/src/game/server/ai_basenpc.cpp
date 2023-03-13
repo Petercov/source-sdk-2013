@@ -956,6 +956,54 @@ bool CAI_BaseNPC::PassesDamageFilter( const CTakeDamageInfo &info )
 	return true;
 }
 
+#ifdef MAPBASE
+int CAI_BaseNPC::OnTakeDamage(const CTakeDamageInfo& inputInfo)
+{
+	CTakeDamageInfo info = inputInfo;
+
+	if (info.GetDamage() && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION))) // armor doesn't protect against fall or drown damage!
+	{
+		if (m_flArmorBonus <= 0.f) // Constant damage reduction
+		{
+			float flNew = info.GetDamage() * m_flArmorRatio;
+			info.SetDamage(flNew);
+		}
+		else if (m_ArmorValue) // Player-like depletable armor
+		{
+			float flNew = info.GetDamage() * m_flArmorRatio;
+
+			float flArmor;
+
+			flArmor = (info.GetDamage() - flNew) * m_flArmorBonus;
+
+			if (flArmor < 1.0)
+			{
+				flArmor = 1.0;
+			}
+
+			ArmorDamageEffect(info, flArmor);
+
+			// Does this use more armor than we have?
+			if (flArmor > m_ArmorValue)
+			{
+				flArmor = m_ArmorValue;
+				flArmor *= (1 / m_flArmorBonus);
+				flNew = info.GetDamage() - flArmor;
+				m_ArmorValue = 0;
+			}
+			else
+			{
+				m_ArmorValue -= flArmor;
+			}
+
+			info.SetDamage(flNew);
+		}
+	}
+
+	return BaseClass::OnTakeDamage(info);
+}
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose:
 // Input  :
@@ -10595,6 +10643,24 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		text_offset++;
 
 		// --------------
+		// Print Armor
+		// --------------
+#ifdef MAPBASE
+		if (m_flArmorBonus <= 0.f)
+		{
+			Q_snprintf(tempstr, sizeof(tempstr), "Damage Reduction: %1.2f%%", (1.f - m_flArmorRatio) * 100.f);
+			EntityText(text_offset, tempstr, 0, r, g, b);
+			text_offset++;
+		}
+		else
+		{
+			Q_snprintf(tempstr, sizeof(tempstr), "Armor: %i  (Bonus:%1.2f DR: %1.2f%%)", m_ArmorValue, m_flArmorBonus, (1.f - m_flArmorRatio) * 100.f);
+			EntityText(text_offset, tempstr, 0, r, g, b);
+			text_offset++;
+		}
+#endif // MAPBASE
+
+		// --------------
 		// Print State
 		// --------------
 		static const char *pStateNames[] = { "None", "Idle", "Alert", "Combat", "Scripted", "PlayDead", "Dead" };
@@ -12376,6 +12442,10 @@ BEGIN_DATADESC( CAI_BaseNPC )
 	DEFINE_KEYFIELD( m_flSpeedModifier, FIELD_FLOAT, "BaseSpeedModifier" ),
 	DEFINE_FIELD( m_FakeSequenceGestureLayer,	FIELD_INTEGER ),
 	DEFINE_FIELD(m_bInteractionMadeDeathSound, FIELD_BOOLEAN),
+
+	DEFINE_FIELD(m_ArmorValue, FIELD_INTEGER),
+	DEFINE_FIELD(m_flArmorBonus, FIELD_FLOAT),
+	DEFINE_FIELD(m_flArmorRatio, FIELD_FLOAT),
 #endif
 
 #ifdef EZ_EYEGLOWS
@@ -12577,6 +12647,8 @@ BEGIN_ENT_SCRIPTDESC( CAI_BaseNPC, CBaseCombatCharacter, "The base class all NPC
 	DEFINE_SCRIPTFUNC( IsCrouching, "Returns true if the NPC is crouching." )
 	DEFINE_SCRIPTFUNC( Crouch, "Tells the NPC to crouch." )
 	DEFINE_SCRIPTFUNC( Stand, "Tells the NPC to stand if it is crouching." )
+
+	DEFINE_SCRIPTFUNC(GetArmorValue, "Returns how many armor points the NPC has.")
 
 	// 
 	// Hooks
@@ -13265,6 +13337,10 @@ CAI_BaseNPC::CAI_BaseNPC(void)
 
 	m_FakeSequenceGestureLayer = -1;
 	m_bInteractionMadeDeathSound = false;
+
+	m_ArmorValue = 0;
+	m_flArmorBonus = 1.f;
+	m_flArmorRatio = .2f;
 #endif
 }
 

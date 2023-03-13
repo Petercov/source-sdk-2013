@@ -117,6 +117,8 @@ void CNPC_CombineS::Spawn( void )
 	{
 		SetBodygroup(iArmor, 1);
 		m_ExtraArmor = TRS_TRUE;
+		m_flArmorRatio = sk_combine_armor_dmgscale.GetFloat();
+		m_flArmorBonus = 0.f;
 	}
 	else
 	{
@@ -206,7 +208,7 @@ void CNPC_CombineS::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDi
 {
 	CTakeDamageInfo infoCopy = info;
 
-	if (m_ExtraArmor == TRS_TRUE)
+	/*if (m_ExtraArmor == TRS_TRUE)
 	{
 		Vector vForward;
 		GetVectors(&vForward, nullptr, nullptr);
@@ -216,7 +218,7 @@ void CNPC_CombineS::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDi
 		{
 			infoCopy.ScaleDamage(sk_combine_armor_dmgscale.GetFloat());
 		}
-	}
+	}*/
 
 	BaseClass::TraceAttack(infoCopy, vecDir, ptr, pAccumulator);
 }

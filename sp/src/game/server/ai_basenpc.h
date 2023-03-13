@@ -2076,6 +2076,10 @@ public:
 	//---------------------------------
 	//  Damage
 	//---------------------------------
+#ifdef MAPBASE
+	virtual int			OnTakeDamage(const CTakeDamageInfo& info);
+#endif // MAPBASE
+
 	virtual int			OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	virtual int			OnTakeDamage_Dying( const CTakeDamageInfo &info );
 	virtual int			OnTakeDamage_Dead( const CTakeDamageInfo &info );
@@ -2480,6 +2484,15 @@ protected:
 	virtual EyeGlow_t*	GetEyeGlowData(int i);
 	virtual int			GetNumGlows() { return 1; };
 #endif
+#ifdef MAPBASE
+protected:
+	int		m_ArmorValue; // How many armor points we have.
+	float	m_flArmorBonus; // Percentage of incoming damage the armor takes.
+	float	m_flArmorRatio; // Percentage of incoming damage we take when we have armor.
+public:
+	int					GetArmorValue() { return m_ArmorValue; }
+	virtual void		ArmorDamageEffect(const CTakeDamageInfo& info, float flArmorDamage) { return; }
+#endif // MAPBASE
 };
 
 
