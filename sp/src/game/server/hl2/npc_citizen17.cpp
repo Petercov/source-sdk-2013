@@ -69,6 +69,10 @@ ConVar	sk_citizen_heal_ally_min_pct	( "sk_citizen_heal_ally_min_pct",		"0.90");
 ConVar	sk_citizen_player_stare_time	( "sk_citizen_player_stare_time",		"1.0" );
 ConVar  sk_citizen_player_stare_dist	( "sk_citizen_player_stare_dist",		"72" );
 ConVar	sk_citizen_stare_heal_time		( "sk_citizen_stare_heal_time",			"5" );
+#ifdef MAPBASE
+ConVar	sk_citizen_rebel_armor			( "sk_citizen_rebel_armor",				"0" );
+ConVar	sk_citizen_brute_armor("sk_citizen_brute_armor", "0");
+#endif
 
 ConVar	g_ai_citizen_show_enemy( "g_ai_citizen_show_enemy", "0" );
 
@@ -677,15 +681,28 @@ void CNPC_Citizen::Spawn()
 		pRPG->StopGuiding();
 	}
 
+#ifdef MAPBASE
+	if (m_Type == CT_REBEL || m_Type == CT_ARCTIC)
+	{
+		m_ArmorValue = sk_citizen_rebel_armor.GetInt();
+	}
+	else
+#endif // MAPBASE
 	if (m_Type == CT_LONGFALL)
 	{
 		CapabilitiesAdd(bits_CAP_MOVE_JUMP);
+#ifdef MAPBASE
+		m_ArmorValue = sk_citizen_rebel_armor.GetInt();
+#endif // MAPBASE
 	}
-
-	if (m_Type == CT_BRUTE)
+	else if (m_Type == CT_BRUTE)
 	{
 		// Randomize brute mask skin based on entity index
 		m_nSkin = entindex() % BRUTE_MASK_NUM_SKINS;
+
+#ifdef MAPBASE
+		m_ArmorValue = sk_citizen_brute_armor.GetInt();
+#endif // MAPBASE
 	}
 
 	m_flTimePlayerStare = FLT_MAX;
