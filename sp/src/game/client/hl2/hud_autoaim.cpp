@@ -21,6 +21,10 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#ifdef MAPBASE
+bool ShouldDrawScopeHUD();
+#endif // MAPBASE
+
 ConVar hud_draw_active_reticle("hud_draw_active_reticle", "0" );
 ConVar hud_draw_fixed_reticle("hud_draw_fixed_reticle", "0", FCVAR_ARCHIVE );
 ConVar hud_autoaim_scale_icon( "hud_autoaim_scale_icon", "0" );
@@ -156,6 +160,11 @@ bool CHUDAutoAim::ShouldDraw( void )
 		}
 	}
 #endif
+
+#ifdef MAPBASE
+	if (ShouldDrawScopeHUD())
+		return false;
+#endif // MAPBASE
 
 	return ( (hud_draw_fixed_reticle.GetBool() || hud_draw_active_reticle.GetBool()) && CHudElement::ShouldDraw() && !engine->IsDrawingLoadingImage() );
 }

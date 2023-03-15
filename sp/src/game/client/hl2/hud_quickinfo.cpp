@@ -184,6 +184,12 @@ bool CHUDQuickInfo::ShouldDraw( void )
 	if ( !crosshair.GetBool() && !IsX360() )
 		return false;
 
+#ifdef MAPBASE
+	C_BaseCombatWeapon* pWeapon = player->GetActiveWeapon();
+	if (pWeapon && pWeapon->IsWeaponZoomed() && pWeapon->GetWpnData().hudScope)
+		return false;
+#endif // MAPBASE
+
 	return ( CHudElement::ShouldDraw() && !engine->IsDrawingLoadingImage() );
 }
 

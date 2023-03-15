@@ -11,6 +11,16 @@
 // memdbgon must be the last include file in a .cpp file!
 #include "tier0/memdbgon.h"
 
+bool ShouldDrawScopeHUD()
+{
+	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
+		return false;
+
+	C_BaseCombatWeapon* pWeapon = pPlayer->GetActiveWeapon();
+	return pWeapon && pWeapon->IsWeaponZoomed() && pWeapon->GetWpnData().hudScope;
+}
+
 /**
  * Simple HUD element for displaying a sniper scope on screen
  */
@@ -86,7 +96,7 @@ void CHudScope::ApplySchemeSettings(vgui::IScheme* scheme)
 void CHudScope::Paint(void)
 {
 	C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
-	if (!pPlayer || (pPlayer->IsInAVehicle() && !pPlayer->UsingStandardWeaponsInVehicle()))
+	if (!pPlayer)
 	{
 		return;
 	}
@@ -119,11 +129,11 @@ void CHudScope::Paint(void)
 			//materials->DepthRange( 0.0f, 1.0f );
 
 		// Hide the crosshair
-			pPlayer->m_Local.m_iHideHUD |= HIDEHUD_CROSSHAIR;
+			//pPlayer->m_Local.m_iHideHUD |= HIDEHUD_CROSSHAIR;
 		}
-		else if ((pPlayer->m_Local.m_iHideHUD & HIDEHUD_CROSSHAIR) != 0)
+		/*else if ((pPlayer->m_Local.m_iHideHUD & HIDEHUD_CROSSHAIR) != 0)
 		{
 			pPlayer->m_Local.m_iHideHUD &= ~HIDEHUD_CROSSHAIR;
-		}
+		}*/
 	}
 }

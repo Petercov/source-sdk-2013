@@ -105,6 +105,12 @@ bool CHudCrosshair::ShouldDraw( void )
 		return false;
 	*/
 
+#ifdef MAPBASE
+	C_BaseCombatWeapon* pWeapon = pPlayer->GetActiveWeapon();
+	if (pWeapon && pWeapon->IsWeaponZoomed() && pWeapon->GetWpnData().hudScope)
+		return false;
+#endif // MAPBASE
+
 	// draw a crosshair only if alive or spectating in eye
 	if ( IsX360() )
 	{
