@@ -106,7 +106,6 @@ bool CHudCrosshair::ShouldDraw( void )
 	*/
 
 #ifdef MAPBASE
-	C_BaseCombatWeapon* pWeapon = pPlayer->GetActiveWeapon();
 	if (pWeapon && pWeapon->IsWeaponZoomed() && pWeapon->GetWpnData().hudScope)
 		return false;
 #endif // MAPBASE
