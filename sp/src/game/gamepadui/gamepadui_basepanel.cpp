@@ -27,6 +27,8 @@ GamepadUIBasePanel::GamepadUIBasePanel( vgui::VPANEL parent ) : BaseClass( NULL,
     m_nBackgroundMusicGUID = 0;
     m_bBackgroundMusicEnabled = !CommandLine()->FindParm( "-nostartupsound" );
 
+    m_pSizingPanel = new GamepadUISizingPanel( this );
+
     m_pMainMenu = new GamepadUIMainMenu( this );
     OnMenuStateChanged();
     HideGameMenuLogos();
@@ -73,9 +75,24 @@ void GamepadUIBasePanel::ApplySchemeSettings( vgui::IScheme* pScheme )
     m_pMainMenu->InvalidateLayout( false, true );
 }
 
+GamepadUISizingPanel *GamepadUIBasePanel::GetSizingPanel() const
+{
+    return m_pSizingPanel;
+}
+
 GamepadUIMainMenu* GamepadUIBasePanel::GetMainMenuPanel() const
 {
     return m_pMainMenu;
+}
+
+GamepadUIFrame *GamepadUIBasePanel::GetCurrentFrame() const
+{
+    return m_pCurrentFrame;
+}
+
+void GamepadUIBasePanel::SetCurrentFrame( GamepadUIFrame *pFrame )
+{
+    m_pCurrentFrame = pFrame;
 }
 
 
@@ -88,6 +105,12 @@ void GamepadUIBasePanel::OnMenuStateChanged()
     }
     else
         ReleaseBackgroundMusic();
+
+    if (m_pCurrentFrame && m_pCurrentFrame != m_pMainMenu)
+    {
+        m_pCurrentFrame->Close();
+        m_pCurrentFrame = NULL;
+    }
 }
 
 void GamepadUIBasePanel::ActivateBackgroundEffects()
@@ -196,4 +219,41 @@ void GamepadUIBasePanel::ReleaseBackgroundMusic()
     // we must release the 2-5MB held by this resource
     GamepadUI::GetInstance().GetEngineSound()->StopSoundByGuid( m_nBackgroundMusicGUID );
     m_nBackgroundMusicGUID = 0;
+}
+
+GamepadUISizingPanel::GamepadUISizingPanel( vgui::Panel *pParent ) : BaseClass( pParent, "GamepadUISizingPanel" )
+{
+    SetVisible( false );
+}
+
+void GamepadUISizingPanel::ApplySchemeSettings( vgui::IScheme* pScheme )
+{
+    BaseClass::ApplySchemeSettings( pScheme );
+
+    int w = GetParent()->GetWide();
+    int h = GetParent()->GetTall();
+
+    float flX, flY;
+    GamepadUI::GetInstance().GetScreenRatio( flX, flY );
+
+    float targetW = 1280.0f * flX;
+    float targetH = 800.0f * flY;
+
+    w -= targetW;
+    h -= targetH;
+    if (w <= 0 || h <= 0)
+    {
+        GamepadUI_Log( "Setting sizing panel bounds to 0, 0, %i, %i (proportional)\n", GetParent()->GetWide(), GetParent()->GetTall() );
+        SetBounds( 0, 0, GetParent()->GetWide(), GetParent()->GetTall() );
+
+        m_flScaleX = m_flScaleY = 1.0f;
+    }
+    else
+    {
+        GamepadUI_Log( "Setting sizing panel bounds to %i, %i, %i, %i\n", w/2, h/2, (int)targetW, (int)targetH );
+        SetBounds( w/2, h/2, targetW, targetH );
+
+        m_flScaleX = ((float)GetParent()->GetWide()) / targetW;
+        m_flScaleY = ((float)GetParent()->GetTall()) / targetH;
+    }
 }

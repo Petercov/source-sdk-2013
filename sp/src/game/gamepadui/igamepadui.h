@@ -21,6 +21,11 @@ public:
     virtual void OnLevelShutdown() = 0;
 	
     virtual void VidInit() = 0;
+
+#ifdef MAPBASE
+	virtual void BonusMapChallengeNames( char *pchFileName, char *pchMapName, char *pchChallengeName ) = 0;
+	virtual void BonusMapChallengeObjectives( int &iBronze, int &iSilver, int &iGold ) = 0;
+#endif
 };
 
 #define GAMEPADUI_INTERFACE_VERSION "GamepadUI001"

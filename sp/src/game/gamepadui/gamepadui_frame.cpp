@@ -2,6 +2,7 @@
 #include "gamepadui_frame.h"
 #include "gamepadui_button.h"
 #include "gamepadui_interface.h"
+#include "gamepadui_basepanel.h"
 
 #include "inputsystem/iinputsystem.h"
 #include "vgui/ISurface.h"
@@ -16,6 +17,12 @@ GamepadUIFrame::GamepadUIFrame( vgui::Panel *pParent, const char *pszPanelName, 
     // bodge to disable the frames title image and display our own
     // (the frames title has an invalid zpos and does not draw over the garnish)
     Frame::SetTitle( "", false );
+
+    if (pParent && pParent == GamepadUI::GetInstance().GetBasePanel())
+    {
+        GamepadUIBasePanel *pPanel = static_cast<GamepadUIBasePanel*>(pParent);
+        pPanel->SetCurrentFrame( this );
+    }
 
 	memset( &m_pFooterButtons, 0, sizeof( m_pFooterButtons ) );
 }
@@ -206,6 +213,12 @@ void GamepadUIFrame::OnClose()
 {
     BaseClass::OnClose();
 
+    if (GetParent() && GetParent() == GamepadUI::GetInstance().GetBasePanel())
+    {
+        GamepadUIBasePanel *pPanel = static_cast<GamepadUIBasePanel*>(GetParent());
+        pPanel->SetCurrentFrame( NULL );
+    }
+
     GamepadUIFrame *pFrame = dynamic_cast<GamepadUIFrame *>( GetParent() );
     if ( pFrame )
         pFrame->UpdateGradients();
@@ -256,7 +269,7 @@ void GamepadUIFrame::OnKeyCodePressed( vgui::KeyCode code )
     case KEY_XBUTTON_X:
         for ( int i = 0; i < FooterButtons::MaxFooterButtons; i++ )
         {
-            if ( FooterButtons::GetButtonByIdx(i) & ( FooterButtons::BonusMaps ) )
+            if ( FooterButtons::GetButtonByIdx(i) & ( FooterButtons::BonusMaps | FooterButtons::UseDefaults ) )
             {
                 if ( m_pFooterButtons[i] )
                     m_pFooterButtons[i]->ForceDepressed( true );
@@ -340,7 +353,7 @@ void GamepadUIFrame::OnKeyCodeReleased( vgui::KeyCode code )
     case KEY_XBUTTON_X:
         for ( int i = 0; i < FooterButtons::MaxFooterButtons; i++ )
         {
-            if ( FooterButtons::GetButtonByIdx(i) & ( FooterButtons::BonusMaps ) )
+            if ( FooterButtons::GetButtonByIdx(i) & ( FooterButtons::BonusMaps | FooterButtons::UseDefaults ) )
             {
                 if ( m_pFooterButtons[i] )
                 {

@@ -2,7 +2,7 @@
 #include "gamepadui_image.h"
 #include "gamepadui_util.h"
 #include "gamepadui_genericconfirmation.h"
-#include "gamepadui_scroll.h"
+#include "gamepadui_scrollbar.h"
 
 #include "ienginevgui.h"
 #include "vgui/ILocalize.h"
@@ -32,6 +32,7 @@ public:
 
     void UpdateGradients();
 
+	void ApplySchemeSettings( vgui::IScheme *pScheme ) OVERRIDE;
 	void OnThink() OVERRIDE;
     void Paint() OVERRIDE;
     void OnCommand( char const* pCommand ) OVERRIDE;
@@ -56,6 +57,8 @@ private:
     CUtlVector<SaveGameDescription_t> m_Saves;
 
     GamepadUIScrollState m_ScrollState;
+
+	GamepadUIScrollBar *m_pScrollBar;
 
     bool m_bIsSave;
 
@@ -173,7 +176,7 @@ GamepadUISaveGamePanel::GamepadUISaveGamePanel( vgui::Panel* pParent, const char
 	: BaseClass( pParent, pPanelName )
 	, m_bIsSave( bIsSave )
 {
-    vgui::HScheme Scheme = vgui::scheme()->LoadSchemeFromFile( GAMEPADUI_DEFAULT_PANEL_SCHEME, "SchemePanel" );
+    vgui::HScheme Scheme = vgui::scheme()->LoadSchemeFromFileEx( GamepadUI::GetInstance().GetSizingVPanel(), GAMEPADUI_DEFAULT_PANEL_SCHEME, "SchemePanel" );
     SetScheme( Scheme );
 
     GetFrameTitle() = GamepadUIString(m_bIsSave ? "#GameUI_SaveGame" : "#GameUI_LoadGame");
@@ -195,6 +198,11 @@ GamepadUISaveGamePanel::GamepadUISaveGamePanel( vgui::Panel* pParent, const char
     }
 
 	UpdateGradients();
+
+    m_pScrollBar = new GamepadUIScrollBar(
+        this, this,
+        GAMEPADUI_RESOURCE_FOLDER "schemescrollbar.res",
+        NULL, false );
 }
 
 void GamepadUISaveGamePanel::UpdateGradients()
@@ -203,6 +211,25 @@ void GamepadUISaveGamePanel::UpdateGradients()
 	GamepadUI::GetInstance().GetGradientHelper()->ResetTargets( flTime );
 	GamepadUI::GetInstance().GetGradientHelper()->SetTargetGradient( GradientSide::Up, { 1.0f, 1.0f }, flTime );
 	GamepadUI::GetInstance().GetGradientHelper()->SetTargetGradient( GradientSide::Down, { 1.0f, 1.0f }, flTime );
+}
+
+void GamepadUISaveGamePanel::ApplySchemeSettings( vgui::IScheme *pScheme )
+{
+	BaseClass::ApplySchemeSettings( pScheme );
+
+	int nX, nY;
+	GamepadUI::GetInstance().GetSizingPanelOffset( nX, nY );
+	if (nX > 0)
+	{
+		float flX, flY;
+		GamepadUI::GetInstance().GetSizingPanelScale( flX, flY );
+		flX *= 0.4f;
+
+		m_flSavesOffsetX += ((float)nX) * flX;
+		m_flSavesFade += ((float)nX) * flX;
+	}
+
+	m_pScrollBar->InitScrollBar( &m_ScrollState, m_flSavesOffsetX + m_pSavePanels[0]->GetWide() + m_flSavesSpacing, m_flSavesOffsetY );
 }
 
 void GamepadUISaveGamePanel::OnThink()
@@ -614,6 +641,12 @@ void GamepadUISaveGamePanel::LayoutSaveButtons()
     }
 
     m_ScrollState.UpdateScrollBounds( 0.0f, scrollClamp );
+
+    if (m_pSavePanels.Count() > 0)
+    {
+        m_pScrollBar->UpdateScrollBounds( 0.0f, scrollClamp,
+            ((m_pSavePanels[0]->GetTall() + m_flSavesSpacing) * 3), nParentH - m_flFooterButtonsOffsetY - m_nFooterButtonHeight - m_flSavesOffsetY );
+    }
 
     int previousSizes = 0;
     for ( int i = 0; i < ( int )m_pSavePanels.Count(); i++ )
