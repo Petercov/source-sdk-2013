@@ -1452,6 +1452,18 @@ acttable_t	CWeaponRPG::m_acttable[] =
 
 IMPLEMENT_ACTTABLE(CWeaponRPG);
 
+#ifdef MAPBASE
+acttable_t* GetRPGActtable()
+{
+	return CWeaponRPG::m_acttable;
+}
+
+int GetRPGActtableCount()
+{
+	return ARRAYSIZE(CWeaponRPG::m_acttable);
+}
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

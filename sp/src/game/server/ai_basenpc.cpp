@@ -4822,6 +4822,9 @@ int CAI_BaseNPC::CapabilitiesGet( void ) const
 	int capability = m_afCapability;
 	if ( GetActiveWeapon() )
 	{
+#ifdef MAPBASE
+		capability &= ~(GetActiveWeapon()->CapabilitiesSuppress());
+#endif // MAPBASE
 		capability |= GetActiveWeapon()->CapabilitiesGet();
 	}
 	return capability;

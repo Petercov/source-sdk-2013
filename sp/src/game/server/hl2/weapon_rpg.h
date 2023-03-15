@@ -243,6 +243,9 @@ public:
 	const Vector &GetNPCLaserPosition( void );
 
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
+#ifdef MAPBASE
+	int		CapabilitiesSuppress(void) { return bits_CAP_USE_SHOT_REGULATOR; }
+#endif // MAPBASE
 
 	virtual const Vector& GetBulletSpread( void )
 	{

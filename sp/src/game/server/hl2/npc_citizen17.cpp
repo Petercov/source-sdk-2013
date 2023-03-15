@@ -677,7 +677,10 @@ void CNPC_Citizen::Spawn()
 	CWeaponRPG *pRPG = dynamic_cast<CWeaponRPG*>(GetActiveWeapon());
 	if ( pRPG )
 	{
-		CapabilitiesRemove( bits_CAP_USE_SHOT_REGULATOR );
+#ifndef MAPBASE
+		CapabilitiesRemove(bits_CAP_USE_SHOT_REGULATOR);
+#endif // !MAPBASE
+
 		pRPG->StopGuiding();
 	}
 

@@ -534,6 +534,9 @@ public:
 	virtual void			Kill( void );
 
 	virtual int				CapabilitiesGet( void ) { return 0; }
+#ifdef MAPBASE
+	virtual int				CapabilitiesSuppress(void) { return 0; }
+#endif // MAPBASE
 	virtual	int				ObjectCaps( void );
 
 	bool					IsRemoveable() { return m_bRemoveable; }
