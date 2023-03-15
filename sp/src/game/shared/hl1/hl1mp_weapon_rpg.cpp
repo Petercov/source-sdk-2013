@@ -29,6 +29,9 @@
 #include "util.h"
 #include "te_effect_dispatch.h"
 #include "shake.h"
+#ifdef MAPBASE
+#include "ai_basenpc.h"
+#endif // MAPBASE
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -635,6 +638,55 @@ BEGIN_PREDICTION_DATA( CHL1WeaponRPG )
 #endif
 END_PREDICTION_DATA()
 
+#ifdef MAPBASE
+acttable_t	CHL1WeaponRPG::m_acttable[] =
+{
+	{ ACT_RANGE_ATTACK1, ACT_RANGE_ATTACK_RPG, true },
+#if EXPANDED_HL2_WEAPON_ACTIVITIES
+	{ ACT_RANGE_AIM_LOW,			ACT_RANGE_AIM_RPG_LOW,			false },
+	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_RPG_LOW,		false },
+	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_GESTURE_RANGE_ATTACK_RPG,	false },
+#endif
+
+	// Readiness activities should not be required
+	{ ACT_IDLE_RELAXED,				ACT_IDLE_RPG_RELAXED,			false },
+	{ ACT_IDLE_STIMULATED,			ACT_IDLE_ANGRY_RPG,				false },
+	{ ACT_IDLE_AGITATED,			ACT_IDLE_ANGRY_RPG,				false },
+
+	{ ACT_IDLE,						ACT_IDLE_RPG,					true },
+	{ ACT_IDLE_ANGRY,				ACT_IDLE_ANGRY_RPG,				true },
+	{ ACT_WALK,						ACT_WALK_RPG,					true },
+	{ ACT_WALK_CROUCH,				ACT_WALK_CROUCH_RPG,			true },
+	{ ACT_RUN,						ACT_RUN_RPG,					true },
+	{ ACT_RUN_CROUCH,				ACT_RUN_CROUCH_RPG,				true },
+	{ ACT_COVER_LOW,				ACT_COVER_LOW_RPG,				true },
+
+#if EXPANDED_HL2_WEAPON_ACTIVITIES
+	{ ACT_ARM,						ACT_ARM_RPG,					false },
+	{ ACT_DISARM,					ACT_DISARM_RPG,					false },
+#endif
+
+#if EXPANDED_HL2_COVER_ACTIVITIES
+	{ ACT_RANGE_AIM_MED,			ACT_RANGE_AIM_RPG_MED,			false },
+	{ ACT_RANGE_ATTACK1_MED,		ACT_RANGE_ATTACK_RPG_MED,		false },
+#endif
+
+	// HL2:DM activities (for third-person animations in SP)
+	{ ACT_HL2MP_IDLE,                    ACT_HL2MP_IDLE_RPG,                    false },
+	{ ACT_HL2MP_RUN,                    ACT_HL2MP_RUN_RPG,                    false },
+	{ ACT_HL2MP_IDLE_CROUCH,            ACT_HL2MP_IDLE_CROUCH_RPG,            false },
+	{ ACT_HL2MP_WALK_CROUCH,            ACT_HL2MP_WALK_CROUCH_RPG,            false },
+	{ ACT_HL2MP_GESTURE_RANGE_ATTACK,    ACT_HL2MP_GESTURE_RANGE_ATTACK_RPG,    false },
+	{ ACT_HL2MP_GESTURE_RELOAD,            ACT_HL2MP_GESTURE_RELOAD_RPG,        false },
+	{ ACT_HL2MP_JUMP,                    ACT_HL2MP_JUMP_RPG,                    false },
+#if EXPANDED_HL2DM_ACTIVITIES
+	{ ACT_HL2MP_WALK,					ACT_HL2MP_WALK_RPG,						false },
+	{ ACT_HL2MP_GESTURE_RANGE_ATTACK2,	ACT_HL2MP_GESTURE_RANGE_ATTACK2_RPG,    false },
+#endif
+};
+
+IMPLEMENT_ACTTABLE(CHL1WeaponRPG);
+#endif // MAPBASE
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
@@ -1088,3 +1140,28 @@ void CHL1WeaponRPG::StopGuiding( void )
 	}
 #endif
 }
+
+#if !defined(CLIENT_DLL) && defined(MAPBASE)
+void CHL1WeaponRPG::NPC_PrimaryFire()
+{
+	CAI_BaseNPC* pAI = GetOwner()->MyNPCPointer();
+	if (!pAI)
+		return;
+
+	Vector vecShootOrigin = pAI->Weapon_ShootPosition();
+	Vector vecShootDir = pAI->GetActualShootTrajectory(vecShootOrigin);
+
+	WeaponSound(SINGLE_NPC);
+
+	CSoundEnt::InsertSound(SOUND_COMBAT, vecShootOrigin, 400, 0.2, pAI, SOUNDENT_CHANNEL_WEAPON, pAI->GetEnemy());
+
+	QAngle vecAngles;
+	VectorAngles(vecShootDir, vecAngles);
+
+	CHL1RpgRocket* pMissile = CHL1RpgRocket::Create(vecShootOrigin, vecAngles, NULL);
+	pMissile->m_hOwner = this;
+	pMissile->SetOwnerEntity(pAI);
+
+	m_hMissile = pMissile;
+}
+#endif

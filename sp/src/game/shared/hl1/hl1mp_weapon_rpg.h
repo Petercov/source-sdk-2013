@@ -99,6 +99,17 @@ public:
 	DECLARE_DATADESC();
 	DECLARE_NETWORKCLASS();
 	DECLARE_PREDICTABLE();
+#ifdef MAPBASE
+	DECLARE_ACTTABLE();
+#endif // MAPBASE
+
+#if defined(MAPBASE) && !defined(CLIENT_DLL)
+	int		CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
+	int		CapabilitiesSuppress(void) { return bits_CAP_USE_SHOT_REGULATOR; }
+	virtual void			NPC_PrimaryFire();
+
+	virtual float			GetFireRate(void) { return 2.f; }
+#endif
 
 private:
 	void	CreateLaserPointer( void );
