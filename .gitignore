@@ -116,3 +116,4 @@ sp/src/devtools/gcc9+support.o
 /sp/src/game/scenecache/Debug_dll
 /sp/src/game/gamepadui/*/*.dll
 /sp/src/game/gamepadui/*/*.pdb
+/sp/src/vgui2/vgui_controls/Release/vgui_controls.vcxproj.FileListAbsolute.txt

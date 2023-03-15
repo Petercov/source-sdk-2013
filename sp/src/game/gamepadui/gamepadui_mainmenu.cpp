@@ -17,7 +17,7 @@
 GamepadUIMainMenu::GamepadUIMainMenu( vgui::Panel* pParent )
     : BaseClass( pParent, "MainMenu" )
 {
-    vgui::HScheme hScheme = vgui::scheme()->LoadSchemeFromFileEx( GamepadUI::GetInstance().GetSizingVPanel(), GAMEPADUI_MAINMENU_SCHEME, "SchemeMainMenu" );
+    vgui::HScheme hScheme = vgui::scheme()->LoadSchemeFromFile( GAMEPADUI_MAINMENU_SCHEME, "SchemeMainMenu" );
     SetScheme( hScheme );
 
     KeyValues* pModData = new KeyValues( "ModData" );
@@ -92,7 +92,6 @@ void GamepadUIMainMenu::ApplySchemeSettings( vgui::IScheme* pScheme )
     m_hButtonFont = pScheme->GetFont("XBoxButtons", true);
     m_hButtonFontPS3 = pScheme->GetFont("PS3Buttons", true);
 #endif // MAPBASE
-
 }
 
 void GamepadUIMainMenu::LayoutMainMenu()
@@ -272,4 +271,3 @@ vgui::HFont GamepadUIMainMenu::GetButtonGlyphFont()
     return cl_joy_glyphs_ps3.GetBool() ? m_hButtonFontPS3 : m_hButtonFont;
 }
 #endif // MAPBASE
-

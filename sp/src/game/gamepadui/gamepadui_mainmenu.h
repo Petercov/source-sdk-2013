@@ -70,7 +70,6 @@ private:
     GAMEPADUI_PANEL_PROPERTY( Color, m_colLogoColor, "Logo", "255 255 255 255", SchemeValueTypes::Color );
 
     vgui::HFont m_hLogoFont;
-
 #ifdef MAPBASE
     vgui::HFont m_hButtonFont, m_hButtonFontPS3;
 #endif // MAPBASE

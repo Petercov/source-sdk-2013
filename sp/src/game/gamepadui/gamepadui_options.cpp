@@ -4,6 +4,7 @@
 #include "gamepadui_scroll.h"
 #include "gamepadui_image.h"
 #include "gamepadui_genericconfirmation.h"
+#include "gamepadui_scrollbar.h"
 
 #include "ienginevgui.h"
 #include "vgui/ILocalize.h"
@@ -1364,7 +1365,7 @@ GamepadUIOptionsPanel::GamepadUIOptionsPanel( vgui::Panel* pParent, const char* 
 {
     s_pOptionsPanel = this;
 
-    vgui::HScheme Scheme = vgui::scheme()->LoadSchemeFromFileEx( GamepadUI::GetInstance().GetSizingVPanel(), GAMEPADUI_DEFAULT_PANEL_SCHEME, "SchemePanel" );
+    vgui::HScheme Scheme = vgui::scheme()->LoadSchemeFromFile( GAMEPADUI_DEFAULT_PANEL_SCHEME, "SchemePanel" );
     SetScheme( Scheme );
 
     GetFrameTitle() = GamepadUIString( "#GameUI_Options" );
@@ -1404,8 +1405,13 @@ void GamepadUIOptionsPanel::Paint()
 {
     BaseClass::Paint();
 
-    if ( !m_nTabCount )
+    if (!m_nTabCount)
         return;
+
+#ifdef MAPBASE
+    if (g_pInputSystem->GetJoystickCount() == 0)
+        return;
+#endif // MAPBASE
 
     const int nLastTabX = m_flTabsOffsetX + m_nTabCount * m_Tabs[0].pTabButton->GetWide();
 
@@ -1414,11 +1420,11 @@ void GamepadUIOptionsPanel::Paint()
     const int nGlyphOffsetX = nGlyphSize / 4.0f;
     const int nGlyphOffsetY = nTabSize - nGlyphSize;
 
-    if ( m_leftGlyph.SetupGlyph( nGlyphSize, "menu_lb", true ) )
-        m_leftGlyph.PaintGlyph( m_flTabsOffsetX - nGlyphSize - nGlyphOffsetX, m_flTabsOffsetY + nGlyphOffsetY / 2, nGlyphSize, 255 );
+    if (m_leftGlyph.SetupGlyph(nGlyphSize, "menu_lb", true))
+        m_leftGlyph.PaintGlyph(m_flTabsOffsetX - nGlyphSize - nGlyphOffsetX, m_flTabsOffsetY + nGlyphOffsetY / 2, nGlyphSize, 255);
 
-    if ( m_rightGlyph.SetupGlyph( nGlyphSize, "menu_rb", true ) )
-        m_rightGlyph.PaintGlyph( nLastTabX + nGlyphOffsetX, m_flTabsOffsetY + nGlyphOffsetY / 2, nGlyphSize, 255 );
+    if (m_rightGlyph.SetupGlyph(nGlyphSize, "menu_rb", true))
+        m_rightGlyph.PaintGlyph(nLastTabX + nGlyphOffsetX, m_flTabsOffsetY + nGlyphOffsetY / 2, nGlyphSize, 255);
 }
 
 void GamepadUIOptionsPanel::UpdateGradients()
@@ -2248,21 +2254,12 @@ void GamepadUIOptionsPanel::LoadOptionTabs( const char *pszOptionsFile )
 void GamepadUIOptionsPanel::ApplySchemeSettings( vgui::IScheme* pScheme )
 {
     BaseClass::ApplySchemeSettings( pScheme );
-
-    float flX, flY;
-    if (GamepadUI::GetInstance().GetScreenRatio( flX, flY ))
+    
+    if (GamepadUI::GetInstance().GetScreenRatio() != 1.0f)
     {
-        m_flTabsOffsetX *= (flX * flX);
-        m_flScrollBarOffsetX *= (flX);
-    }
-
-    int nX, nY;
-    GamepadUI::GetInstance().GetSizingPanelOffset( nX, nY );
-    if (nX > 0)
-    {
-        GamepadUI::GetInstance().GetSizingPanelScale( flX, flY );
-        m_flTabsOffsetX += ((float)nX) * flX * 0.5f;
-        m_flScrollBarOffsetX += ((float)nX) * flX * 0.1f;
+        float flScreenRatio = GamepadUI::GetInstance().GetScreenRatio();
+        m_flTabsOffsetX *= (flScreenRatio * flScreenRatio);
+        m_flScrollBarOffsetX *= (flScreenRatio);
     }
 }
 

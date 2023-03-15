@@ -133,7 +133,7 @@ public:
         {
             pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_L_SHOULDER");
         }
-        else if (V_strcmp(pszAction, "menu_lr") == 0)
+        else if (V_strcmp(pszAction, "menu_rb") == 0)
         {
             pwscGlyph = g_pVGuiLocalize->Find("#GameUI_Icons_R_SHOULDER");
         }

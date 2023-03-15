@@ -101,7 +101,7 @@ void GamepadUI::Shutdown()
         m_pBasePanel->DeletePanel();
 
     if (g_pGamepadUILoading)
-        g_pGamepadUILoading->DeletePanel();
+    g_pGamepadUILoading->DeletePanel();
 
 #ifdef HL2_RETAIL // not necessary on SDK2013 (Madi)
     m_SteamAPIContext.Clear();
@@ -155,14 +155,12 @@ void GamepadUI::VidInit()
 
     if (flInvAspectRatio != flDefaultInvAspect)
     {
-        m_flScreenXRatio = 1.0f - (flInvAspectRatio - flDefaultInvAspect);
+        m_flScreenRatio = 1.0f - (flInvAspectRatio - flDefaultInvAspect);
     }
     else
     {
-        m_flScreenXRatio = 1.0f;
+        m_flScreenRatio = 1.0f;
     }
-
-    m_flScreenYRatio = 1.0f;
 
     m_pBasePanel->InvalidateLayout( false, true );
     g_pGamepadUILoading->InvalidateLayout(false, true);
@@ -212,16 +210,6 @@ vgui::VPANEL GamepadUI::GetBaseVPanel() const
     return m_pBasePanel ? m_pBasePanel->GetVPanel() : 0;
 }
 
-vgui::Panel *GamepadUI::GetSizingPanel() const
-{
-    return m_pBasePanel ? m_pBasePanel->GetSizingPanel() : NULL;
-}
-
-vgui::VPANEL GamepadUI::GetSizingVPanel() const
-{
-    return GetSizingPanel() ? GetSizingPanel()->GetVPanel() : 0;
-}
-
 vgui::Panel *GamepadUI::GetMainMenuPanel() const
 {
     return m_pBasePanel ? m_pBasePanel->GetMainMenuPanel() : NULL;
@@ -235,22 +223,6 @@ vgui::VPANEL GamepadUI::GetMainMenuVPanel() const
 GamepadUIMainMenu* GamepadUI::GetMainMenu() const
 {
     return static_cast<GamepadUIMainMenu*>( GetMainMenuPanel() );
-}
-
-void GamepadUI::GetSizingPanelScale( float &flX, float &flY ) const
-{
-    vgui::Panel *pPanel = GetSizingPanel();
-    if (!pPanel)
-        return;
-    static_cast<GamepadUISizingPanel*>(pPanel)->GetScale( flX, flY );
-}
-
-void GamepadUI::GetSizingPanelOffset( int &nX, int &nY ) const
-{
-    vgui::Panel *pPanel = GetSizingPanel();
-    if (!pPanel)
-        return;
-    pPanel->GetPos( nX, nY );
 }
 
 #ifdef MAPBASE
