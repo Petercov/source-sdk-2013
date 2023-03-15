@@ -33,6 +33,8 @@ const int MAX_OPTIONS_TABS = 8;
 class GamepadUIWheelyWheel;
 void OnResolutionsNeedUpdate( IConVar *var, const char *pOldValue, float flOldValue );
 
+extern CUtlSymbolTable g_ButtonSoundNames;
+
 ConVar _gamepadui_water_detail( "_gamepadui_water_detail", "0" );
 ConVar _gamepadui_shadow_detail( "_gamepadui_shadow_detail", "0" );
 ConVar _gamepadui_antialiasing( "_gamepadui_antialiasing", "0" );
@@ -41,7 +43,9 @@ ConVar _gamepadui_displaymode( "_gamepadui_displaymode", "0", FCVAR_NONE, "", On
 ConVar _gamepadui_resolution( "_gamepadui_resolution", "0" );
 ConVar _gamepadui_sound_quality( "_gamepadui_sound_quality", "0" );
 ConVar _gamepadui_closecaptions( "_gamepadui_closecaptions", "0" );
+#ifdef HL2_RETAIL
 ConVar _gamepadui_hudaspect( "_gamepadui_hudaspect", "0" );
+#endif
 ConVar _gamepadui_skill( "_gamepadui_skill", "0" );
 
 struct GamepadUITab
@@ -78,6 +82,7 @@ public:
     void OnMouseWheeled( int delta ) OVERRIDE;
 
     void UpdateResolutions();
+    void ClearBindings();
     void FillInBindings();
     void ApplyKeyBindings();
 
@@ -102,9 +107,9 @@ private:
     GAMEPADUI_PANEL_PROPERTY( float, m_flTabsOffsetX, "Tabs.OffsetX", "0", SchemeValueTypes::ProportionalFloat );
     GAMEPADUI_PANEL_PROPERTY( float, m_flTabsOffsetY, "Tabs.OffsetY", "0", SchemeValueTypes::ProportionalFloat );
     GAMEPADUI_PANEL_PROPERTY( float, m_flOptionsFade, "Options.Fade", "80", SchemeValueTypes::ProportionalFloat );
-    GAMEPADUI_PANEL_PROPERTY( float, m_flScrollBarOffsetX, "Scrollbar.OffsetX", "10", SchemeValueTypes::ProportionalFloat );
-    GAMEPADUI_PANEL_PROPERTY( float, m_flScrollBarWidth, "Scrollbar.Width", "80", SchemeValueTypes::ProportionalFloat );
-    GAMEPADUI_PANEL_PROPERTY( float, m_flScrollBarHeight, "Scrollbar.Height", "80", SchemeValueTypes::ProportionalFloat );
+    GAMEPADUI_PANEL_PROPERTY( float, m_flScrollBarOffsetX, "Options.Scrollbar.OffsetX", "716", SchemeValueTypes::ProportionalFloat );
+    GAMEPADUI_PANEL_PROPERTY( float, m_flScrollBarOffsetY, "Options.Scrollbar.OffsetY", "128", SchemeValueTypes::ProportionalFloat );
+    GAMEPADUI_PANEL_PROPERTY( float, m_flScrollBarHeight, "Options.Scrollbar.Height", "256", SchemeValueTypes::ProportionalFloat );
 
     GamepadUITab m_Tabs[ MAX_OPTIONS_TABS ];
     int m_nTabCount = 0;
@@ -113,6 +118,8 @@ private:
 
     GamepadUIGlyph m_leftGlyph;
     GamepadUIGlyph m_rightGlyph;
+	
+    GamepadUIScrollBar *m_pScrollBar;
 
     static GamepadUIOptionsPanel *s_pOptionsPanel;
 };
@@ -372,10 +379,8 @@ public:
 #ifdef HL2_RETAIL // Steam input and Steam Controller are not supported in SDK2013 (Madi)
         case STEAMCONTROLLER_DPAD_LEFT:
 #endif
-            if ( --m_nSelectedItem < 0 )
-                m_nSelectedItem = Max( 0, m_Options.Count() - 1 );
-            if ( m_bInstantApply )
-                UpdateConVar();
+            vgui::surface()->PlaySound( g_ButtonSoundNames.String( m_sDepressedSoundName ) );
+            DecrementValue();
             break;
 
         case KEY_RIGHT:
@@ -384,10 +389,8 @@ public:
 #ifdef HL2_RETAIL
         case STEAMCONTROLLER_DPAD_RIGHT:
 #endif
-            if ( m_Options.Count() )
-                m_nSelectedItem = ( m_nSelectedItem + 1 ) % m_Options.Count();
-            if ( m_bInstantApply )
-                UpdateConVar();
+            vgui::surface()->PlaySound( g_ButtonSoundNames.String( m_sDepressedSoundName ) );
+            IncrementValue();
             break;
 
         default:
@@ -396,12 +399,55 @@ public:
         }
     }
 
-    void FireActionSignal()
+    void OnMousePressed( vgui::MouseCode code )
     {
-        BaseClass::FireActionSignal();
+        GamepadUIString& strOption = m_Options[ m_nSelectedItem ].strOptionText;
 
+        int x, y;
+        GetPos( x, y );
+
+        int nTextW, nTextH;
+        vgui::surface()->GetTextSize( m_hTextFont, strOption.String(), nTextW, nTextH );
+
+        int nScrollerSize = vgui::surface()->GetCharacterWidth( m_hTextFont, L'<' ) + vgui::surface()->GetCharacterWidth( m_hTextFont, L' ' );
+        int nTextLen = (nTextW + 2 * nScrollerSize);
+        int nTextStart = x + m_flWidth - m_flTextOffsetX - nTextLen;
+        int nTextHalfwayPoint = x + m_flWidth - m_flTextOffsetX - (nTextLen / 2);
+
+        // Give some room to roughly press the scroller's left side
+        nTextStart -= m_flClickPadding;
+
+        // Change value based on what side the player clicked on
+        int mx, my;
+        g_pVGuiInput->GetCursorPos( mx, my );
+        if (mx > nTextHalfwayPoint)
+        {
+            // Right side
+            IncrementValue();
+        }
+        else if (mx > nTextStart)
+        {
+            // Left side
+            DecrementValue();
+        }
+        else
+            return; // Don't play sound
+
+        BaseClass::OnMousePressed( code );
+    }
+
+    void IncrementValue()
+    {
         if ( m_Options.Count() )
             m_nSelectedItem = ( m_nSelectedItem + 1 ) % m_Options.Count();
+        if ( m_bInstantApply )
+            UpdateConVar();
+    }
+
+    void DecrementValue()
+    {
+        if ( --m_nSelectedItem < 0 )
+            m_nSelectedItem = Max( 0, m_Options.Count() - 1 );
         if ( m_bInstantApply )
             UpdateConVar();
     }
@@ -509,6 +555,8 @@ private:
     int m_nSelectedItem = 0;
     CUtlVector< GamepadUIOption > m_Options;
 
+    GAMEPADUI_PANEL_PROPERTY( float, m_flClickPadding, "Button.Wheel.ClickPadding", "24", SchemeValueTypes::ProportionalFloat );
+
 };
 
 class GamepadUISlideySlide : public GamepadUIConvarButton
@@ -523,6 +571,7 @@ public:
         , m_flStep( flStep )
         , nTextPrecision( nTextPrecision )
     {
+        SetUseCaptureMouse( true );
     }
 
     void OnKeyCodePressed( vgui::KeyCode code )
@@ -536,9 +585,17 @@ public:
 #ifdef HL2_RETAIL // Steam input and Steam Controller are not supported in SDK2013 (Madi)
         case STEAMCONTROLLER_DPAD_LEFT:
 #endif
-            m_flValue = Clamp( m_flValue - m_flStep, m_flMin, m_flMax );
-            if ( m_bInstantApply )
-                UpdateConVar();
+            {
+                float flValue = Clamp( m_flValue - (m_bFineAdjust ? m_flMouseStep : m_flStep), m_flMin, m_flMax );
+                if (flValue != m_flValue)
+                {
+                    if (m_sSliderSoundName != UTL_INVAL_SYMBOL)
+                        vgui::surface()->PlaySound( g_ButtonSoundNames.String( m_sSliderSoundName ) );
+                    m_flValue = flValue;
+                    if ( m_bInstantApply )
+                        UpdateConVar();
+                }
+            }
             break;
 
         case KEY_RIGHT:
@@ -547,15 +604,119 @@ public:
 #ifdef HL2_RETAIL
         case STEAMCONTROLLER_DPAD_RIGHT:
 #endif
-            m_flValue = Clamp( m_flValue + m_flStep, m_flMin, m_flMax );
-            if ( m_bInstantApply )
-                UpdateConVar();
+            {
+                float flValue = Clamp( m_flValue + (m_bFineAdjust ? m_flMouseStep : m_flStep), m_flMin, m_flMax );
+                if (flValue != m_flValue)
+                {
+                    if (m_sSliderSoundName != UTL_INVAL_SYMBOL)
+                        vgui::surface()->PlaySound( g_ButtonSoundNames.String( m_sSliderSoundName ) );
+                    m_flValue = flValue;
+                    if ( m_bInstantApply )
+                        UpdateConVar();
+                }
+            }
+            break;
+
+        case KEY_RSHIFT:
+        case KEY_LSHIFT:
+            {
+                m_bFineAdjust = true;
+            }
             break;
 
         default:
             BaseClass::OnKeyCodePressed( code );
             break;
         }
+    }
+
+    void OnKeyCodeReleased( vgui::KeyCode code )
+    {
+        ButtonCode_t buttonCode = GetBaseButtonCode( code );
+        switch ( buttonCode )
+        {
+        case KEY_RSHIFT:
+        case KEY_LSHIFT:
+            {
+                m_bFineAdjust = false;
+            }
+            break;
+
+        default:
+            BaseClass::OnKeyCodeReleased( code );
+            break;
+        }
+    }
+
+    void OnMousePressed( vgui::MouseCode code )
+    {
+        int x, y;
+        GetPos( x, y );
+
+        int mx, my;
+        g_pVGuiInput->GetCursorPos( mx, my );
+
+        int iSliderEnd = x + m_flWidth - m_flTextOffsetX;
+        int iSliderStart = iSliderEnd - m_flSliderWidth;
+
+        // Allow some wiggle room
+		if (mx > iSliderStart-4 && mx < iSliderEnd+4)
+        {
+            // Start influencing the slider value
+            BaseClass::OnMousePressed( code );
+        }
+    }
+
+    void SetMouseStep( float flStep )
+    {
+        m_flMouseStep = flStep;
+    }
+
+    void OnThink()
+    {
+        if (IsSelected())
+        {
+            int x, y;
+            GetPos( x, y );
+
+            int mx, my;
+            g_pVGuiInput->GetCursorPos( mx, my );
+
+            int iSliderEnd = x + m_flWidth - m_flTextOffsetX;
+            int iSliderStart = iSliderEnd - m_flSliderWidth;
+
+            // Set the slider value to whichever step is closest to the cursor
+            float flProgress = RemapValClamped( mx, iSliderStart, iSliderEnd, m_flMin, m_flMax );
+
+            float flRemainder = fmodf( flProgress, m_flMouseStep );
+            flProgress -= flRemainder;
+
+            if ((flRemainder / m_flMouseStep) > 0.5f)
+                flProgress += m_flMouseStep;
+
+            if (flProgress != m_flValue)
+            {
+                if (m_sSliderSoundName != UTL_INVAL_SYMBOL && m_flLastSliderSoundTime < GamepadUI::GetInstance().GetTime())
+                {
+                    vgui::surface()->PlaySound( g_ButtonSoundNames.String( m_sSliderSoundName ) );
+                    m_flLastSliderSoundTime = GamepadUI::GetInstance().GetTime() + 0.04f; // Arbitrary sound cooldown
+                }
+                m_flValue = flProgress;
+                if ( m_bInstantApply )
+                    UpdateConVar();
+            }
+        }
+
+        BaseClass::OnThink();
+    }
+
+    void ApplySchemeSettings(vgui::IScheme* pScheme)
+    {
+        BaseClass::ApplySchemeSettings(pScheme);
+
+        const char *pSliderSound = pScheme->GetResourceString( "Slider.Sound.Adjust" );
+        if (pSliderSound && *pSliderSound)
+            m_sSliderSoundName = g_ButtonSoundNames.AddString( pSliderSound );
     }
 
     void UpdateConVar() OVERRIDE
@@ -621,6 +782,12 @@ private:
     float m_flStep = 0.1f;
 
     int nTextPrecision = -1;
+
+    CUtlSymbol m_sSliderSoundName = UTL_INVAL_SYMBOL;
+    float m_flLastSliderSoundTime = 0.0f;
+
+    float m_flMouseStep = 0.1f;
+    bool m_bFineAdjust = false;
 
     GAMEPADUI_BUTTON_ANIMATED_PROPERTY( Color, m_colSliderBacking, "Slider.Backing", "255 255 255 22", SchemeValueTypes::Color );
     GAMEPADUI_BUTTON_ANIMATED_PROPERTY( Color, m_colSliderFill, "Slider.Fill", "255 255 255 255", SchemeValueTypes::Color );
@@ -956,6 +1123,7 @@ int GetCurrentCloseCaptions()
     return 0;
 }
 
+#ifdef HL2_RETAIL
 int GetCurrentHudAspectRatio()
 {
     ConVarRef hud_aspect( "hud_aspect" );
@@ -972,6 +1140,7 @@ int GetCurrentHudAspectRatio()
 	else
 		return 0;
 }
+#endif
 
 int GetCurrentSkill()
 {
@@ -1130,6 +1299,7 @@ void FlushPendingCloseCaptions()
 	GamepadUI::GetInstance().GetEngineClient()->ClientCmd_Unrestricted( szCmd );
 }
 
+#ifdef HL2_RETAIL
 void FlushPendingHudAspectRatio()
 {
     ConVarRef hud_aspect( "hud_aspect" );
@@ -1152,6 +1322,7 @@ void FlushPendingHudAspectRatio()
         break;
     }
 }
+#endif
 
 void FlushPendingSkill()
 {
@@ -1168,7 +1339,9 @@ void UpdateHelperConvars()
     _gamepadui_displaymode.SetValue( GetCurrentDisplayMode() );
     _gamepadui_sound_quality.SetValue( GetCurrentSoundQuality() );
     _gamepadui_closecaptions.SetValue( GetCurrentCloseCaptions() );
+#ifdef HL2_RETAIL
     _gamepadui_hudaspect.SetValue( GetCurrentHudAspectRatio() );
+#endif
     _gamepadui_skill.SetValue( GetCurrentSkill() );
 }
 
@@ -1180,7 +1353,9 @@ void FlushHelperConVars()
     FlushPendingResolution();
     FlushPendingSoundQuality();
     FlushPendingCloseCaptions();
+#ifdef HL2_RETAIL
     FlushPendingHudAspectRatio();
+#endif
     FlushPendingSkill();
 }
 
@@ -1189,7 +1364,7 @@ GamepadUIOptionsPanel::GamepadUIOptionsPanel( vgui::Panel* pParent, const char* 
 {
     s_pOptionsPanel = this;
 
-    vgui::HScheme Scheme = vgui::scheme()->LoadSchemeFromFile( GAMEPADUI_DEFAULT_PANEL_SCHEME, "SchemePanel" );
+    vgui::HScheme Scheme = vgui::scheme()->LoadSchemeFromFileEx( GamepadUI::GetInstance().GetSizingVPanel(), GAMEPADUI_DEFAULT_PANEL_SCHEME, "SchemePanel" );
     SetScheme( Scheme );
 
     GetFrameTitle() = GamepadUIString( "#GameUI_Options" );
@@ -1206,6 +1381,11 @@ GamepadUIOptionsPanel::GamepadUIOptionsPanel( vgui::Panel* pParent, const char* 
     SetActiveTab( GetActiveTab() );
 
     UpdateGradients();
+
+    m_pScrollBar = new GamepadUIScrollBar(
+        this, this,
+        GAMEPADUI_RESOURCE_FOLDER "schemescrollbar.res",
+        NULL, false );
 }
 
 GamepadUIOptionsPanel::~GamepadUIOptionsPanel()
@@ -1268,18 +1448,7 @@ void GamepadUIOptionsPanel::LayoutCurrentTab()
             pButton->SetVisible( false );
     }
 
-    int yMax = 0;
     int nActiveTab = GetActiveTab();
-    {
-        int nScrollCount = m_Tabs[nActiveTab].pButtons.Count() - 8;
-        for ( int i = 0; i < m_Tabs[nActiveTab].pButtons.Count(); i++ )
-        {
-            GamepadUIButton *pButton = m_Tabs[ nActiveTab ].pButtons[ i ];
-            if ( i < nScrollCount )
-                yMax += pButton->GetTall();
-        }
-        m_Tabs[ nActiveTab ].ScrollState.UpdateScrollBounds( 0.0f, yMax );
-    }
 
     int i = 0;
     int previousSizes = 0;
@@ -1360,12 +1529,20 @@ void GamepadUIOptionsPanel::LayoutCurrentTab()
             previousSizes += pButton->GetTall();
         i++;
     }
-
-    if ( yMax != 0 )
+	
+    int yMax = 0;
     {
-        vgui::surface()->DrawSetColor( Color( 255, 255, 255, 200 ) );
-        int scrollbarY = RemapValClamped( m_Tabs[ nActiveTab ].ScrollState.GetScrollProgress(), 0, yMax, y, nParentH - m_flFooterButtonsOffsetY - m_nFooterButtonHeight - m_flScrollBarHeight );
-        vgui::surface()->DrawFilledRect( m_flTabsOffsetX + m_flScrollBarOffsetX, scrollbarY, m_flTabsOffsetX + m_flScrollBarOffsetX + m_flScrollBarWidth, scrollbarY + m_flScrollBarHeight );
+        if (previousSizes > m_flScrollBarHeight)
+            yMax = previousSizes - m_flScrollBarHeight;
+        m_Tabs[ nActiveTab ].ScrollState.UpdateScrollBounds( 0.0f, yMax );
+
+        m_pScrollBar->InitScrollBar( &m_Tabs[nActiveTab].ScrollState,
+            m_flScrollBarOffsetX, m_flScrollBarOffsetY );
+
+        m_pScrollBar->UpdateScrollBounds( 0.0f, yMax,
+            m_flScrollBarHeight, m_flScrollBarHeight );
+			
+        m_Tabs[ nActiveTab ].ScrollState.UpdateScrollBounds( 0.0f, yMax );
     }
 
     m_Tabs[nActiveTab].ScrollState.UpdateScrolling( 2.0f, GamepadUI::GetInstance().GetTime() );
@@ -1374,6 +1551,12 @@ void GamepadUIOptionsPanel::LayoutCurrentTab()
 void GamepadUIOptionsPanel::OnMouseWheeled( int delta )
 {
     m_Tabs[ GetActiveTab() ].ScrollState.OnMouseWheeled( delta * 100.0f, GamepadUI::GetInstance().GetTime() );
+}
+
+CON_COMMAND( _gamepadui_resetkeys, "" )
+{
+    GamepadUIOptionsPanel::GetInstance()->ClearBindings();
+    GamepadUIOptionsPanel::GetInstance()->FillInBindings();
 }
 
 void GamepadUIOptionsPanel::OnCommand( char const* pCommand )
@@ -1394,6 +1577,13 @@ void GamepadUIOptionsPanel::OnCommand( char const* pCommand )
         FlushHelperConVars();
         ApplyKeyBindings();
         GamepadUI::GetInstance().GetEngineClient()->ClientCmd_Unrestricted( "exec userconfig.cfg\nhost_writeconfig\nmat_savechanges\n" );
+    }
+    else if ( !V_strcmp( pCommand, "action_usedefaults" ) )
+    {
+        new GamepadUIGenericConfirmationPanel( GamepadUIOptionsPanel::GetInstance(), "UseDefaultsConfirm", GamepadUIString( "#GameUI_KeyboardSettings" ).String(), GamepadUIString("#GameUI_KeyboardSettingsText").String(),
+		[](){
+                GamepadUI::GetInstance().GetEngineClient()->ClientCmd_Unrestricted( "exec config_default.cfg\n_gamepadui_resetkeys\n" );
+            }, false, true);
     }
     else if ( StringHasPrefixCaseSensitive( pCommand, "tab " ) )
     {
@@ -1540,6 +1730,19 @@ void GamepadUIOptionsPanel::UpdateResolutions()
 
     _gamepadui_resolution.SetValue( nSelectedDefaultMode );
     m_pResolutionButton->SetToDefault();
+}
+
+void GamepadUIOptionsPanel::ClearBindings()
+{
+    for ( int i = 0; i < m_nTabCount; i++ )
+    {
+        for ( GamepadUIButton* pButton : m_Tabs[i].pButtons )
+        {
+            GamepadUIKeyButton* pKeyButton = dynamic_cast<GamepadUIKeyButton*>(pButton);
+            if ( pKeyButton )
+                pKeyButton->ClearKey();
+        }
+    }
 }
 
 // Mainly from GameUI
@@ -1746,6 +1949,11 @@ void GamepadUIOptionsPanel::SetActiveTab( int nTab )
     for ( int i = 0; i < m_nTabCount; i++ )
         m_Tabs[ i ].pTabButton->ForceDepressed( i == nActiveTab );
 
+    FooterButtonMask buttons = FooterButtons::Apply | FooterButtons::Back;
+    if ( V_strncmp( m_Tabs[nActiveTab].pTabButton->GetName(), "Keyboard", 8 ) == 0 )
+        buttons |= FooterButtons::UseDefaults;
+    SetFooterButtons( buttons );
+
     for ( GamepadUIButton *pButton : m_Tabs[ nActiveTab ].pButtons )
     {
         if ( pButton->GetCurrentButtonState() == ButtonState::Pressed )
@@ -1788,8 +1996,71 @@ void GamepadUIOptionsPanel::LoadOptionTabs( const char *pszOptionsFile )
                 m_Tabs[ m_nTabCount ].pTabButton = button;
             }
 
+            m_Tabs[ m_nTabCount ].pTabButton->SetName( pTabData->GetName() );
             m_Tabs[ m_nTabCount ].bAlternating = pTabData->GetBool( "alternating" );
             m_Tabs[ m_nTabCount ].bHorizontal = pTabData->GetBool( "horizontal" );
+
+            if ( !V_strcmp( pTabData->GetString( "items_from" ), "keyboard" ) )
+            {
+	            char szBinding[256];
+	            char szDescription[256];
+
+	            // Load the default keys list
+	            CUtlBuffer buf( 0, 0, CUtlBuffer::TEXT_BUFFER );
+	            if ( !g_pFullFileSystem->ReadFile( "scripts/kb_act.lst", NULL, buf ) )
+		            return;
+
+	            const char *data = ( const char* )buf.Base();
+
+	            char token[512];
+	            while ( 1 )
+	            {
+		            data = UTIL_Parse( data, token, sizeof( token ) );
+		            // Done.
+		            if ( strlen( token ) <= 0 )
+			            break;
+
+		            Q_strncpy( szBinding, token, sizeof( szBinding ) );
+
+		            data = UTIL_Parse( data, token, sizeof( token ) );
+		            if ( strlen( token ) <= 0 )
+		            {
+			            break;
+		            }
+
+		            Q_strncpy( szDescription, token, sizeof( szDescription ) );
+
+		            // Skip '======' rows
+		            if ( szDescription[ 0 ] != '=' )
+		            {
+			            // Flag as special header row if binding is "blank"
+			            if ( !stricmp( szBinding, "blank" ) )
+			            {
+				            // add header item
+                            auto button = new GamepadUIButton(
+                                this, this,
+                                GAMEPADUI_RESOURCE_FOLDER "schemeoptions_sectiontitle.res",
+                                "button_pressed",
+                                szDescription, "" );
+                            //button->SetFooterButton( true );
+                            button->SetEnabled( false );
+                            m_Tabs[ m_nTabCount ].pButtons.AddToTail( button );
+			            }
+			            else
+			            {
+				            // Add to list
+                            auto button = new GamepadUIKeyButton(
+                                szBinding, this, this,
+                                GAMEPADUI_RESOURCE_FOLDER "schemeoptions_wheelywheel.res",
+                                "button_pressed",
+                                szDescription, "" );
+                            m_Tabs[ m_nTabCount ].pButtons.AddToTail( button );
+			            }
+		            }
+	            }
+
+                FillInBindings();
+            }
 
             KeyValues* pTabItems = pTabData->FindKey( "items" );
             if ( pTabItems )
@@ -1833,6 +2104,7 @@ void GamepadUIOptionsPanel::LoadOptionTabs( const char *pszOptionsFile )
                             "button_pressed",
                             pItemData->GetString( "text", "" ), pItemData->GetString( "description", "" ) );
                         button->SetToDefault();
+                        button->SetMouseStep( pItemData->GetFloat( "mouse_step", flStep ) );
                         m_Tabs[ m_nTabCount ].pButtons.AddToTail( button );
                     }
                     else if ( !V_strcmp( pItemType, "headeryheader" ) )
@@ -1953,68 +2225,6 @@ void GamepadUIOptionsPanel::LoadOptionTabs( const char *pszOptionsFile )
                 }
             }
 
-            if ( !V_strcmp( pTabData->GetString( "items_from" ), "keyboard" ) )
-            {
-	            char szBinding[256];
-	            char szDescription[256];
-
-	            // Load the default keys list
-	            CUtlBuffer buf( 0, 0, CUtlBuffer::TEXT_BUFFER );
-	            if ( !g_pFullFileSystem->ReadFile( "scripts/kb_act.lst", NULL, buf ) )
-		            return;
-
-	            const char *data = ( const char* )buf.Base();
-
-	            char token[512];
-	            while ( 1 )
-	            {
-		            data = UTIL_Parse( data, token, sizeof( token ) );
-		            // Done.
-		            if ( strlen( token ) <= 0 )
-			            break;
-
-		            Q_strncpy( szBinding, token, sizeof( szBinding ) );
-
-		            data = UTIL_Parse( data, token, sizeof( token ) );
-		            if ( strlen( token ) <= 0 )
-		            {
-			            break;
-		            }
-
-		            Q_strncpy( szDescription, token, sizeof( szDescription ) );
-
-		            // Skip '======' rows
-		            if ( szDescription[ 0 ] != '=' )
-		            {
-			            // Flag as special header row if binding is "blank"
-			            if ( !stricmp( szBinding, "blank" ) )
-			            {
-				            // add header item
-                            auto button = new GamepadUIButton(
-                                this, this,
-                                GAMEPADUI_RESOURCE_FOLDER "schemeoptions_sectiontitle.res",
-                                "button_pressed",
-                                szDescription, "" );
-                            //button->SetFooterButton( true );
-                            button->SetEnabled( false );
-                            m_Tabs[ m_nTabCount ].pButtons.AddToTail( button );
-			            }
-			            else
-			            {
-				            // Add to list
-                            auto button = new GamepadUIKeyButton(
-                                szBinding, this, this,
-                                GAMEPADUI_RESOURCE_FOLDER "schemeoptions_wheelywheel.res",
-                                "button_pressed",
-                                szDescription, "" );
-                            m_Tabs[ m_nTabCount ].pButtons.AddToTail( button );
-			            }
-		            }
-	            }
-
-                FillInBindings();
-            }
-
             CUtlVector< GamepadUIButton* >& pButtons = m_Tabs[ m_nTabCount ].pButtons;
             for ( int i = 1; i < pButtons.Count(); i++ )
             {
@@ -2038,11 +2248,21 @@ void GamepadUIOptionsPanel::LoadOptionTabs( const char *pszOptionsFile )
 void GamepadUIOptionsPanel::ApplySchemeSettings( vgui::IScheme* pScheme )
 {
     BaseClass::ApplySchemeSettings( pScheme );
-    
-    if (GamepadUI::GetInstance().GetScreenRatio() != 1.0f)
+
+    float flX, flY;
+    if (GamepadUI::GetInstance().GetScreenRatio( flX, flY ))
     {
-        float flScreenRatio = GamepadUI::GetInstance().GetScreenRatio();
-        m_flTabsOffsetX *= (flScreenRatio * flScreenRatio);
+        m_flTabsOffsetX *= (flX * flX);
+        m_flScrollBarOffsetX *= (flX);
+    }
+
+    int nX, nY;
+    GamepadUI::GetInstance().GetSizingPanelOffset( nX, nY );
+    if (nX > 0)
+    {
+        GamepadUI::GetInstance().GetSizingPanelScale( flX, flY );
+        m_flTabsOffsetX += ((float)nX) * flX * 0.5f;
+        m_flScrollBarOffsetX += ((float)nX) * flX * 0.1f;
     }
 }
 

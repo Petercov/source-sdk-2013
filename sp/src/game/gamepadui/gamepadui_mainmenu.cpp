@@ -17,7 +17,7 @@
 GamepadUIMainMenu::GamepadUIMainMenu( vgui::Panel* pParent )
     : BaseClass( pParent, "MainMenu" )
 {
-    vgui::HScheme hScheme = vgui::scheme()->LoadSchemeFromFile( GAMEPADUI_MAINMENU_SCHEME, "SchemeMainMenu" );
+    vgui::HScheme hScheme = vgui::scheme()->LoadSchemeFromFileEx( GamepadUI::GetInstance().GetSizingVPanel(), GAMEPADUI_MAINMENU_SCHEME, "SchemeMainMenu" );
     SetScheme( hScheme );
 
     KeyValues* pModData = new KeyValues( "ModData" );
@@ -25,8 +25,8 @@ GamepadUIMainMenu::GamepadUIMainMenu( vgui::Panel* pParent )
     {
         if ( pModData->LoadFromFile( g_pFullFileSystem, "gameinfo.txt" ) )
         {
-            m_LogoText[ 0 ] = pModData->GetString( "title" );
-            m_LogoText[ 1 ] = pModData->GetString( "title2" );
+            m_LogoText[ 0 ] = pModData->GetString( "gamepadui_title", pModData->GetString( "title" ) );
+            m_LogoText[ 1 ] = pModData->GetString( "gamepadui_title2", pModData->GetString( "title2" ) );
         }
         pModData->deleteThis();
     }
