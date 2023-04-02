@@ -961,7 +961,7 @@ int CAI_BaseNPC::OnTakeDamage(const CTakeDamageInfo& inputInfo)
 {
 	CTakeDamageInfo info = inputInfo;
 
-	if (info.GetDamage() && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION))) // armor doesn't protect against fall or drown damage!
+	if (info.GetDamage() && info.GetDamageType() != DMG_GENERIC && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION))) // armor doesn't protect against fall or drown damage!
 	{
 		if (m_flArmorBonus <= 0.f) // Constant damage reduction
 		{
