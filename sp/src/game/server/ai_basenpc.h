@@ -1888,6 +1888,9 @@ public:
 	virtual bool		IsSilentSquadMember() const 	{ return false; }
 
 	int					NumWeaponsInSquad( const char *pszWeaponClassname );
+#ifdef MAPBASE
+	int					NumWeaponsInSquad(WeaponClass_t nClass);
+#endif
 
 	string_t			GetHintGroup( void )			{ return m_strHintGroup;		}
 	void				ClearHintGroup( void )			{ SetHintGroup( NULL_STRING );	}

@@ -290,3 +290,33 @@ int CAI_BaseNPC::NumWeaponsInSquad( const char *pszWeaponClassname )
 
 	return count;
 }
+
+#ifdef MAPBASE
+int CAI_BaseNPC::NumWeaponsInSquad(WeaponClass_t nClass)
+{
+	if (!GetSquad())
+	{
+		if (GetActiveWeapon() && GetActiveWeapon()->WeaponClassify() == nClass)
+		{
+			// I'm alone in my squad, but I do have this weapon.
+			return 1;
+		}
+
+		return 0;
+	}
+
+	int count = 0;
+	AISquadIter_t iter;
+	CAI_BaseNPC* pSquadmate = m_pSquad->GetFirstMember(&iter);
+	while (pSquadmate)
+	{
+		if (pSquadmate->GetActiveWeapon() && pSquadmate->GetActiveWeapon()->WeaponClassify() == nClass)
+		{
+			count++;
+		}
+		pSquadmate = m_pSquad->GetNextMember(&iter);
+	}
+
+	return count;
+}
+#endif // MAPBASE

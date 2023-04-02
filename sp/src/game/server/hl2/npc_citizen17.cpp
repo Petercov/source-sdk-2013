@@ -2615,11 +2615,8 @@ bool CNPC_Citizen::ShouldLookForBetterWeapon()
 				m_flNextWeaponSearchTime = OTHER_DEFER_SEARCH_TIME;
 				bDefer = true;
 			}
-#ifdef MAPBASE
-			else if ( EntIsClass(pWeapon, gm_isz_class_Shotgun) )
-#else
+#ifndef MAPBASE
 			else if( FClassnameIs( pWeapon, "weapon_shotgun" ) )
-#endif
 			{
 				// Shotgunners do not defer their weapon search indefinitely.
 				// If more than one citizen in the squad has a shotgun, we force
@@ -2649,6 +2646,7 @@ bool CNPC_Citizen::ShouldLookForBetterWeapon()
 					bDefer = true;
 				}
 			}
+#endif
 
 			if( bDefer )
 			{

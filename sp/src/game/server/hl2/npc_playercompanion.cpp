@@ -2750,18 +2750,21 @@ bool CNPC_PlayerCompanion::Weapon_CanUse( CBaseCombatWeapon *pWeapon )
 		// are being used in this squad. Don't allow a companion to pick up
 		// a shotgun if a squadmate already has one.
 #ifdef MAPBASE
-		if (EntIsClass(pWeapon, gm_iszShotgunClassname))
-#else
-		if( pWeapon->ClassMatches( gm_iszShotgunClassname ) )
-#endif
+		if (pWeapon->WeaponClassify() == WEPCLASS_SHOTGUN)
 		{
-			return (NumWeaponsInSquad("weapon_shotgun") < 1 );
+			int nCount = NumWeaponsInSquad(WEPCLASS_SHOTGUN);
+			return (nCount == 1 && GetActiveWeapon() && GetActiveWeapon()->WeaponClassify() == WEPCLASS_SHOTGUN) // Shotgunners can swap to a different shotgun
+				|| ( nCount < 1 );
 		}
-#ifdef MAPBASE
 		else if (EntIsClass( pWeapon, gm_isz_class_Pistol ) || EntIsClass( pWeapon, gm_isz_class_357 ) || EntIsClass( pWeapon, gm_isz_class_Crossbow ))
 		{
 			// The AI automatically detects these weapons as usable now that there's animations for them, so ensure this behavior can be toggled in situations where that's not desirable
 			return ai_allow_new_weapons.GetBool();
+		}
+#else
+		if (pWeapon->ClassMatches(gm_iszShotgunClassname))
+		{
+			return (NumWeaponsInSquad("weapon_shotgun") < 1);
 		}
 #endif
 		else
@@ -2785,7 +2788,7 @@ bool CNPC_PlayerCompanion::ShouldLookForBetterWeapon()
 	// Since that could already be worked around with OnHolster > DisableWeaponPickup, I decided to keep it that way in case it's desirable.
 
 	// Don't look for a new weapon if we have secondary ammo for our current one.
-	if (m_iNumGrenades > 0 && IsAltFireCapable() && GetActiveWeapon() && GetActiveWeapon()->UsesSecondaryAmmo())
+	if (m_iNumGrenades > 0 && IsAltFireCapable() /*&& GetActiveWeapon() && GetActiveWeapon()->UsesSecondaryAmmo()*/)
 		return false;
 #endif
 
