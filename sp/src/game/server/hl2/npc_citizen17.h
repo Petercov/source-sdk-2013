@@ -60,7 +60,8 @@ enum CitizenType_t
 	CT_ARBEIT,		// Pre-war Arbeit employees
 	CT_ARBEIT_SEC,	// Pre-war Arbeit security guards
 
-	CT_GASMASK,
+	CT_CONSCRIPT,
+	CT_HAZMAT,
 	CT_WORKER,
 
 	CT_HOSTAGE,

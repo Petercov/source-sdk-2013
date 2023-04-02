@@ -339,7 +339,7 @@ static const char *g_ppszModelLocs[] =
 {
 	"Group01",
 	"Group01",
-	"Group02",
+	"Group02%s",
 	"Group03%s",
 	"Group01",
 	"Group03b%s",
@@ -348,7 +348,8 @@ static const char *g_ppszModelLocs[] =
 	"Group05",	// Arbeit
 	"Group05b", // Arbeit2
 
-	"Hazmat01", // Gasmask
+	"Group04c%s", // Conscript
+	"Hazmat01", // Hazmat
 	"Group06", // Worker
 
 	"Office1"
@@ -567,7 +568,7 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 		}
 	}
 
-	if (type == CT_REBEL || type == CT_ARCTIC)
+	if (type == CT_REBEL || type == CT_ARCTIC || type == CT_BRUTE || type == CT_LONGFALL || type == CT_REFUGEE || type == CT_CONSCRIPT)
 	{
 		for ( i = 0; i < nHeads; ++i )
 		{
@@ -794,7 +795,7 @@ void CNPC_Citizen::SelectModel()
 		PrecacheAllOfType(CT_ARCTIC);
 		PrecacheAllOfType(CT_ARBEIT);
 		PrecacheAllOfType(CT_ARBEIT_SEC);
-		PrecacheAllOfType(CT_GASMASK);
+		PrecacheAllOfType(CT_HAZMAT);
 		PrecacheAllOfType(CT_WORKER);
 		PrecacheAllOfType(CT_HOSTAGE);
 	}
@@ -1021,11 +1022,14 @@ void CNPC_Citizen::SelectExpressionType()
 	case CT_ARCTIC:
 		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
 		break;
-	case CT_GASMASK:
+	case CT_HAZMAT:
 		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
 		break;
 	case CT_WORKER:
 		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
+		break;
+	case CT_CONSCRIPT:
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
 		break;
 	case CT_DEFAULT:
 	case CT_UNIQUE:
@@ -5307,5 +5311,5 @@ bool CNPC_Citizen::CreateSprites(void)
 
 bool CNPC_Citizen::AllowedToIgnite(void)
 {
-	return (m_Type != CT_GASMASK);
+	return (m_Type != CT_HAZMAT);
 }
