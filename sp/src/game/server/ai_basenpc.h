@@ -1888,6 +1888,9 @@ public:
 	virtual bool		IsSilentSquadMember() const 	{ return false; }
 
 	int					NumWeaponsInSquad( const char *pszWeaponClassname );
+#ifdef MAPBASE_VSCRIPT
+	int					ScriptNumWeaponsInSquad(const char* pszWeaponClassname) { return NumWeaponsInSquad(pszWeaponClassname); }
+#endif // MAPBASE_VSCRIPT
 #ifdef MAPBASE
 	int					NumWeaponsInSquad(WeaponClass_t nClass);
 #endif

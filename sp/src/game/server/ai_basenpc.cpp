@@ -12645,7 +12645,7 @@ BEGIN_ENT_SCRIPTDESC( CAI_BaseNPC, CBaseCombatCharacter, "The base class all NPC
 
 	DEFINE_SCRIPTFUNC_NAMED( VScriptGetSquad, "GetSquad", "Get the NPC's squad if it has one." )
 	DEFINE_SCRIPTFUNC( IsInSquad, "Returns true if the NPC is in a squad." )
-	DEFINE_SCRIPTFUNC( NumWeaponsInSquad, "Get the number of weapons in a squad." )
+	DEFINE_SCRIPTFUNC_NAMED( ScriptNumWeaponsInSquad, "NumWeaponsInSquad", "Get the number of weapons in a squad.")
 		
 	DEFINE_SCRIPTFUNC( IsCrouching, "Returns true if the NPC is crouching." )
 	DEFINE_SCRIPTFUNC( Crouch, "Tells the NPC to crouch." )
