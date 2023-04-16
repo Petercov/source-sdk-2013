@@ -48,7 +48,7 @@ void CNPC_HL1Zombie::Spawn()
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
     m_iHealth			= sk_zombie_hl1_health.GetFloat();
 	//pev->view_ofs		= VEC_VIEW;// position of the eyes relative to monster's origin.
 	m_flFieldOfView		= 0.5;

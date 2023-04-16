@@ -60,8 +60,8 @@ LINK_ENTITY_TO_CLASS( monster_headcrab, CNPC_HL1Headcrab );
 
 enum
 {
-	SCHED_HEADCRAB_RANGE_ATTACK1 = LAST_SHARED_SCHEDULE,
-	SCHED_FAST_HEADCRAB_RANGE_ATTACK1,
+	SCHED_HL1_HEADCRAB_RANGE_ATTACK1 = LAST_SHARED_SCHEDULE,
+	SCHED_HL1_FAST_HEADCRAB_RANGE_ATTACK1,
 };
 
 
@@ -87,7 +87,7 @@ void CNPC_HL1Headcrab::Spawn( void )
 	SetMoveType( MOVETYPE_STEP );
 	SetViewOffset( Vector(6, 0, 11) );		// Position of the eyes relative to NPC's origin.
 
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	m_flFieldOfView		= 0.5;
 	m_NPCState			= NPC_STATE_NONE;
 	m_nGibCount			= HEADCRAB_ALL_GIB_COUNT;
@@ -318,7 +318,7 @@ int CNPC_HL1Headcrab::TranslateSchedule( int scheduleType )
 	switch( scheduleType )
 	{
 		case SCHED_RANGE_ATTACK1:
-			return SCHED_HEADCRAB_RANGE_ATTACK1;
+			return SCHED_HL1_HEADCRAB_RANGE_ATTACK1;
 
 		case SCHED_FAIL_TAKE_COVER:
 			return SCHED_ALERT_FACE;
@@ -595,7 +595,7 @@ AI_BEGIN_CUSTOM_NPC( monster_headcrab, CNPC_HL1Headcrab )
 	//=========================================================
 	DEFINE_SCHEDULE
 	(
-		SCHED_HEADCRAB_RANGE_ATTACK1,
+		SCHED_HL1_HEADCRAB_RANGE_ATTACK1,
 	
 		"	Tasks"
 		"		TASK_STOP_MOVING			0"
@@ -615,7 +615,7 @@ AI_BEGIN_CUSTOM_NPC( monster_headcrab, CNPC_HL1Headcrab )
 	//=========================================================
 	DEFINE_SCHEDULE
 	(
-		SCHED_FAST_HEADCRAB_RANGE_ATTACK1,
+		SCHED_HL1_FAST_HEADCRAB_RANGE_ATTACK1,
 	
 		"	Tasks"
 		"		TASK_STOP_MOVING			0"

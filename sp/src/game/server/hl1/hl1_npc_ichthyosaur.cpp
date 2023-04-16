@@ -212,7 +212,7 @@ void CNPC_HL1Ichthyosaur::Spawn( void )
 
 	m_flGroundSpeed			= ICH_SWIM_SPEED_RUN;
 
-	m_bloodColor		= BLOOD_COLOR_YELLOW;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	m_iHealth			= sk_ichthyosaur_hl1_health.GetFloat();
 	m_iMaxHealth		= m_iHealth;
 	m_flFieldOfView		= -0.707;	// 270 degrees

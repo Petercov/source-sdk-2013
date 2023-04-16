@@ -245,7 +245,7 @@ void CNPC_Controller::Spawn()
 	SetGravity(0.001);
 
 
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	m_iHealth =			sk_controller_health.GetFloat();
 
 	m_flFieldOfView		= VIEW_FIELD_FULL;// indicates the width of this monster's forward view cone ( as a dotproduct result )

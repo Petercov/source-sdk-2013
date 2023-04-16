@@ -116,7 +116,7 @@ void CNPC_HL1Houndeye::Spawn()
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
-	m_bloodColor		= BLOOD_COLOR_YELLOW;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	ClearEffects();
 	m_iHealth			= sk_houndeye_hl1_health.GetFloat();
 	m_flFieldOfView		= 0.5;// indicates the width of this monster's forward view cone ( as a dotproduct result )

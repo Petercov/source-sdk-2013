@@ -257,7 +257,7 @@ void CNPC_HL1Bullsquid::Spawn()
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	
 	SetRenderColor( 255, 255, 255, 255 );
 	

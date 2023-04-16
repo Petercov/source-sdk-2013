@@ -407,7 +407,7 @@ void CNPC_BigMomma::Spawn()
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
 	
-	m_bloodColor = BLOOD_COLOR_GREEN;
+	m_bloodColor = BLOOD_COLOR_HL1_ALIEN;
 	m_iHealth = 150 * sk_bigmomma_health_factor.GetFloat();
 
 	SetHullType( HULL_WIDE_HUMAN );

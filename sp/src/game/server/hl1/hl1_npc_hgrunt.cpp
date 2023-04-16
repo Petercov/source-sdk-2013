@@ -244,7 +244,7 @@ void CNPC_HGrunt::Spawn()
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
-	m_bloodColor		= BLOOD_COLOR_RED;
+	m_bloodColor		= BLOOD_COLOR_HL1_HUMAN;
 	ClearEffects();
 	m_iHealth			= sk_hgrunt_health.GetFloat();
 	m_flFieldOfView		= 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )

@@ -284,7 +284,7 @@ void CNPC_Gargantua::Spawn()
 	Vector vecSurroundingMaxs( 80, 80, 214 );
 	CollisionProp()->SetSurroundingBoundsType( USE_SPECIFIED_BOUNDS, &vecSurroundingMins, &vecSurroundingMaxs );
 
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	m_iHealth			= sk_gargantua_health.GetFloat();
 	SetViewOffset( Vector ( 0, 0, 96 ) );// taken from mdl file
 	m_flFieldOfView		= -0.2;// width of forward view cone ( as a dotproduct result )

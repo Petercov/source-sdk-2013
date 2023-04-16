@@ -191,7 +191,7 @@ void CNPC_AlienGrunt::Spawn()
 	CollisionProp()->SetSurroundingBoundsType( USE_SPECIFIED_BOUNDS, &vecSurroundingMins, &vecSurroundingMaxs );
 
 	SetMoveType( MOVETYPE_STEP );
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_HL1_ALIEN;
 	ClearEffects();
 	m_iHealth			= sk_agrunt_health.GetFloat();
 	m_flFieldOfView		= 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -321,8 +321,8 @@ void CNPC_AlienGrunt::HandleAnimEvent( animevent_t *pEvent )
 			vecArmPos = vecArmPos + vecDirToEnemy * 32;
 		
 			CPVSFilter filter( GetAbsOrigin() );
-			te->Sprite( filter, 0.0,
-				&vecArmPos, iAgruntMuzzleFlash, random->RandomFloat( 0.4, 0.8 ), 128 );
+			te->GlowSprite( filter, 0.0,
+				&vecArmPos, iAgruntMuzzleFlash, .1f, random->RandomFloat( 0.4, 0.8 ), 128 );
 
 			CBaseEntity *pHornet = CBaseEntity::Create( "hornet", vecArmPos, QAngle( 0, 0, 0 ), this );
 
