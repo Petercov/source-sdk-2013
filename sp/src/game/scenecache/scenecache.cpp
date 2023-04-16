@@ -68,6 +68,7 @@ inline CRC32_t GetPathCRC(const char* pszScenePath)
 	char szCleanName[MAX_PATH];
 	V_strncpy(szCleanName, pszScenePath, sizeof(szCleanName));
 	V_strlower(szCleanName);
+	V_FixDoubleSlashes(szCleanName);
 	V_FixSlashes(szCleanName, '\\');
 
 	return CRC32_ProcessSingleBuffer(szCleanName, strlen(szCleanName));
