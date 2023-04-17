@@ -15,6 +15,11 @@
 #include "SpriteTrail.h"
 #include "player_pickup.h"
 
+#ifdef EZ_NPCS
+#define MANHACK_EZ2 1  
+#endif // EZ_NPCS
+#define MANHACK_EZU 1
+
 // Start with the engine off and folded up.
 #define SF_MANHACK_PACKED_UP			(1 << 16)
 #define SF_MANHACK_NO_DAMAGE_EFFECTS	(1 << 17)
@@ -185,6 +190,10 @@ public:
 
 	virtual void SetEyeState(int state);
 
+#ifdef MANHACK_EZ2
+	void		TurnIntoNemesis() { m_bNemesis = true; }
+#endif
+
 	DEFINE_CUSTOM_AI;
 
 	DECLARE_DATADESC();
@@ -287,6 +296,12 @@ private:
 
 	bool			m_bHeld;
 	bool			m_bHackedByAlyx;
+#ifdef MANHACK_EZ2
+	bool			m_bNemesis;
+#endif
+#ifdef MANHACK_EZU
+	bool			m_bTraitor;
+#endif // MANHACK_EZU
 	Vector			m_vecLoiterPosition;
 	float			m_fTimeNextLoiterPulse;
 

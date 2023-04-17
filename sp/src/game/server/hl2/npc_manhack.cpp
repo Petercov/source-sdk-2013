@@ -161,6 +161,13 @@ BEGIN_DATADESC( CNPC_Manhack )
 	DEFINE_FIELD( m_vecLoiterPosition,		FIELD_POSITION_VECTOR),
 	DEFINE_FIELD( m_fTimeNextLoiterPulse,	FIELD_TIME),
 
+#ifdef MANHACK_EZ2
+	DEFINE_KEYFIELD(m_bNemesis, FIELD_BOOLEAN, "Nemesis"),
+#endif
+#ifdef MANHACK_EZU
+	DEFINE_KEYFIELD(m_bTraitor, FIELD_BOOLEAN, "TraitorHack"),
+#endif
+
 	DEFINE_FIELD( m_flBumpSuppressTime,		FIELD_TIME ),
 
 	DEFINE_FIELD( m_bBladesActive,			FIELD_BOOLEAN),
@@ -256,7 +263,31 @@ CNPC_Manhack::~CNPC_Manhack()
 //-----------------------------------------------------------------------------
 Class_T	CNPC_Manhack::Classify(void)
 {
-	return (m_bHeld||m_bHackedByAlyx) ? CLASS_PLAYER_ALLY : CLASS_MANHACK; 
+#ifdef METROZOMBIES
+	// If we are being held by a zombine or metrozombie, use CLASS_ZOMBIE
+	if (GetOwnerEntity() && GetOwnerEntity()->Classify() == CLASS_ZOMBIE)
+	{
+		return CLASS_ZOMBIE;
+	}
+#endif
+#if defined(MANHACK_EZ2) || defined(MANHACK_EZU)
+	if (m_bHackedByAlyx)
+		return CLASS_PLAYER_ALLY;
+
+#ifdef MANHACK_EZ2
+	// This is a "nemesis" manhack
+	if (m_bNemesis)
+		return CLASS_COMBINE_NEMESIS;
+#endif
+#ifdef MANHACK_EZU
+	if (m_bTraitor)
+		return CLASS_PLAYER_ALLY;
+#endif // MANHACK_EZU
+
+	return m_bHeld ? CLASS_PLAYER_ALLY : CLASS_MANHACK;
+#else
+	return (m_bHeld||m_bHackedByAlyx) ? CLASS_PLAYER_ALLY : CLASS_MANHACK;
+#endif
 }
 
 
@@ -1723,23 +1754,52 @@ void CNPC_Manhack::Bump( CBaseEntity *pHitEntity, float flInterval, trace_t &tr 
 //-----------------------------------------------------------------------------
 void CNPC_Manhack::CheckCollisions(float flInterval)
 {
+#ifdef METROZOMBIES
 	// Trace forward to see if I hit anything. But trace forward along the
 	// owner's view direction if you're being carried.
 	Vector vecTraceDir, vecCheckPos;
-	VPhysicsGetObject()->GetVelocity( &vecTraceDir, NULL );
-	vecTraceDir *= flInterval;
-	if ( IsHeldByPhyscannon() )
+
+	if (VPhysicsGetObject() == NULL)
 	{
-		CBasePlayer *pCarrier = HasPhysicsAttacker( FLT_MAX );
-		if ( pCarrier )
+		AngleVectors(GetLocalAngles(), &vecTraceDir, NULL, NULL);
+	}
+	else
+	{
+		VPhysicsGetObject()->GetVelocity(&vecTraceDir, NULL);
+	}
+
+	vecTraceDir *= flInterval;
+	if (IsHeldByPhyscannon())
+	{
+		CBasePlayer* pCarrier = HasPhysicsAttacker(FLT_MAX);
+		if (pCarrier)
 		{
-			if ( pCarrier->CollisionProp()->CalcDistanceFromPoint( WorldSpaceCenter() ) < 30 )
+			if (pCarrier->CollisionProp()->CalcDistanceFromPoint(WorldSpaceCenter()) < 30)
 			{
-				AngleVectors( pCarrier->EyeAngles(), &vecTraceDir, NULL, NULL );
+				AngleVectors(pCarrier->EyeAngles(), &vecTraceDir, NULL, NULL);
 				vecTraceDir *= 40.0f;
 			}
 		}
 	}
+#else	
+	// Trace forward to see if I hit anything. But trace forward along the
+	// owner's view direction if you're being carried.
+	Vector vecTraceDir, vecCheckPos;
+	VPhysicsGetObject()->GetVelocity(&vecTraceDir, NULL);
+	vecTraceDir *= flInterval;
+	if (IsHeldByPhyscannon())
+	{
+		CBasePlayer* pCarrier = HasPhysicsAttacker(FLT_MAX);
+		if (pCarrier)
+		{
+			if (pCarrier->CollisionProp()->CalcDistanceFromPoint(WorldSpaceCenter()) < 30)
+			{
+				AngleVectors(pCarrier->EyeAngles(), &vecTraceDir, NULL, NULL);
+				vecTraceDir *= 40.0f;
+			}
+		}
+	}
+#endif
 
 	VectorAdd( GetAbsOrigin(), vecTraceDir, vecCheckPos );
 	
@@ -1885,8 +1945,14 @@ void CNPC_Manhack::MoveExecute_Alive(float flInterval)
 
 	Vector	vCurrentVelocity = GetCurrentVelocity();
 
+#ifdef METROZOMBIES
+	// Only wake VPhysics if it exists
+	if (VPhysicsGetObject() != NULL)
+		VPhysicsGetObject()->Wake();
+#else
 	// FIXME: move this
 	VPhysicsGetObject()->Wake();
+#endif
 
 	if( m_fEnginePowerScale < GetMaxEnginePower() && gpGlobals->curtime > m_flWaterSuspendTime )
 	{
@@ -2500,6 +2566,20 @@ void CNPC_Manhack::StartEye( void )
 			m_pEyeGlow->SetTransparency( kRenderTransAdd, 0, 255, 0, 128, kRenderFxNoDissipation );
 			m_pEyeGlow->SetColor( 0, 255, 0 );
 		}
+#ifdef MANHACK_EZ2
+		else if (m_bNemesis)
+		{
+			m_pEyeGlow->SetTransparency(kRenderTransAdd, 0, 255, 255, 128, kRenderFxNoDissipation);
+			m_pEyeGlow->SetColor(0, 255, 255);
+		}
+#endif // MANHACK_EZ2
+#ifdef MANHACK_EZU
+		else if (m_bTraitor)
+		{
+			m_pEyeGlow->SetTransparency(kRenderTransAdd, 255, 222, 0, 128, kRenderFxNoDissipation);
+			m_pEyeGlow->SetColor(255, 222, 0);
+		}
+#endif // MANHACK_EZU
 		else
 		{
 			m_pEyeGlow->SetTransparency( kRenderTransAdd, 255, 0, 0, 128, kRenderFxNoDissipation );
@@ -2522,6 +2602,20 @@ void CNPC_Manhack::StartEye( void )
 			m_pLightGlow->SetTransparency( kRenderTransAdd, 0, 255, 0, 128, kRenderFxNoDissipation );
 			m_pLightGlow->SetColor( 0, 255, 0 );
 		}
+#ifdef MANHACK_EZ2
+		else if (m_bNemesis)
+		{
+			m_pLightGlow->SetTransparency(kRenderTransAdd, 0, 255, 255, 128, kRenderFxNoDissipation);
+			m_pLightGlow->SetColor(0, 255, 255);
+		}
+#endif // MANHACK_EZ2
+#ifdef MANHACK_EZU
+		else if (m_bTraitor)
+		{
+			m_pLightGlow->SetTransparency(kRenderTransAdd, 255, 222, 0, 128, kRenderFxNoDissipation);
+			m_pLightGlow->SetColor(255, 222, 0);
+		}
+#endif // MANHACK_EZU
 		else
 		{
 			m_pLightGlow->SetTransparency( kRenderTransAdd, 255, 0, 0, 128, kRenderFxNoDissipation );
@@ -2842,6 +2936,32 @@ bool CNPC_Manhack::HandleInteraction(int interactionType, void* data, CBaseComba
 		m_fForceMoveTime   = gpGlobals->curtime + 2.0;
 		return false;
 	}
+
+#ifdef METROZOMBIES
+	if (interactionType == g_interactionZombinePullGrenade)
+	{
+
+#ifdef EZ2
+		m_bNemesis = true;
+#endif
+
+		int priority;
+		Disposition_t disposition;
+		CBaseEntity* pEnemy;
+
+		// If the zombine that dispatched us has an enemy, prioritize that enemy
+		if (sourceEnt && sourceEnt->GetEnemy())
+		{
+			pEnemy = sourceEnt->GetEnemy();
+			priority = IRelationPriority(pEnemy);
+			disposition = IRelationType(pEnemy);
+
+			AddEntityRelationship(pEnemy, disposition, priority + 1);
+		}
+
+		return false;
+	}
+#endif
 
 	return false;
 }
@@ -3348,6 +3468,18 @@ void CNPC_Manhack::SetEyeState( int state )
 				{
 					m_pEyeGlow->SetColor( 0, 255, 0 );
 				}
+#ifdef MANHACK_EZ2
+				else if (m_bNemesis)
+				{
+					m_pEyeGlow->SetColor(0, 255, 255);
+				}
+#endif // MANHACK_EZ2
+#ifdef MANHACK_EZU
+				else if (m_bTraitor)
+				{
+					m_pEyeGlow->SetColor(255, 222, 0);
+				}
+#endif // MANHACK_EZU
 				else
 				{
 					m_pEyeGlow->SetColor( 255, 0, 0 );
@@ -3364,6 +3496,18 @@ void CNPC_Manhack::SetEyeState( int state )
 				{
 					m_pLightGlow->SetColor( 0, 255, 0 );
 				}
+#ifdef MANHACK_EZ2
+				else if (m_bNemesis)
+				{
+					m_pLightGlow->SetColor(0, 255, 255);
+				}
+#endif // MANHACK_EZ2
+#ifdef MANHACK_EZU
+				else if (m_bTraitor)
+				{
+					m_pLightGlow->SetColor(255, 222, 0);
+				}
+#endif // MANHACK_EZU
 				else
 				{
 					m_pLightGlow->SetColor( 255, 0, 0 );
