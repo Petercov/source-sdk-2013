@@ -113,6 +113,14 @@ enum Hint_e
 	// CS port hints
 	HINT_CSTRIKE_HOSTAGE_ESCAPE = 1100,
 
+#ifdef EZ2
+	// EZ2 hints
+	HINT_BEAST_HOME = 2000,
+	HINT_BEAST_FRUSTRATION,
+	HINT_SURRENDER_IDLE_DEST,
+	HINT_TACTICAL_VANTAGE_POINT, // Less confusing successor to HINT_TACTICAL_ENEMY_DISADVANTAGED because E:Z2 already uses ENEMY_DISADVANTAGED differently
+#endif
+
 #ifdef MAPBASE
 	// Mapbase hints
 	// (these start at a high number to avoid potential conflicts with mod hints)
