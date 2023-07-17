@@ -29,6 +29,8 @@
 #include "saverestore_utlvector.h"
 #include "grenade_satchel.h"
 #include "npc_citizen17.h"
+#include "npc_combine.h"
+#include "npc_husk_base.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -222,6 +224,14 @@ bool CHL2_TalkingPlayer::HandleInteraction( int interactionType, void *data, CBa
 Disposition_t CHL2_TalkingPlayer::IRelationType( CBaseEntity *pTarget )
 {
 	Disposition_t base = BaseClass::IRelationType( pTarget );
+
+	if (pTarget && pTarget->Classify() == CLASS_COMBINE_HUSK)
+	{
+		// Bad Cop likes husks which are passive towards him
+		CAI_HuskSink *pHusk = dynamic_cast<CAI_HuskSink *>(pTarget);
+		if (pHusk && pHusk->IsPassiveTarget( this ))
+			return D_LI;
+	}
 
 	return base;
 }

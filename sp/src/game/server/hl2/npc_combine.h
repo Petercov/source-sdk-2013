@@ -364,7 +364,7 @@ private:
 
 private:
 	// Select the combat schedule
-	int SelectCombatSchedule();
+	virtual int SelectCombatSchedule();
 
 	// Should we charge the player?
 	bool ShouldChargePlayer();

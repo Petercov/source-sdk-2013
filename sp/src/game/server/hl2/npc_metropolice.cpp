@@ -5112,6 +5112,12 @@ int CNPC_MetroPolice::SelectSchedule( void )
 				nSched = SelectScheduleInvestigateSound();
 				if ( nSched != SCHED_NONE )
 					return nSched;
+
+#ifdef EZ2
+				nSched = SelectAlertSchedule();
+				if ( nSched != SCHED_NONE )
+					return nSched;
+#endif
 			}
 			break;
 

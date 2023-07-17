@@ -708,6 +708,13 @@ bool CAI_ActBusyBehavior::IsCurScheduleOverridable( void )
 		// the only exception is SCRIPT (sjb)
 		return (GetOuter()->GetState() != NPC_STATE_SCRIPT);
 	}
+#ifdef EZ2
+	else if ( IsBeastActBusy() || IsHuskActBusy() )
+	{
+		// Beast and husk actbusies can run in any idle schedule
+		return (GetOuter()->GetState() == NPC_STATE_IDLE);
+	}
+#endif
 
 	// Act busies are not valid inside of a vehicle
 	if ( GetOuter()->IsInAVehicle() )
@@ -1082,6 +1089,13 @@ void CAI_ActBusyBehavior::BuildScheduleTestBits( void )
 		{
 			GetOuter()->SetCustomInterruptCondition( GetClassScheduleIdSpace()->ConditionLocalToGlobal(COND_ACTBUSY_ENEMY_TOO_CLOSE) );
 		}
+#ifdef EZ2
+		else if ( IsBeastActBusy() || IsHuskActBusy() )
+		{
+			GetOuter()->SetCustomInterruptCondition( COND_NEW_ENEMY );
+			GetOuter()->SetCustomInterruptCondition( COND_SEE_ENEMY );
+		}
+#endif
 	}
 
 	// If we're in a queue, or leaving, we have no extra conditions
@@ -1124,6 +1138,15 @@ void CAI_ActBusyBehavior::BuildScheduleTestBits( void )
 				GetOuter()->SetCustomInterruptCondition( COND_SEE_ENEMY );
 				GetOuter()->SetCustomInterruptCondition( COND_PLAYER_ADDED_TO_SQUAD );
 				GetOuter()->SetCustomInterruptCondition( COND_RECEIVED_ORDERS );
+
+#ifdef EZ2
+				if ( IsHuskActBusy() )
+				{
+					// Husks can be interrupted by player sounds
+					GetOuter()->SetCustomInterruptCondition( COND_HEAR_PLAYER );
+				}
+#endif
+
 				break;
 			}
 
@@ -1228,7 +1251,11 @@ int CAI_ActBusyBehavior::SelectScheduleWhileNotBusy( int iBase )
 	if ( m_bForceActBusy || m_flNextBusySearchTime < gpGlobals->curtime )
 	{
 		// If we're being forced, think again quickly
+#ifdef EZ2
+		if ( m_bForceActBusy || IsCombatActBusy() || IsBeastActBusy() || IsHuskActBusy() )
+#else
 		if ( m_bForceActBusy || IsCombatActBusy() )
+#endif
 		{
 			m_flNextBusySearchTime = gpGlobals->curtime + 2.0;
 		}
@@ -1457,6 +1484,16 @@ int CAI_ActBusyBehavior::SelectSchedule()
 	{
 		if ( m_bBusy )
 			return SelectScheduleWhileBusy();
+
+#ifdef EZ2
+		// TODO: Spread this to other actbusy types? I'm pretty sure I've seen this problem with the beast zombies in E:Z2
+		if ( IsHuskActBusy() && m_bMovingToBusy )
+		{
+			// Interrupted while moving to busy, stop moving
+			StopBusying();
+			return iBase;
+		}
+#endif
 
 		// I'm not busy, and I'm supposed to be
 		int schedule = SelectScheduleWhileNotBusy( iBase );
@@ -1693,6 +1730,27 @@ bool CAI_ActBusyBehavior::IsInSafeZone( CBaseEntity *pEntity )
 
 	return false;
 }
+
+#ifdef EZ2
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+bool CAI_ActBusyBehavior::IsBeastActBusy()
+{
+	if( m_hActBusyGoal != NULL )
+		return (m_hActBusyGoal->GetType() == ACTBUSY_TYPE_BEAST);
+
+	return false;
+}
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+bool CAI_ActBusyBehavior::IsHuskActBusy()
+{
+	if( m_hActBusyGoal != NULL )
+		return (m_hActBusyGoal->GetType() == ACTBUSY_TYPE_HUSKS);
+
+	return false;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: Return true if this NPC has the anims required to use the specified actbusy hint

@@ -181,6 +181,7 @@ private:
 	// Burst mode!
 	void		SetBurstMode( bool bEnable );
 
+public:
 	int			OnTakeDamage_Alive( const CTakeDamageInfo &info );
 
 	int			GetSoundInterests( void );
@@ -238,7 +239,15 @@ private:
 	bool HasBaton( void );
 
 	// Normal schedule selection 
+#ifdef EZ2
+protected:
+	// Virtual and protected for husks to override
+	virtual int SelectCombatSchedule();
+	virtual int SelectAlertSchedule() { return SCHED_NONE; }
+private:
+#else
 	int SelectCombatSchedule();
+#endif
 	int SelectScheduleNewEnemy();
 	int SelectScheduleArrestEnemy();
 	int SelectRangeAttackSchedule();
@@ -366,7 +375,12 @@ private:
 	virtual void StartWaitingForRappel() { m_RappelBehavior.StartWaitingForRappel(); }
 #endif
 
+#ifdef EZ2
+	// So that husks can access
+protected:
+#else
 private:
+#endif
 	enum
 	{
 		BURST_NOT_ACTIVE = 0,
@@ -393,6 +407,11 @@ private:
 		COND_METROPOLICE_PLAYER_TOO_CLOSE,
 		COND_METROPOLICE_CHANGE_BATON_STATE,
 		COND_METROPOLICE_PHYSOBJECT_ASSAULT,
+#ifdef EZ
+		COND_METROPOLICE_HIT_BY_BUGBAIT,
+#endif
+
+		NEXT_CONDITION,
 
 	};
 
@@ -437,6 +456,11 @@ private:
 		SCHED_METROPOLICE_RANGE_ATTACK2,
 		SCHED_METROPOLICE_AR2_ALTFIRE,
 #endif
+#ifdef EZ
+		SCHED_METROPOLICE_BUGBAIT_DISTRACTION,
+#endif
+
+		NEXT_SCHEDULE
 	};
 
 	enum 
@@ -469,6 +493,7 @@ private:
 		TASK_METROPOLICE_FACE_TOSS_DIR,
 		TASK_METROPOLICE_PLAY_SEQUENCE_FACE_ALTFIRE_TARGET,
 #endif
+		NEXT_TASK
 	};
 
 private:
