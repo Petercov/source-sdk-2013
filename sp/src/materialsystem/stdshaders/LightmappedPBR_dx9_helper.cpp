@@ -271,6 +271,7 @@ static void DrawLightmappedPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVa
 		pShaderShadow->EnableTexture(SHADER_SAMPLER9, true);	// Ambient Occlusion / MRAO
 		pShaderShadow->EnableTexture(SHADER_SAMPLER10, true);	// Emissive map
 		pShaderShadow->EnableTexture(SHADER_SAMPLER11, true);	// Lightmap
+		pShaderShadow->EnableSRGBRead(SHADER_SAMPLER11, g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE);
 
 		// Always enable, since flat normal will be bound
 		pShaderShadow->EnableTexture( SHADER_SAMPLER3, true );		// Normal map
