@@ -28,6 +28,7 @@ SHADER_PARAM(NOISE, SHADER_PARAM_TYPE_TEXTURE, "shaders/bluenoise", "")
 SHADER_PARAM(ROUGHNESS, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(METALLIC, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(AO, SHADER_PARAM_TYPE_TEXTURE, "", "")
+SHADER_PARAM(MRAOTEXTURE, SHADER_PARAM_TYPE_TEXTURE, "", "Texture with metalness in R, roughness in G, ambient occlusion in B.")
 SHADER_PARAM(EMISSIVE, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(USESMOOTHNESS, SHADER_PARAM_TYPE_BOOL, "0", "Invert roughness")
 
@@ -58,6 +59,7 @@ void SetupVars(LightmappedPBR_DX9_Vars_t& info)
 	info.m_nBRDF = BRDF;
 	info.m_nUseSmoothness = USESMOOTHNESS;
 	info.m_nSeamlessMappingScale = SEAMLESS_SCALE;
+	info.m_nMRAOTexture = MRAOTEXTURE;
 
 #ifdef PARALLAX_CORRECTED_CUBEMAPS
 	// Parallax cubemaps

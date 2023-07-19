@@ -11,6 +11,7 @@
 // STATIC: "SEAMLESS"                   "0..1"
 // STATIC: "BUMPMAP"                    "0..1"
 // STATIC: "PARALLAXCORRECT"			"0..1"
+// STATIC: "MRAOTEX"					"0..1"
 
 // DYNAMIC: "WRITEWATERFOGTODESTALPHA"  "0..1"
 // DYNAMIC: "PIXELFOGTYPE"				"0..1"
@@ -39,7 +40,8 @@
 
 // SKIP: ($CSM == 0) && ($CSM_PERF != 0)
 
-//  SKIP: $PARALLAXCORRECT && !$CUBEMAP
+// SKIP: $PARALLAXCORRECT && !$CUBEMAP
+// SKIP: $SMOOTHNESS && $MRAOTEX
 
 #include "common_flashlight_fxc.h"
 #include "shader_constant_register_map.h"
@@ -87,15 +89,21 @@ const float4x4 obbMatrix					: register(c34); //through c37
 
 #define g_FlashlightPos					g_FlashlightPos_RimBoost.xyz
 
-sampler BaseTextureSampler		: register( s0 );	// Base map, selfillum in alpha
-sampler RoughnessSampler		: register( s1 );	// Roughness
-sampler MetallicSampler			: register( s2 );	// Metallic
-sampler BumpmapSampler			: register( s3 );	// Bump map
-sampler EnvmapSampler			: register( s7 );	// for IBL
-sampler BRDFSampler				: register( s8 );	// for IBL
-sampler AOSampler				: register( s9 );	// AO
-sampler EmissiveSampler			: register( s10 );	// Emissive map
-sampler LightmapSampler			: register( s11 );	// Lightmap texture from the engine
+sampler BaseTextureSampler : register(s0); // Base map, selfillum in alpha
+sampler BumpmapSampler : register(s3); // Bump map
+
+#if MRAOTEX
+sampler MRAOTextureSampler      : register(s9);    // MRAO texture
+#else
+sampler RoughnessSampler : register(s1); // Roughness
+sampler MetallicSampler : register(s2); // Metallic
+sampler AOSampler : register(s9); // AO
+#endif
+
+sampler EnvmapSampler : register(s7); // for IBL
+sampler BRDFSampler : register(s8); // for IBL
+sampler EmissiveSampler : register(s10); // Emissive map
+sampler LightmapSampler : register(s11); // Lightmap texture from the engine
 
 // https://www.unrealengine.com/en-US/blog/physically-based-shading-on-mobile
 half3 EnvBRDFApprox( half3 SpecularColor, half Roughness, half NoV )
@@ -125,7 +133,7 @@ float3 DoIBL(float3 vWorldNormal, float3 vWorldPos, float3 albedo, float metalln
     float3 metallic = clamp(metallness, 0.0f, 0.9f);
 #if CUBEMAP == 1
 
-#if CUBEMAPCORRECTED == 0
+#if PARALLAXCORRECT == 0
 		float3 reflectVect = CalcReflectionVectorUnnormalized( vWorldNormal, V );
 #else
 	float3 reflectVect = CalcReflectionVectorUnnormalized( vWorldNormal, WorldToEye);
@@ -202,8 +210,10 @@ float3 DoFlashlight(float3 vWorldNormal, float3 vWorldPos, float3 albedo, float 
 	#if FLASHLIGHTSHADOWS
 	shadow = tex2DprojBicubic(ShadowDepthSampler, g_vShadowTweaks.xx, vProjCoords.xy, vProjCoords.z);
 	#endif
-	float2 dist = float2(length(g_FlashlightPos_RimBoost.xyz - vWorldPos), dot(g_FlashlightPos_RimBoost.xyz - vWorldPos,g_FlashlightPos_RimBoost.xyz - vWorldPos));
-	float fAtten = saturate( dot( g_FlashlightAttenuationFactors.xyz, float3( 1.0f, 1.0f/dist.x, 1.0f/dist.y ) ) );
+    float2 dist = float2(length(g_FlashlightPos_RimBoost.xyz - vWorldPos), dot(g_FlashlightPos_RimBoost.xyz - vWorldPos, g_FlashlightPos_RimBoost.xyz - vWorldPos));
+    float farZ = g_FlashlightAttenuationFactors.w;
+    float endFalloffFactor = RemapValClamped(dist.x, farZ, 0.6f * farZ, 0.0f, 1.0f);
+    float fAtten = saturate(endFalloffFactor * dot(g_FlashlightAttenuationFactors.xyz, float3(1.0f, 1.0f / dist.x, 1.0f / dist.y)));
 	float3 light = DoPBRLight( vWorldPos, vWorldNormal, albedo, g_FlashlightPos_RimBoost.xyz, flashlightColor.rgb * g_FlashlightColor.xyz, g_EyePos.xyz, shadow * fAtten * g_FlashlightColor.w, metallic, roughness);
 	return light;
 }
@@ -364,6 +374,7 @@ PS_OUTPUT main(PS_INPUT i) : COLOR
     UV = i.SeamlessTexCoord;
 #endif
 	float3 worldPos = i.worldPos_projPosZ.xyz;
+#if MRAOTEX == 0
 #if SMOOTHNESS == 0
 	float  roughnessMap = tex2D( RoughnessSampler, UV.xy );
 #else
@@ -371,6 +382,10 @@ PS_OUTPUT main(PS_INPUT i) : COLOR
 #endif
 	float  metallicMap = tex2D( MetallicSampler, UV.xy );
 	float  AOSample = tex2D( AOSampler, UV.xy );
+#else
+    float3 mraoSample = tex2D(MRAOTextureSampler, UV.xy).xyz;
+    float metallicMap = mraoSample.x, roughnessMap = mraoSample.y, AOSample = mraoSample.z;
+#endif
 	float3  EmissiveSample = tex2D( EmissiveSampler, UV.xy );
 	float4 baseColor = tex2D( BaseTextureSampler, UV.xy );
 	float4 baseColor2 = 0.0f.xxxx;

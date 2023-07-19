@@ -276,7 +276,7 @@ void InitLightmappedGeneric_DX9( CBaseVSShader *pShader, IMaterialVar** params, 
 	if (params[info.m_nBaseTexture]->IsDefined())
 	{
 		pShader->LoadTexture( info.m_nBaseTexture, TEXTUREFLAGS_SRGB );
-
+		
 		if (!params[info.m_nBaseTexture]->GetTextureValue()->IsTranslucent())
 		{
 			CLEAR_FLAGS( MATERIAL_VAR_SELFILLUM );

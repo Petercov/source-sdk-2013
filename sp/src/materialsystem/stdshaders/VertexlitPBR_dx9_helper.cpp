@@ -52,6 +52,11 @@ void InitParamsVertexLitPBR_DX9( CBaseVSShader *pShader, IMaterialVar** params, 
 		SET_FLAGS2(MATERIAL_VAR2_NEEDS_TANGENT_SPACES);
 	}
 
+	// If in decal mode, no debug override...
+	if (IS_FLAG_SET(MATERIAL_VAR_DECAL))
+	{
+		SET_FLAGS(MATERIAL_VAR_NO_DEBUG_OVERRIDE);
+	}
 
 	// This shader can be used with hw skinning
 	SET_FLAGS2( MATERIAL_VAR2_SUPPORTS_HW_SKINNING );
@@ -77,17 +82,24 @@ void InitVertexLitPBR_DX9( CBaseVSShader *pShader, IMaterialVar** params, Vertex
 		}
 	}
 
-	if (info.m_nRoughness != -1 && params[info.m_nRoughness]->IsDefined())
+	if (info.m_nMRAOTexture != -1 && params[info.m_nMRAOTexture]->IsDefined())
 	{
-		pShader->LoadTexture(info.m_nRoughness);
+		pShader->LoadTexture(info.m_nMRAOTexture);
 	}
-	if (info.m_nMetallic != -1 && params[info.m_nMetallic]->IsDefined())
+	else
 	{
-		pShader->LoadTexture(info.m_nMetallic);
-	}
-	if (info.m_nAO != -1 && params[info.m_nAO]->IsDefined())
-	{
-		pShader->LoadTexture(info.m_nAO);
+		if (info.m_nRoughness != -1 && params[info.m_nRoughness]->IsDefined())
+		{
+			pShader->LoadTexture(info.m_nRoughness);
+		}
+		if (info.m_nMetallic != -1 && params[info.m_nMetallic]->IsDefined())
+		{
+			pShader->LoadTexture(info.m_nMetallic);
+		}
+		if (info.m_nAO != -1 && params[info.m_nAO]->IsDefined())
+		{
+			pShader->LoadTexture(info.m_nAO);
+		}
 	}
 	if (info.m_nEmissive != -1 && params[info.m_nEmissive]->IsDefined())
 	{
@@ -147,17 +159,18 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 							CBasePerMaterialContextData **pContextDataPtr )
 {
 	bool bHasBaseTexture = (info.m_nBaseTexture != -1) && params[info.m_nBaseTexture]->IsTexture();
-	bool bHasRoughness = (info.m_nRoughness != -1) && params[info.m_nRoughness]->IsTexture();
-	bool bHasMetallic = (info.m_nMetallic != -1) && params[info.m_nMetallic]->IsTexture();
-	bool bHasAO = (info.m_nAO != -1) && params[info.m_nAO]->IsTexture();
+	bool bHasMRAO = (info.m_nMRAOTexture != -1) && params[info.m_nMRAOTexture]->IsTexture();
+	bool bHasRoughness = !bHasMRAO && (info.m_nRoughness != -1) && params[info.m_nRoughness]->IsTexture();
+	bool bHasMetallic = !bHasMRAO && (info.m_nMetallic != -1) && params[info.m_nMetallic]->IsTexture();
+	bool bHasAO = !bHasMRAO && (info.m_nAO != -1) && params[info.m_nAO]->IsTexture();
 	bool bHasEmissive = (info.m_nEmissive != -1) && params[info.m_nEmissive]->IsTexture();
 	bool bIsAlphaTested = IS_FLAG_SET( MATERIAL_VAR_ALPHATEST ) != 0;
 	bool bHasEnvmap =(info.m_nEnvmap != -1) && params[info.m_nEnvmap]->IsTexture();
 	//bool bHasLegacyEnvSphereMap = bHasEnvmap && IS_FLAG_SET(MATERIAL_VAR_ENVMAPSPHERE);
 	bool bHasBump = IsTextureSet(info.m_nBumpmap, params);
-	bool bUseSmoothness = info.m_nUseSmoothness != -1 && params[info.m_nUseSmoothness]->GetIntValue() == 1;
+	bool bUseSmoothness = !bHasMRAO && info.m_nUseSmoothness != -1 && params[info.m_nUseSmoothness]->GetIntValue() == 1;
 	bool bHasLightmap = (info.m_nLightmap != -1) && params[info.m_nLightmap]->IsTexture();
-	bool bIsDecal = false;
+	bool bIsDecal = IS_FLAG_SET(MATERIAL_VAR_DECAL);
 
 	bool bHasVertexColor = IS_FLAG_SET(MATERIAL_VAR_VERTEXCOLOR);
 	bool bHasVertexAlpha = IS_FLAG_SET(MATERIAL_VAR_VERTEXALPHA);
@@ -219,8 +232,11 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 		pShaderShadow->EnableTexture( SHADER_SAMPLER0, true );		// Base (albedo) map
 		pShaderShadow->EnableSRGBRead( SHADER_SAMPLER0, true );
 
-		pShaderShadow->EnableTexture(SHADER_SAMPLER1, true);		// Roughness map
-		pShaderShadow->EnableTexture(SHADER_SAMPLER2, true);		// Metallic map
+		if (!bHasMRAO)
+		{
+			pShaderShadow->EnableTexture(SHADER_SAMPLER1, true);		// Roughness map
+			pShaderShadow->EnableTexture(SHADER_SAMPLER2, true);		// Metallic map 
+		}
 
 		if (bHasEnvmap)
 		{
@@ -250,7 +266,7 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 
 		pShaderShadow->EnableTexture(SHADER_SAMPLER8, true);	// BRDF for IBL
 
-		pShaderShadow->EnableTexture(SHADER_SAMPLER9, true);	// Ambient Occlusion
+		pShaderShadow->EnableTexture(SHADER_SAMPLER9, true);	// Ambient Occlusion / MRAO
 		pShaderShadow->EnableTexture(SHADER_SAMPLER10, true);	// Emissive map
 		pShaderShadow->EnableTexture(SHADER_SAMPLER11, true);	// Lightmap
 
@@ -294,6 +310,7 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 		SET_STATIC_PIXEL_SHADER_COMBO( FLASHLIGHT, bHasFlashlight );
 		SET_STATIC_PIXEL_SHADER_COMBO( CONVERT_TO_SRGB, 0 );
 		SET_STATIC_PIXEL_SHADER_COMBO(SMOOTHNESS, bUseSmoothness);
+		SET_STATIC_PIXEL_SHADER_COMBO(MRAOTEX, bHasMRAO);
 		SET_STATIC_PIXEL_SHADER(vertexlitpbr_ps30);
 
 		if( bHasFlashlight )
@@ -312,25 +329,32 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 	{
 		bool bLightingOnly = mat_fullbright.GetInt() == 2 && !IS_FLAG_SET( MATERIAL_VAR_NO_DEBUG_OVERRIDE );
 
-		if( bHasBaseTexture )
+		if (bLightingOnly)
+			pShaderAPI->BindStandardTexture(SHADER_SAMPLER0, TEXTURE_GREY);
+		else if( bHasBaseTexture )
 			pShader->BindTexture( SHADER_SAMPLER0, info.m_nBaseTexture, info.m_nBaseTextureFrame );
 		else
 			pShaderAPI->BindStandardTexture( SHADER_SAMPLER0, TEXTURE_WHITE );
 
-		if (bHasRoughness)
-			pShader->BindTexture(SHADER_SAMPLER1, info.m_nRoughness);
-		else
-			pShaderAPI->BindStandardTexture(SHADER_SAMPLER1, TEXTURE_WHITE);
+		if (!bHasMRAO)
+		{
+			if (bHasRoughness)
+				pShader->BindTexture(SHADER_SAMPLER1, info.m_nRoughness);
+			else
+				pShaderAPI->BindStandardTexture(SHADER_SAMPLER1, TEXTURE_WHITE);
 
-		if (bHasMetallic)
-			pShader->BindTexture(SHADER_SAMPLER2, info.m_nMetallic);
-		else
-			pShaderAPI->BindStandardTexture(SHADER_SAMPLER2, TEXTURE_BLACK);
+			if (bHasMetallic)
+				pShader->BindTexture(SHADER_SAMPLER2, info.m_nMetallic);
+			else
+				pShaderAPI->BindStandardTexture(SHADER_SAMPLER2, TEXTURE_BLACK);
+		}
 
 		if (bHasEnvmap)
 			pShader->BindTexture(SHADER_SAMPLER7, info.m_nEnvmap);
 
-		if (bHasAO)
+		if (bHasMRAO)
+			pShader->BindTexture(SHADER_SAMPLER9, info.m_nMRAOTexture);
+		else if (bHasAO)
 			pShader->BindTexture(SHADER_SAMPLER9, info.m_nAO);
 		else
 			pShaderAPI->BindStandardTexture(SHADER_SAMPLER9, TEXTURE_WHITE);

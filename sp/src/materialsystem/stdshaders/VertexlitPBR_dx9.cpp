@@ -35,6 +35,7 @@ SHADER_PARAM(ROUGHNESS, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(METALLIC, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(AO, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(EMISSIVE, SHADER_PARAM_TYPE_TEXTURE, "", "")
+SHADER_PARAM(MRAOTEXTURE, SHADER_PARAM_TYPE_TEXTURE, "", "Texture with metalness in R, roughness in G, ambient occlusion in B.")
 SHADER_PARAM(LIGHTMAP, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "lightmap texture--will be bound by the engine")
 
 SHADER_PARAM(USESMOOTHNESS, SHADER_PARAM_TYPE_BOOL, "0", "Invert roughness")
@@ -110,6 +111,7 @@ void SetupVars(VertexLitPBR_DX9_Vars_t& info)
 	info.m_nBRDF = BRDF;
 	info.m_nUseSmoothness = USESMOOTHNESS;
 	info.m_nLightmap = LIGHTMAP;
+	info.m_nMRAOTexture = MRAOTEXTURE;
 }
 
 #if 0
@@ -445,3 +447,14 @@ SHADER_DRAW
 
 END_SHADER
 
+
+// Compatability
+BEGIN_SHADER_FLAGS(PBR, "", SHADER_NOT_EDITABLE)
+BEGIN_SHADER_PARAMS
+END_SHADER_PARAMS
+SHADER_FALLBACK {
+	return IS_FLAG_SET(MATERIAL_VAR_MODEL) ? "VertexLitPBR" : "LightmappedPBR";
+}
+SHADER_INIT {}
+SHADER_DRAW {}
+END_SHADER

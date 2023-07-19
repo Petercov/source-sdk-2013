@@ -148,6 +148,27 @@ public:
 		m_bPARALLAXCORRECT = true;
 #endif
 	}
+private:
+	int m_nMRAOTEX;
+#ifdef _DEBUG
+	bool m_bMRAOTEX;
+#endif
+public:
+	void SetMRAOTEX( int i )
+	{
+		Assert( i >= 0 && i <= 1 );
+		m_nMRAOTEX = i;
+#ifdef _DEBUG
+		m_bMRAOTEX = true;
+#endif
+	}
+	void SetMRAOTEX( bool i )
+	{
+		m_nMRAOTEX = i ? 1 : 0;
+#ifdef _DEBUG
+		m_bMRAOTEX = true;
+#endif
+	}
 public:
 	lightmappedpbr_ps30_Static_Index( )
 	{
@@ -179,19 +200,23 @@ public:
 		m_bPARALLAXCORRECT = false;
 #endif // _DEBUG
 		m_nPARALLAXCORRECT = 0;
+#ifdef _DEBUG
+		m_bMRAOTEX = false;
+#endif // _DEBUG
+		m_nMRAOTEX = 0;
 	}
 	int GetIndex()
 	{
 		// Asserts to make sure that we aren't using any skipped combinations.
 		// Asserts to make sure that we are setting all of the combination vars.
 #ifdef _DEBUG
-		bool bAllStaticVarsDefined = m_bCONVERT_TO_SRGB && m_bFLASHLIGHT && m_bCUBEMAP && m_bSMOOTHNESS && m_bSEAMLESS && m_bBUMPMAP && m_bPARALLAXCORRECT;
+		bool bAllStaticVarsDefined = m_bCONVERT_TO_SRGB && m_bFLASHLIGHT && m_bCUBEMAP && m_bSMOOTHNESS && m_bSEAMLESS && m_bBUMPMAP && m_bPARALLAXCORRECT && m_bMRAOTEX;
 		Assert( bAllStaticVarsDefined );
 #endif // _DEBUG
-		return ( 48 * m_nCONVERT_TO_SRGB ) + ( 48 * m_nFLASHLIGHT ) + ( 96 * m_nCUBEMAP ) + ( 192 * m_nSMOOTHNESS ) + ( 384 * m_nSEAMLESS ) + ( 768 * m_nBUMPMAP ) + ( 1536 * m_nPARALLAXCORRECT ) + 0;
+		return ( 48 * m_nCONVERT_TO_SRGB ) + ( 48 * m_nFLASHLIGHT ) + ( 96 * m_nCUBEMAP ) + ( 192 * m_nSMOOTHNESS ) + ( 384 * m_nSEAMLESS ) + ( 768 * m_nBUMPMAP ) + ( 1536 * m_nPARALLAXCORRECT ) + ( 3072 * m_nMRAOTEX ) + 0;
 	}
 };
-#define shaderStaticTest_lightmappedpbr_ps30 psh_forgot_to_set_static_CONVERT_TO_SRGB + psh_forgot_to_set_static_FLASHLIGHT + psh_forgot_to_set_static_CUBEMAP + psh_forgot_to_set_static_SMOOTHNESS + psh_forgot_to_set_static_SEAMLESS + psh_forgot_to_set_static_BUMPMAP + psh_forgot_to_set_static_PARALLAXCORRECT + 0
+#define shaderStaticTest_lightmappedpbr_ps30 psh_forgot_to_set_static_CONVERT_TO_SRGB + psh_forgot_to_set_static_FLASHLIGHT + psh_forgot_to_set_static_CUBEMAP + psh_forgot_to_set_static_SMOOTHNESS + psh_forgot_to_set_static_SEAMLESS + psh_forgot_to_set_static_BUMPMAP + psh_forgot_to_set_static_PARALLAXCORRECT + psh_forgot_to_set_static_MRAOTEX + 0
 class lightmappedpbr_ps30_Dynamic_Index
 {
 private:
