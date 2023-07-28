@@ -916,6 +916,11 @@ void UTIL_BloodDecalTrace( trace_t *pTrace, int bloodColor )
 		case BLOOD_COLOR_HL1_HUMAN:
 			UTIL_DecalTrace(pTrace, "HL1Blood");
 			break;
+#ifdef HL2_EPISODIC
+		case BLOOD_COLOR_ZOMBIE:
+			UTIL_DecalTrace(pTrace, "ZombieBlood");
+			break;
+#endif // HL2_EPISODIC
 #endif // MAPBASE
 		}
 #endif // !MAPBASE
