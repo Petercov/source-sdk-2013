@@ -25,6 +25,12 @@ public:
 
 	virtual bool OnInternalDrawModel( ClientModelRenderInfo_t *pInfo );
 
+#ifdef MAPBASE
+	virtual CStudioHdr* OnNewModel(void);
+protected:
+	bool m_bPBR;
+#endif // MAPBASE
+
 protected:
 	// Networked vars.
 	bool m_bAwake;
