@@ -545,6 +545,35 @@ void RegisterSharedScriptConstants()
 	ScriptRegisterConstant( g_pScriptVM, CLASS_HACKED_ROLLERMINE, "Used by rollermines which were hacked by Alyx." );
 	ScriptRegisterConstant( g_pScriptVM, CLASS_COMBINE_HUNTER, "Used by Combine hunters." );
 
+
+
+#ifdef EZ_NPCS
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_FAUNA, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_PREDATOR, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_FLORA, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_RACE_X, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_COMBINE_NEMESIS, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ARBEIT_TECH, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_COMBINE_HUSK, "");
+#endif
+
+	ScriptRegisterConstant(g_pScriptVM, CLASS_TEST, "");
+
+#ifdef HL1_NPCS
+	ScriptRegisterConstant(g_pScriptVM, CLASS_MACHINE, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_HUMAN_PASSIVE, "Used by scientists.");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_HUMAN_MILITARY, "Used by HECU marines, etc.");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_MILITARY, "Used by alien grunts, alien slaves/vortigaunts, etc.");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_MONSTER, "Used by zombies, houndeyes, barnacles, and other misc. monsters.");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_PREY, "Used by headcrabs, etc.");
+#ifndef EZ_NPCS
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_PREDATOR, "Used by bullsquids, etc.");
+#endif // !EZ_NPCS
+	ScriptRegisterConstant(g_pScriptVM, CLASS_INSECT, "Used by cockroaches.");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_PLAYER_BIOWEAPON, "Used by a player's hivehand hornets.");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_BIOWEAPON, "Used by an alien grunt's hivehand hornets.");
+#endif
+
 #elif defined( HL1_DLL )
 
 	ScriptRegisterConstant( g_pScriptVM, CLASS_HUMAN_PASSIVE, "Used by scientists." );

@@ -26,9 +26,9 @@ enum
 
 //=========================================================
 //=========================================================
-class CAI_Relationship : public CBaseEntity, public IEntityListener
+class CAI_Relationship : public CServerOnlyPointEntity, public IEntityListener
 {
-	DECLARE_CLASS( CAI_Relationship, CBaseEntity );
+	DECLARE_CLASS( CAI_Relationship, CServerOnlyPointEntity);
 
 public:
 	CAI_Relationship() : m_iPreviousDisposition( -1 )  { }

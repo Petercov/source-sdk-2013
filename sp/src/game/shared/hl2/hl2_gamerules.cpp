@@ -2500,6 +2500,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 			case CLASS_RACE_X:			return "CLASS_RACE_X";
 			case CLASS_COMBINE_NEMESIS:	return "CLASS_COMBINE_NEMESIS";
 			case CLASS_ARBEIT_TECH:		return "CLASS_ARBEIT_TECH";
+			case CLASS_COMBINE_HUSK:	return "CLASS_COMBINE_HUSK";
 #endif
 			default:					return "MISSING CLASS in ClassifyText()";
 		}
