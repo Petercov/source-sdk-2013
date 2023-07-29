@@ -109,7 +109,7 @@ public:
 
 	virtual float GetFireRate( void ) 
 	{
-#ifdef EZ2
+#ifdef MAPBASE
 		if (m_hLeftHandGun != NULL)
 			return 0.25f;
 #endif
@@ -125,7 +125,7 @@ public:
 
 	DECLARE_ACTTABLE();
 
-#ifdef EZ2
+#ifdef MAPBASE
 	WeaponClass_t			WeaponClassify() { return WEPCLASS_HANDGUN; }
 	virtual void			SetActivity( Activity act, float duration );
 
@@ -159,7 +159,7 @@ BEGIN_DATADESC( CWeaponPistol )
 	DEFINE_FIELD( m_flAccuracyPenalty,		FIELD_FLOAT ), //NOTENOTE: This is NOT tracking game time
 	DEFINE_FIELD( m_nNumShotsFired,			FIELD_INTEGER ),
 
-#ifdef EZ2
+#ifdef MAPBASE
 	DEFINE_FIELD( m_hLeftHandGun, FIELD_EHANDLE ),
 #endif
 
@@ -316,7 +316,7 @@ int GetPistolActtableCount()
 }
 #endif
 
-#ifdef EZ2
+#ifdef MAPBASE
 void CWeaponPistol::SetActivity( Activity act, float duration )
 {
 	// HACKHACK: Can't recompile all of the models to have this right now
@@ -362,7 +362,7 @@ void CWeaponPistol::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 	{
 		case EVENT_WEAPON_PISTOL_FIRE:
 		{
-#ifdef EZ2
+#ifdef MAPBASE
 			// HACKHACK: Ignore the regular firing event while dual-wielding
 			if (GetLeftHandGun())
 				return;

@@ -36,6 +36,12 @@ $Project
 			$File	"sin\npc_jessica.h"
 			$File	"sin\npc_druglab_helicopter.cpp"
 		}
+
+		$Folder "EZ2"
+		{
+			$File	"mapbase\npc_assassin.cpp"
+			$File	"mapbase\npc_assassin.h"
+		}
 		
 		$Folder	"HL1 DLL"
 		{

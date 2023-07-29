@@ -145,7 +145,7 @@ private:
 	bool						m_bDualWeapons;
 	CHandle<CBaseAnimating>		m_hLeftHandGun;
 
-#ifndef EZ
+#ifndef EZ_EYEGLOWS
 	CHandle<CSprite>			m_pEyeGlow;
 #endif
 	CHandle<CSpriteTrail>		m_pEyeTrail;

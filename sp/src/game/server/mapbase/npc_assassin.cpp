@@ -107,11 +107,13 @@ ConVar	npc_assassin_use_new_vantage_type( "npc_assassin_use_new_vantage_type", "
 #define TLK_ASSASSIN_CLOAK "TLK_CLOAK"
 #define TLK_ASSASSIN_UNCLOAK "TLK_UNCLOAK"
 
+#ifndef COMBINE_COMPANION
+#define m_nMeleeDamage m_nKickDamage
+#endif // !COMBINE_COMPANION
+
 //=========================================================
 // Anim Events	
 //=========================================================
-int AE_PISTOL_FIRE_LEFT;
-int AE_PISTOL_FIRE_RIGHT;
 int AE_ASSASSIN_KICK_HIT;
 
 //=========================================================
@@ -167,7 +169,7 @@ BEGIN_DATADESC( CNPC_Assassin )
 	DEFINE_KEYFIELD( m_bDualWeapons, FIELD_BOOLEAN, "DualWeapons" ),
 	DEFINE_FIELD( m_hLeftHandGun, FIELD_EHANDLE ),
 
-#ifndef EZ
+#ifndef EZ_EYEGLOWS
 	DEFINE_FIELD( m_pEyeGlow,	FIELD_EHANDLE ),
 #endif
 	DEFINE_FIELD( m_pEyeTrail,	FIELD_EHANDLE ),
@@ -261,7 +263,7 @@ void CNPC_Assassin::Spawn( void )
 //-----------------------------------------------------------------------------
 void CNPC_Assassin::StartEye(void)
 {
-#ifdef EZ
+#ifdef EZ_EYEGLOWS
 	BaseClass::StartEye();
 #else
 	// TODO: Create eye glow for non-E:Z contexts
@@ -598,7 +600,9 @@ int CNPC_Assassin::TranslateSchedule( int scheduleType )
 				return SCHED_ASSASSIN_RANGE_ATTACK1;
 		} break;
 
+#ifdef COMBINE_COMPANION
 	case SCHED_PC_MELEE_AND_MOVE_AWAY:
+#endif // COMBINE_COMPANION
 	case SCHED_MELEE_ATTACK1:
 		{
 			return SCHED_ASSASSIN_MELEE_ATTACK1;
@@ -969,9 +973,11 @@ bool CNPC_Assassin::ShouldCloak()
 		}
 	}
 
+#ifdef EZ2
 	// Can't order a surrender if the enemy can't see me
-	if (HasCondition( COND_COMBINE_CAN_ORDER_SURRENDER ))
+	if (HasCondition(COND_COMBINE_CAN_ORDER_SURRENDER))
 		return false;
+#endif // EZ2
 
 	return true;
 }
@@ -1022,7 +1028,11 @@ void CNPC_Assassin::StartTask( const Task_t *pTask )
 
 		case TASK_ASSASSIN_FIND_DODGE_POSITION:
 		{
+#ifdef EZ2
 			TaskFindDodgeActivity();
+#else
+			TaskComplete();
+#endif // EZ2
 			break;
 		}
 
@@ -1714,7 +1724,7 @@ bool CNPC_Assassin::CanBeHitByMeleeAttack( CBaseEntity *pAttacker )
 //-----------------------------------------------------------------------------
 bool CNPC_Assassin::HandleInteraction(int interactionType, void *data, CBaseCombatCharacter* sourceEnt)
 {
-	if( (interactionType == g_interactionZombieMeleeWarning || interactionType == g_interactionGenericMeleeWarning) && IsAllowedToDodge() )
+	if( (interactionType == g_interactionZombieMeleeWarning /*|| interactionType == g_interactionGenericMeleeWarning*/) && IsAllowedToDodge() )
 	{
 		// If a zombie is attacking, ditch my current schedule and duck if I'm running a schedule that will
 		// be interrupted if I'm hit.
@@ -1789,21 +1799,24 @@ void CNPC_Assassin::Event_Killed( const CTakeDamageInfo &info )
 		}
 	}
 
+#if 0
 	// If we were sufficiently cloaked when killed, make the suit malfunction
 	if (m_flCloakFactor >= 0.8f && m_hDeathRagdoll)
 	{
 		Vector vecSparkDir = info.GetDamageForce();
-		g_pEffects->Sparks( info.GetDamagePosition(), 2, RandomInt(2, 3), &vecSparkDir );
+		g_pEffects->Sparks(info.GetDamagePosition(), 2, RandomInt(2, 3), &vecSparkDir);
 		//EmitSound( "DoSpark" );
 
 		// Now handled by proxy on client
 		//m_hDeathRagdoll->m_nRenderMode = kRenderTransColor;
 
-		m_hDeathRagdoll->SetRenderColorA( (255.0f * (1.0f - (m_flCloakFactor*0.5f))) );
+		m_hDeathRagdoll->SetRenderColorA((255.0f * (1.0f - (m_flCloakFactor * 0.5f))));
 		m_hDeathRagdoll->m_nRenderFX = kRenderFxDistort;
 
-		CRagdollBoogie::Create( m_hDeathRagdoll, 50, gpGlobals->curtime, RandomFloat(3.0f, 4.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL );
+		CRagdollBoogie::Create(m_hDeathRagdoll, 50, gpGlobals->curtime, RandomFloat(3.0f, 4.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL);
 	}
+#endif // 0
+
 }
 
 //-----------------------------------------------------------------------------
@@ -2124,8 +2137,6 @@ AI_BEGIN_CUSTOM_NPC( npc_assassin, CNPC_Assassin )
 	DECLARE_ACTIVITY( ACT_ARM_DUAL_PISTOLS )
 	DECLARE_ACTIVITY( ACT_DISARM_DUAL_PISTOLS )
 
-	DECLARE_ANIMEVENT( AE_PISTOL_FIRE_LEFT )
-	DECLARE_ANIMEVENT( AE_PISTOL_FIRE_RIGHT )
 	DECLARE_ANIMEVENT( AE_ASSASSIN_KICK_HIT )
 
 	DECLARE_CONDITION( COND_ASSASSIN_ENEMY_TARGETING_ME )

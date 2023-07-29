@@ -6,7 +6,8 @@
 
 #include "cbase.h"
 #include "basehlcombatweapon_shared.h"
-#if defined(EZ2) && defined(GAME_DLL)
+#if defined(MAPBASE) && defined(GAME_DLL)
+#include "ai_basenpc.h"
 #include "npcevent.h"
 #endif
 
@@ -145,7 +146,7 @@ bool CBaseHLCombatWeapon::Deploy( void )
 
 	m_bLowered = false;
 
-#if defined(EZ2) && defined(GAME_DLL)
+#if defined(MAPBASE) && defined(GAME_DLL)
 	if ( BaseClass::Deploy() )
 	{
 		if ( GetLeftHandGun() )
@@ -169,7 +170,7 @@ bool CBaseHLCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 {
 	if ( BaseClass::Holster( pSwitchingTo ) )
 	{
-#if defined(EZ2) && defined(GAME_DLL)
+#if defined(MAPBASE) && defined(GAME_DLL)
 		if ( GetLeftHandGun() )
 		{
 			GetLeftHandGun()->AddEffects( EF_NODRAW );
@@ -250,11 +251,7 @@ void CBaseHLCombatWeapon::WeaponIdle( void )
 	}
 }
 
-#if defined(EZ2) && defined(GAME_DLL)
-// HACKHACK: Draws directly from npc_assassin private animevents
-extern int AE_PISTOL_FIRE_LEFT;
-extern int AE_PISTOL_FIRE_RIGHT;
-
+#if defined(MAPBASE) && defined(GAME_DLL)
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -408,9 +405,20 @@ Activity CBaseHLCombatWeapon::ActivityOverride( Activity baseAct, bool *pRequire
 				return (Activity)pTable->weaponAct;
 			}
 		}
-	}
 
-	return BaseClass::ActivityOverride( baseAct, pRequired );
+		return baseAct;
+	}
+	else
+		return BaseClass::ActivityOverride( baseAct, pRequired );
+}
+
+bool CBaseHLCombatWeapon::SupportsBackupActivity(Activity activity)
+{
+	// Don't fall back if dual wielding.
+	if (GetLeftHandGun())
+		return false;
+
+	return BaseClass::SupportsBackupActivity(activity);
 }
 #endif
 

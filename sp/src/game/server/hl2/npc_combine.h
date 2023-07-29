@@ -44,6 +44,7 @@
 #ifdef MAPBASE
 class CNPC_Combine : public CAI_GrenadeUser<CAI_BaseActor>
 {
+protected:
 	DECLARE_DATADESC();
 	DEFINE_CUSTOM_AI;
 	DECLARE_CLASS( CNPC_Combine, CAI_GrenadeUser<CAI_BaseActor> );
@@ -227,13 +228,19 @@ public:
 
 	virtual bool	ShouldPickADeathPose( void );
 
+#ifndef COMBINE_COMPANION
+	CAI_FollowBehavior& GetFollowBehavior() { return m_FollowBehavior; }
+#endif // !COMBINE_COMPANION
 protected:
 	void			SetKickDamage( int nDamage ) { m_nKickDamage = nDamage; }
 #ifndef COMBINE_SOLDIER_USES_RESPONSE_SYSTEM
 	CAI_Sentence< CNPC_Combine > *GetSentences() { return &m_Sentences; }
 #endif
 
+#ifndef MAPBASE
 private:
+#endif // !MAPBASE
+
 	//=========================================================
 	// Combine S schedules
 	//=========================================================
@@ -355,7 +362,7 @@ private:
 	virtual void StartWaitingForRappel() { m_RappelBehavior.StartWaitingForRappel(); }
 #endif
 
-private:
+protected:
 	int				m_nKickDamage;
 #ifndef MAPBASE // CAI_GrenadeUser
 	Vector			m_vecTossVelocity;

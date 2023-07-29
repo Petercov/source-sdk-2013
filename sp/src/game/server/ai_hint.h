@@ -113,7 +113,7 @@ enum Hint_e
 	// CS port hints
 	HINT_CSTRIKE_HOSTAGE_ESCAPE = 1100,
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 	// EZ2 hints
 	HINT_BEAST_HOME = 2000,
 	HINT_BEAST_FRUSTRATION,

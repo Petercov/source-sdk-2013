@@ -15,6 +15,7 @@
 #include "particle_parse.h"
 #include "functionproxy.h"
 #include "toolframework_client.h"
+#include "model_types.h"
 
 class C_NPC_Assassin : public C_AI_BaseNPC
 {
@@ -28,6 +29,8 @@ public:
 	void	OnDataChanged( DataUpdateType_t type );
 
 	ShadowType_t	ShadowCastType();
+
+	virtual int DrawModel(int flags);
 
 	inline float	GetCloakFactor() const { return m_flCloakFactor; }
 
@@ -78,6 +81,16 @@ ShadowType_t C_NPC_Assassin::ShadowCastType()
 		return SHADOWS_NONE;
 
 	return BaseClass::ShadowCastType();
+}
+
+int C_NPC_Assassin::DrawModel(int flags)
+{
+	if ((flags & STUDIO_RENDER) && m_flCloakFactor >= 1.f)
+	{
+		return 0;
+	}
+
+	return BaseClass::DrawModel(flags);
 }
 
 //-----------------------------------------------------------------------------

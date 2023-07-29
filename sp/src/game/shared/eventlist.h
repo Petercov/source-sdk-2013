@@ -90,6 +90,9 @@ typedef enum
 	AE_NPC_RESPONSE_FORCED,		// Always play a response system concept
 
 	AE_NPC_MAKE_INTERACTION_DEATHSOUND,
+
+	AE_PISTOL_FIRE_LEFT,
+	AE_PISTOL_FIRE_RIGHT,
 #endif
 
 #ifdef EZ2_KICK

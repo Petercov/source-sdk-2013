@@ -56,10 +56,11 @@ public:
 
 	virtual void	ItemHolsterFrame( void );
 
-#if defined(EZ2) && defined(GAME_DLL)
+#if defined(MAPBASE) && defined(GAME_DLL)
 	virtual void		Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 	virtual void		FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir ) {}
 	virtual Activity	ActivityOverride( Activity baseAct, bool *pRequired );
+	virtual bool		SupportsBackupActivity(Activity activity);
 
 	// Dual wielding stubs (used for the Combine assassin)
 	virtual bool			CanDualWield() const { return false; }
