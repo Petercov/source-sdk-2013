@@ -299,6 +299,8 @@ void CNPC_Assassin::StartEyeTrail()
 
 			color32 renderClr = m_pEyeGlow->GetRenderColor();
 			m_pEyeTrail->SetTransparency( kRenderTransAdd, renderClr.r, renderClr.g, renderClr.b, m_flEyeBrightness, kRenderFxNone);
+
+			m_flEyeBrightness = m_pEyeGlow->GetBrightness();
 		}
 		else
 		{
@@ -309,8 +311,6 @@ void CNPC_Assassin::StartEyeTrail()
 
 		m_pEyeTrail->SetStartWidth( 8.0f );
 		m_pEyeTrail->SetLifeTime( 0.75f );
-
-		m_flEyeBrightness = m_pEyeGlow->GetBrightness();
 	}
 }
 
