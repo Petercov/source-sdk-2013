@@ -40,6 +40,7 @@ enum CSS_HL2_WeaponActClass
 	CSSHL2_WEAPON_AR2,					// HL2 AR2 animations. (Forestock is 6 inches/15 cm from the trigger and on the same level)
 
 	CSSHL2_WEAPON_SHOTGUN,				// HL2 Shotgun animations. (Fired from hip, forestock is a little over 1 foot/30 cm from trigger)
+	CSSHL2_WEAPON_AUTOSHOTGUN,
 
 	CSSHL2_WEAPON_SNIPER_RIFLE,			// Custom sniper rifle animations. Falls back to AR2. (TODO; Mapbase v7.0 only)
 };
@@ -52,6 +53,7 @@ extern acttable_t *GetCSSActTable_SMG2();
 extern acttable_t *GetCSSActTable_AR1();
 extern acttable_t *GetCSSActTable_AR2();
 extern acttable_t *GetCSSActTable_Shotgun();
+extern acttable_t* GetCSSActTable_AutoShotgun();
 extern acttable_t *GetCSSActTable_SniperRifle();
 
 extern int GetCSSActTableCount_Pistol();
@@ -61,6 +63,7 @@ extern int GetCSSActTableCount_SMG2();
 extern int GetCSSActTableCount_AR1();
 extern int GetCSSActTableCount_AR2();
 extern int GetCSSActTableCount_Shotgun();
+extern int GetCSSActTableCount_AutoShotgun();
 extern int GetCSSActTableCount_SniperRifle();
 #endif
 
@@ -100,6 +103,7 @@ public:
 			case CSSHL2_WEAPON_AR1:				return GetCSSActTable_AR1();
 			case CSSHL2_WEAPON_AR2:				return GetCSSActTable_AR2();
 			case CSSHL2_WEAPON_SHOTGUN:			return GetCSSActTable_Shotgun();
+			case CSSHL2_WEAPON_AUTOSHOTGUN:		return GetCSSActTable_AutoShotgun();
 			case CSSHL2_WEAPON_SNIPER_RIFLE:	return GetCSSActTable_SniperRifle();
 		}
 
@@ -118,6 +122,7 @@ public:
 			case CSSHL2_WEAPON_AR1:				return GetCSSActTableCount_AR1();
 			case CSSHL2_WEAPON_AR2:				return GetCSSActTableCount_AR2();
 			case CSSHL2_WEAPON_SHOTGUN:			return GetCSSActTableCount_Shotgun();
+			case CSSHL2_WEAPON_AUTOSHOTGUN:		return GetCSSActTableCount_AutoShotgun();
 			case CSSHL2_WEAPON_SNIPER_RIFLE:	return GetCSSActTableCount_SniperRifle();
 		}
 
@@ -132,6 +137,7 @@ public:
 			case CSSHL2_WEAPON_REVOLVER:		return GetCSSActTable_Pistol();
 			case CSSHL2_WEAPON_SMG2:			return GetCSSActTable_SMG1();
 			case CSSHL2_WEAPON_AR1:
+			case CSSHL2_WEAPON_AUTOSHOTGUN:
 			case CSSHL2_WEAPON_SNIPER_RIFLE:	return GetCSSActTable_AR2();
 		}
 
@@ -145,6 +151,7 @@ public:
 			case CSSHL2_WEAPON_REVOLVER:		return GetCSSActTableCount_Pistol();
 			case CSSHL2_WEAPON_SMG2:			return GetCSSActTableCount_SMG1();
 			case CSSHL2_WEAPON_AR1:
+			case CSSHL2_WEAPON_AUTOSHOTGUN:
 			case CSSHL2_WEAPON_SNIPER_RIFLE:	return GetCSSActTableCount_AR2();
 		}
 

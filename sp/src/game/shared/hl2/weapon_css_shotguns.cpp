@@ -73,7 +73,7 @@ public:
 
 	CWeapon_CSS_HL2_XM1014(void);
 
-	virtual CSS_HL2_WeaponActClass		GetCSSWeaponActClass() { return CSSHL2_WEAPON_AR2; } // Don't use the pump action animations
+	virtual CSS_HL2_WeaponActClass		GetCSSWeaponActClass() { return CSSHL2_WEAPON_AUTOSHOTGUN; } // Don't use the pump action animations
 	
 	virtual const Vector& GetBulletSpread( void )
 	{
