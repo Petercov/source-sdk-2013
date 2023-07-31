@@ -10,6 +10,8 @@
 #include "ai_behavior_functank.h"
 #include "soundenvelope.h"
 
+class CNPC_Manhack;
+
 extern ConVar npc_alyx_readiness;
 
 class CNPC_Alyx : public CNPC_PlayerCompanion
@@ -61,6 +63,9 @@ public:
 	// Use Alyx's default subtitle color (255,212,255)
 	bool	GetGameTextSpeechParams( hudtextparms_t &params ) { params.r1 = 255; params.g1 = 212; params.b1 = 255; return BaseClass::GetGameTextSpeechParams( params ); }
 #endif
+#ifdef COMPANION_MANHACKS
+	virtual void	HandleManhackSpawn(CNPC_Manhack* pNPC);
+#endif // COMPANION_MANHACKS
 
 	virtual float	GetJumpGravity() const		{ return 1.8f; }
 

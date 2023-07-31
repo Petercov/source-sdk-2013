@@ -25,6 +25,8 @@
 #ifdef MAPBASE
 #include "ai_behavior_functank.h"
 #include "mapbase/ai_grenade.h"
+
+#define COMPANION_MANHACKS
 #endif
 
 #if defined( _WIN32 )
@@ -89,6 +91,7 @@ public:
 #define READINESS_VALUE_AGITATED	1.0f
 
 class CPhysicsProp;
+class CNPC_Manhack;
 
 #ifdef MAPBASE
 // If you think about it, this is really unnecessary.
@@ -128,6 +131,21 @@ public:
 	Disposition_t	IRelationType( CBaseEntity *pTarget );
 	
 	bool			IsSilentSquadMember() const;
+
+	//---------------------------------
+
+#ifdef COMPANION_MANHACKS
+	virtual bool	CanDeployManhack(void);
+	void			ReleaseManhack(void);
+	void			OnAnimEventDeployManhack(animevent_t* pEvent);
+	void			OnAnimEventStartDeployManhack(void);
+	virtual void	HandleManhackSpawn(CNPC_Manhack* pNPC);
+	void			OnScheduleChange();
+
+	void InputDeployManhack(inputdata_t& inputdata);
+	void InputAddManhacks(inputdata_t& inputdata);
+	void InputSetManhacks(inputdata_t& inputdata);
+#endif // COMPANION_MANHACKS
 
 	//---------------------------------
 	// Behavior
@@ -384,6 +402,10 @@ protected:
 		SCHED_PC_FORCED_GRENADE_THROW,
 		SCHED_PC_RANGE_ATTACK2,		// Grenade throw
 #endif
+#ifdef COMPANION_MANHACKS
+		SCHED_PC_DEPLOY_MANHACK,
+#endif // COMPANION_MANHACKS
+
 		NEXT_SCHEDULE,
 
 		TASK_PC_WAITOUT_MORTAR = BaseClass::NEXT_TASK,
@@ -471,6 +493,14 @@ protected:
 	CHandle<CPhysicsProp>	m_hFlare;
 #endif // HL2_EPISODIC
 
+	//-----------------------------------------------------
+
+#ifdef COMPANION_MANHACKS
+	int				m_iManhacks;		// How many manhacks the cop has
+	int				m_nManhackBodyGroup;
+	COutputEHANDLE	m_OutManhack;
+	AIHANDLE		m_hManhack;
+#endif
 	//-----------------------------------------------------
 
 #ifdef MAPBASE

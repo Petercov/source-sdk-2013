@@ -267,6 +267,7 @@ void CNPC_Barney::UseFunc( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	m_OnPlayerUse.FireOutput( pActivator, pCaller );
 }
 
+
 //-----------------------------------------------------------------------------
 //
 // Schedules

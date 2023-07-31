@@ -39,6 +39,9 @@
 #ifdef MAPBASE
 #include "mapbase/GlobalStrings.h"
 #endif
+#ifdef COMPANION_MANHACKS
+#include "npc_manhack.h"
+#endif // COMPANION_MANHACKS
 
 extern Vector PointOnLineNearestPoint(const Vector& vStartPos, const Vector& vEndPos, const Vector& vPoint);
 
@@ -3055,6 +3058,15 @@ Vector CNPC_Alyx::GetActualShootPosition( const Vector &shootOrigin )
 
 	return BaseClass::GetActualShootPosition( shootOrigin );
 }
+
+#ifdef COMPANION_MANHACKS
+// Alyx deploys Alyx-hacked manhacks
+void CNPC_Alyx::HandleManhackSpawn(CNPC_Manhack* pNPC)
+{
+	pNPC->KeyValue("hacked", "1");
+}
+#endif // COMPANION_MANHACKS
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 

@@ -2459,6 +2459,11 @@ void CNPC_Manhack::Spawn(void)
 	SetHullType(HULL_TINY_CENTERED); 
 	SetHullSizeNormal();
 
+#ifdef MANHACK_EZU
+	if (m_nSkin == 0 && m_bTraitor)
+		m_nSkin = 1;
+#endif // MANHACK_EZU
+
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 

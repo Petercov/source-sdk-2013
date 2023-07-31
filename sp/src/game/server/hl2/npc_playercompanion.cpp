@@ -36,6 +36,7 @@
 #include "world.h"
 #include "vehicle_base.h"
 #endif
+#include "npc_manhack.h"
 
 ConVar ai_debug_readiness("ai_debug_readiness", "0" );
 ConVar ai_use_readiness("ai_use_readiness", "1" ); // 0 = off, 1 = on, 2 = on for player squad only
@@ -60,6 +61,13 @@ int AE_COMPANION_RELEASE_FLARE;
 
 #define COMPANION_MELEE_DIST 64.0
 #endif
+
+#ifdef COMPANION_MANHACKS
+extern int AE_METROPOLICE_START_DEPLOY;
+extern int AE_METROPOLICE_DEPLOY_MANHACK;
+
+extern int ACT_METROPOLICE_DEPLOY_MANHACK;
+#endif // COMPANION_MANHACKS
 
 #ifdef MAPBASE
 ConVar ai_allow_new_weapons( "ai_allow_new_weapons", "1", FCVAR_NONE, "Allows companion NPCs to automatically pick up and use weapons they were unable pick up before, i.e. 357s or crossbows." );
@@ -159,6 +167,17 @@ BEGIN_DATADESC( CNPC_PlayerCompanion )
 #ifdef COMPANION_MELEE_ATTACK
 	DEFINE_FIELD( m_nMeleeDamage, FIELD_INTEGER ),
 #endif
+
+#ifdef COMPANION_MANHACKS
+	DEFINE_KEYFIELD(m_iManhacks, FIELD_INTEGER, "manhacks"),
+	DEFINE_FIELD(m_hManhack, FIELD_EHANDLE),
+	//DEFINE_INPUTFUNC(FIELD_VOID, "EnableManhackToss", InputEnableManhackToss),
+	//DEFINE_INPUTFUNC(FIELD_VOID, "DisableManhackToss", InputDisableManhackToss),
+	DEFINE_INPUTFUNC(FIELD_VOID, "DeployManhack", InputDeployManhack),
+	DEFINE_INPUTFUNC(FIELD_INTEGER, "AddManhacks", InputAddManhacks),
+	DEFINE_INPUTFUNC(FIELD_INTEGER, "SetManhacks", InputSetManhacks),
+	DEFINE_OUTPUT(m_OutManhack, "OutManhack"),
+#endif // COMPANION_MANHACKS
 
 END_DATADESC()
 
@@ -325,6 +344,16 @@ void CNPC_PlayerCompanion::Spawn()
 	m_nMeleeDamage = sk_companion_melee_damage.GetInt();
 #endif
 
+#ifdef COMPANION_MANHACKS
+	m_nManhackBodyGroup = FindBodygroupByName("manhack");
+
+	// Start us with a visible manhack if we have one
+	if (m_iManhacks && m_nManhackBodyGroup >= 0)
+	{
+		SetBodygroup(m_nManhackBodyGroup, true);
+	}
+#endif
+
 	BaseClass::Spawn();
 }
 
@@ -348,6 +377,16 @@ int CNPC_PlayerCompanion::Restore( IRestore &restore )
 		RemoveSpawnFlags( SF_NPC_ALTCOLLISION );
 	}
 #endif // HL2_EPISODIC
+
+#ifdef COMPANION_MANHACKS
+	m_nManhackBodyGroup = FindBodygroupByName("manhack");
+
+	// Start us with a visible manhack if we have one
+	if (m_iManhacks && m_nManhackBodyGroup >= 0)
+	{
+		SetBodygroup(m_nManhackBodyGroup, true);
+	}
+#endif
 
 	return baseResult;
 }
@@ -980,6 +1019,16 @@ int CNPC_PlayerCompanion::SelectSchedulePriorityAction()
 		return schedule;
 	}
 
+
+#ifdef COMPANION_MANHACKS
+	if (GetEnemy() && CanDeployManhack() && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK))
+	{
+		if (GetFollowBehavior().IsRunning())
+			KeepRunningBehavior();
+		return SCHED_PC_DEPLOY_MANHACK;
+	}
+#endif // COMPANION_MANHACKS
+
 	return SCHED_NONE;
 }
 
@@ -1053,7 +1102,7 @@ int CNPC_PlayerCompanion::SelectScheduleCombat()
 		}
 	}
 #endif
-	
+
 	return SCHED_NONE;
 }
 
@@ -1717,65 +1766,83 @@ Activity CNPC_PlayerCompanion::NPC_TranslateActivity( Activity activity )
 //------------------------------------------------------------------------------
 void CNPC_PlayerCompanion::HandleAnimEvent( animevent_t *pEvent )
 {
+	if (pEvent->type & AE_TYPE_NEWEVENTSYSTEM)
+	{
 #ifdef HL2_EPISODIC
-	// Create a flare and parent to our hand
-	if ( pEvent->event == AE_COMPANION_PRODUCE_FLARE )
-	{
-		m_hFlare = static_cast<CPhysicsProp *>(CreateEntityByName( "prop_physics" ));
-		if ( m_hFlare != NULL )
+		// Create a flare and parent to our hand
+		if (pEvent->event == AE_COMPANION_PRODUCE_FLARE)
 		{
-			// Set the model
-			m_hFlare->SetModel( "models/props_junk/flare.mdl" );
-			
-			// Set the parent attachment
-			m_hFlare->SetParent( this );
-			m_hFlare->SetParentAttachment( "SetParentAttachment", pEvent->options, false );
+			m_hFlare = static_cast<CPhysicsProp*>(CreateEntityByName("prop_physics"));
+			if (m_hFlare != NULL)
+			{
+				// Set the model
+				m_hFlare->SetModel("models/props_junk/flare.mdl");
+
+				// Set the parent attachment
+				m_hFlare->SetParent(this);
+				m_hFlare->SetParentAttachment("SetParentAttachment", pEvent->options, false);
+			}
+
+			return;
 		}
 
-		return;
-	}
-
-	// Start the flare up with proper fanfare
-	if ( pEvent->event == AE_COMPANION_LIGHT_FLARE )
-	{
-		if ( m_hFlare != NULL )
+		// Start the flare up with proper fanfare
+		if (pEvent->event == AE_COMPANION_LIGHT_FLARE)
 		{
-			m_hFlare->CreateFlare( 5*60.0f );
+			if (m_hFlare != NULL)
+			{
+				m_hFlare->CreateFlare(5 * 60.0f);
+			}
+
+			return;
 		}
-		
-		return;
-	}
 
-	// Drop the flare to the ground
-	if ( pEvent->event == AE_COMPANION_RELEASE_FLARE )
-	{
-		// Detach
-		m_hFlare->SetParent( NULL );
-		m_hFlare->Spawn();
-		m_hFlare->RemoveInteraction( PROPINTER_PHYSGUN_CREATE_FLARE );
+		// Drop the flare to the ground
+		if (pEvent->event == AE_COMPANION_RELEASE_FLARE)
+		{
+			// Detach
+			m_hFlare->SetParent(NULL);
+			m_hFlare->Spawn();
+			m_hFlare->RemoveInteraction(PROPINTER_PHYSGUN_CREATE_FLARE);
 
-		// Disable collisions between the NPC and the flare
-		PhysDisableEntityCollisions( this, m_hFlare );
+			// Disable collisions between the NPC and the flare
+			PhysDisableEntityCollisions(this, m_hFlare);
 
-		// TODO: Find the velocity of the attachment point, at this time, in the animation cycle
+			// TODO: Find the velocity of the attachment point, at this time, in the animation cycle
 
-		// Construct a toss velocity
-		Vector vecToss;
-		AngleVectors( GetAbsAngles(), &vecToss );
-		VectorNormalize( vecToss );
-		vecToss *= random->RandomFloat( 64.0f, 72.0f );
-		vecToss[2] += 64.0f;
+			// Construct a toss velocity
+			Vector vecToss;
+			AngleVectors(GetAbsAngles(), &vecToss);
+			VectorNormalize(vecToss);
+			vecToss *= random->RandomFloat(64.0f, 72.0f);
+			vecToss[2] += 64.0f;
 
-		// Throw it
-		IPhysicsObject *pObj = m_hFlare->VPhysicsGetObject();
-		pObj->ApplyForceCenter( vecToss );
+			// Throw it
+			IPhysicsObject* pObj = m_hFlare->VPhysicsGetObject();
+			pObj->ApplyForceCenter(vecToss);
 
-		// Forget about the flare at this point
-		m_hFlare = NULL;
+			// Forget about the flare at this point
+			m_hFlare = NULL;
 
-		return;
-	}
+			return;
+		}
 #endif // HL2_EPISODIC
+
+#ifdef COMPANION_MANHACKS
+		if (pEvent->event == AE_METROPOLICE_START_DEPLOY)
+		{
+			OnAnimEventStartDeployManhack();
+			return;
+		}
+		else if (pEvent->event == AE_METROPOLICE_DEPLOY_MANHACK)
+		{
+			OnAnimEventDeployManhack(pEvent);
+			return;
+		}
+#endif
+		BaseClass::HandleAnimEvent(pEvent);
+		return;
+	}
 
 	switch( pEvent->event )
 	{
@@ -4420,6 +4487,183 @@ bool CNPC_PlayerCompanion::IsNavigationUrgent( void )
 	return bBase;
 }
 
+#ifdef COMPANION_MANHACKS
+void CNPC_PlayerCompanion::OnScheduleChange()
+{
+	BaseClass::OnScheduleChange();
+
+	// Ensures we deploy the manhack
+	if (m_hManhack && m_hManhack->GetParent() == this)
+	{
+		OnAnimEventDeployManhack(NULL);
+	}
+}
+
+void CNPC_PlayerCompanion::InputDeployManhack(inputdata_t& inputdata)
+{
+	// I am aware this bypasses regular deployment conditions, but the mapper wants us to deploy a manhack, damn it!
+	// We do have to have one, though.
+	if (m_iManhacks > 0)
+	{
+		SetSchedule(SCHED_PC_DEPLOY_MANHACK);
+	}
+}
+
+void CNPC_PlayerCompanion::InputAddManhacks(inputdata_t& inputdata)
+{
+	m_iManhacks += inputdata.value.Int();
+
+	if (m_nManhackBodyGroup >= 0)
+		SetBodygroup(m_nManhackBodyGroup, (m_iManhacks > 0));
+}
+
+void CNPC_PlayerCompanion::InputSetManhacks(inputdata_t& inputdata)
+{
+	m_iManhacks = inputdata.value.Int();
+
+	if (m_nManhackBodyGroup >= 0)
+		SetBodygroup(m_nManhackBodyGroup, (m_iManhacks > 0));
+}
+
+bool CNPC_PlayerCompanion::CanDeployManhack(void)
+{
+	// Nope, can't attack right now.
+	if (!FCanCheckAttacks())
+		return false;
+
+	// Nope, don't have any!
+	if (m_iManhacks < 1)
+		return false;
+
+	// Nope, already have one out.
+	if (m_hManhack != NULL)
+		return false;
+
+	return true;
+}
+
+void CNPC_PlayerCompanion::ReleaseManhack(void)
+{
+	Assert(m_hManhack);
+
+	// Make us physical
+	m_hManhack->RemoveSpawnFlags(SF_MANHACK_CARRIED);
+	m_hManhack->CreateVPhysics();
+
+	// Release us
+	m_hManhack->RemoveSolidFlags(FSOLID_NOT_SOLID);
+	m_hManhack->SetMoveType(MOVETYPE_VPHYSICS);
+	m_hManhack->SetParent(NULL);
+
+	// Make us active
+	m_hManhack->RemoveSpawnFlags(SF_NPC_WAIT_FOR_SCRIPT);
+	m_hManhack->ClearSchedule("Manhack released by metropolice");
+
+	// Start him with knowledge of our current enemy
+	if (GetEnemy())
+	{
+		m_hManhack->SetEnemy(GetEnemy());
+		m_hManhack->SetState(NPC_STATE_COMBAT);
+
+		m_hManhack->UpdateEnemyMemory(GetEnemy(), GetEnemy()->GetAbsOrigin());
+	}
+
+	// Place him into our squad so we can communicate
+	if (m_pSquad)
+	{
+		m_pSquad->AddToSquad(m_hManhack);
+	}
+}
+
+void CNPC_PlayerCompanion::OnAnimEventDeployManhack(animevent_t* pEvent)
+{
+	if (!m_hManhack)
+		return;
+
+	// Let it go
+	ReleaseManhack();
+
+	Vector forward, right;
+	GetVectors(&forward, &right, NULL);
+
+	IPhysicsObject* pPhysObj = m_hManhack->VPhysicsGetObject();
+
+	if (pPhysObj)
+	{
+		Vector	yawOff = right * random->RandomFloat(-1.0f, 1.0f);
+
+		Vector	forceVel = (forward + yawOff * 16.0f) + Vector(0, 0, 250);
+		Vector	forceAng = vec3_origin;
+
+		// Give us velocity
+		pPhysObj->AddVelocity(&forceVel, &forceAng);
+	}
+
+	// Stop dealing with this manhack
+	//m_hManhack = NULL;
+}
+
+void CNPC_PlayerCompanion::OnAnimEventStartDeployManhack(void)
+{
+	Assert(m_iManhacks);
+
+	if (m_iManhacks <= 0)
+	{
+		CGMsg(1, CON_GROUP_NPC_AI, "Error: Throwing manhack but out of manhacks!\n");
+		return;
+	}
+
+	m_iManhacks--;
+
+	// Turn off the manhack on our body
+	if (m_iManhacks <= 0 && m_nManhackBodyGroup >= 0)
+	{
+		SetBodygroup(m_nManhackBodyGroup, false);
+	}
+
+	// Create the manhack to throw
+	CNPC_Manhack* pManhack = (CNPC_Manhack*)CreateEntityByName("npc_manhack");
+
+	Vector	vecOrigin;
+	QAngle	vecAngles;
+
+	int handAttachment = LookupAttachment("anim_attachment_LH");
+	GetAttachment(handAttachment, vecOrigin, vecAngles);
+
+	pManhack->SetLocalOrigin(vecOrigin);
+	pManhack->SetLocalAngles(vecAngles);
+	pManhack->AddSpawnFlags((SF_MANHACK_PACKED_UP | SF_MANHACK_CARRIED | SF_NPC_WAIT_FOR_SCRIPT));
+
+	// Also fade if our parent is marked to do it
+	if (HasSpawnFlags(SF_NPC_FADE_CORPSE))
+	{
+		pManhack->AddSpawnFlags(SF_NPC_FADE_CORPSE);
+	}
+
+	HandleManhackSpawn(pManhack);
+	DispatchSpawn(pManhack);
+
+	// Make us move with his hand until we're deployed
+	pManhack->SetParent(this, handAttachment);
+
+	m_hManhack = pManhack;
+
+	m_OutManhack.Set(m_hManhack, pManhack, this);
+}
+
+// Default playercompanion spawns traitor manhacks
+void CNPC_PlayerCompanion::HandleManhackSpawn(CNPC_Manhack* pNPC)
+{
+#ifdef MANHACK_EZU
+	if (pNPC)
+		pNPC->KeyValue("TraitorHack", "1");
+#else
+	if (pNPC)
+		pNPC->KeyValue("Hacked", "1");
+#endif // MANHACK_EZU
+}
+#endif // COMPANION_MANHACKS
+
 //-----------------------------------------------------------------------------
 //
 // Schedules
@@ -4445,12 +4689,20 @@ AI_BEGIN_CUSTOM_NPC( player_companion_base, CNPC_PlayerCompanion )
 	DECLARE_TASK( TASK_PC_FACE_TOSS_DIR )
 #endif
 
+#ifdef COMPANION_MANHACKS
+	DECLARE_ACTIVITY(ACT_METROPOLICE_DEPLOY_MANHACK)
+#endif
+
 	DECLARE_ANIMEVENT( AE_COMPANION_PRODUCE_FLARE )
 	DECLARE_ANIMEVENT( AE_COMPANION_LIGHT_FLARE )
 	DECLARE_ANIMEVENT( AE_COMPANION_RELEASE_FLARE )
 #ifdef MAPBASE
 	DECLARE_ANIMEVENT( COMBINE_AE_BEGIN_ALTFIRE )
 	DECLARE_ANIMEVENT( COMBINE_AE_ALTFIRE )
+#endif
+#ifdef COMPANION_MANHACKS
+	DECLARE_ANIMEVENT(AE_METROPOLICE_START_DEPLOY);
+DECLARE_ANIMEVENT(AE_METROPOLICE_DEPLOY_MANHACK);
 #endif
 
 	//=========================================================
@@ -4679,6 +4931,24 @@ AI_BEGIN_CUSTOM_NPC( player_companion_base, CNPC_PlayerCompanion )
 	"		TASK_SET_SCHEDULE					SCHEDULE:SCHED_HIDE_AND_RELOAD"	// don't run immediately after throwing grenade.
 	""
 	"	Interrupts"
+	)
+#endif
+
+#ifdef COMPANION_MANHACKS
+	//=========================================================
+	// The uninterruptible portion of this behavior, whereupon 
+	// the soldier actually releases the manhack.
+	//=========================================================
+	DEFINE_SCHEDULE
+	(
+	SCHED_PC_DEPLOY_MANHACK,
+
+	"	Tasks"
+	//"		TASK_SPEAK_SENTENCE					5"	// METROPOLICE_SENTENCE_DEPLOY_MANHACK
+	"		TASK_PLAY_SEQUENCE					ACTIVITY:ACT_METROPOLICE_DEPLOY_MANHACK"
+	"	"
+	"	Interrupts"
+	"		COND_RECEIVED_ORDERS"
 	)
 #endif
 
