@@ -480,13 +480,13 @@ void C_VGuiScreen::ClientThink( void )
 
 		if ((m_nButtonReleased & nBit) || m_bLoseThinkNextFrame) // for a button release on loosing focus
 		{
-			g_InputInternal->SetMouseCodeState(nButton, vgui::BUTTON_PRESSED);
-			vgui::ivgui()->PostMessage(focus, new KeyValues("MousePressed", "code", nButton), NULL);
+			g_InputInternal->SetMouseCodeState(nButton, vgui::BUTTON_RELEASED);
+			vgui::ivgui()->PostMessage(focus, new KeyValues("MouseReleased", "code", nButton), NULL);
 		}
 		else if (m_nButtonPressed & nBit)
 		{
-			g_InputInternal->SetMouseCodeState(nButton, vgui::BUTTON_RELEASED);
-			vgui::ivgui()->PostMessage(focus, new KeyValues("MouseReleased", "code", nButton), NULL);
+			g_InputInternal->SetMouseCodeState(nButton, vgui::BUTTON_PRESSED);
+			vgui::ivgui()->PostMessage(focus, new KeyValues("MousePressed", "code", nButton), NULL);
 		}
 	}
 #endif // !MAPBASE
