@@ -496,3 +496,17 @@ RenderGroup_t C_BaseViewModel::GetRenderGroup()
 {
 	return RENDER_GROUP_VIEW_MODEL_OPAQUE;
 }
+
+#ifdef MAPBASE
+bool CBaseViewModel::OnInternalDrawModel(ClientModelRenderInfo_t* pInfo)
+{
+	// Use the owner's lighting origin override if they have one.
+	if (GetOwner() && GetOwner()->GetBaseAnimating())
+	{
+		GetOwner()->GetBaseAnimating()->OnInternalDrawModel(pInfo);
+	}
+
+	// But if we have our own, use that instead.
+	return BaseClass::OnInternalDrawModel(pInfo);
+}
+#endif // MAPBASE

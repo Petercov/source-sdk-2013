@@ -138,6 +138,9 @@ public:
 	virtual int				GetFxBlend( void );
 	virtual bool			IsTransparent( void );
 	virtual bool			UsesPowerOfTwoFrameBufferTexture( void );
+#ifdef MAPBASE
+	virtual bool OnInternalDrawModel(ClientModelRenderInfo_t* pInfo);
+#endif // MAPBASE
 	
 	// Should this object cast shadows?
 	virtual ShadowType_t	ShadowCastType() { return SHADOWS_NONE; }

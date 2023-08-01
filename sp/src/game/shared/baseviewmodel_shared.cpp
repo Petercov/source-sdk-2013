@@ -777,6 +777,20 @@ public:
 
 	CBaseCombatWeapon *GetOwningWeapon( void );
 
+#ifdef CLIENT_DLL
+	virtual bool ShouldDraw()
+	{
+		if (BaseClass::ShouldDraw() && GetVMOwner())
+		{
+			return GetVMOwner()->ShouldDraw();
+		}
+
+		return false;
+	}
+
+	virtual bool OnInternalDrawModel(ClientModelRenderInfo_t* pInfo);
+#endif // CLIENT_DLL
+
 private:
 	CHandle<CBaseViewModel> m_hVMOwner;
 };
@@ -816,4 +830,52 @@ CBaseCombatWeapon *CHandViewModel::GetOwningWeapon()
 	else
 		return NULL;
 }
+
+#ifdef CLIENT_DLL
+// We want to setup lighting EXACLTY the same as the viewmodel
+bool CHandViewModel::OnInternalDrawModel(ClientModelRenderInfo_t* pInfo)
+{
+	if (GetVMOwner())
+	{
+		CBaseViewModel* pVM = GetVMOwner();
+
+		ClientModelRenderInfo_t vmInfo;
+		if (!pVM->OnInternalDrawModel(&vmInfo))
+			return false;
+
+		if (vmInfo.pLightingOrigin)
+		{
+			pInfo->pLightingOrigin = vmInfo.pLightingOrigin;
+			return true;
+		}
+
+		CStudioHdr* pHdr = pVM->GetModelPtr();
+		if (pHdr)
+		{
+			matrix3x4_t matTransform;
+			int iAttachment = pHdr->IllumPositionAttachmentIndex();
+			if (iAttachment > 0)
+			{
+				pVM->GetAttachment(iAttachment, matTransform);
+			}
+			else
+			{
+				matTransform = pVM->EntityToWorldTransform();
+			}
+
+			if (vmInfo.pLightingOffset)
+			{
+				ConcatTransforms(matTransform, *vmInfo.pLightingOffset, matTransform);
+			}
+
+			static Vector s_vecLOrigin;
+			VectorTransform(pHdr->illumposition(), matTransform, s_vecLOrigin);
+			pInfo->pLightingOrigin = &s_vecLOrigin;
+		}
+	}
+
+	return true;
+}
+#endif // CLIENT_DLL
+
 #endif
