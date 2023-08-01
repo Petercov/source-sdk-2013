@@ -1021,7 +1021,7 @@ int CNPC_PlayerCompanion::SelectSchedulePriorityAction()
 
 
 #ifdef COMPANION_MANHACKS
-	if (GetEnemy() && (HasCondition(COND_NEW_ENEMY) || HasCondition(COND_ENEMY_UNREACHABLE)) && CanDeployManhack() && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK))
+	if (!IsInAScript() && GetEnemy() && (HasCondition(COND_NEW_ENEMY) || HasCondition(COND_ENEMY_UNREACHABLE)) && CanDeployManhack() && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK))
 	{
 		if (GetFollowBehavior().IsRunning())
 			KeepRunningBehavior();
