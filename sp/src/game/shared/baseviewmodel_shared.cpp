@@ -849,6 +849,13 @@ bool CHandViewModel::OnInternalDrawModel(ClientModelRenderInfo_t* pInfo)
 			return true;
 		}
 
+		if (vmInfo.pLightingOffset)
+		{
+			pInfo->lightingOffset = *vmInfo.pLightingOffset;
+			pInfo->pLightingOffset = &pInfo->lightingOffset;
+			return true;
+		}
+
 		CStudioHdr* pHdr = pVM->GetModelPtr();
 		if (pHdr)
 		{
@@ -863,14 +870,9 @@ bool CHandViewModel::OnInternalDrawModel(ClientModelRenderInfo_t* pInfo)
 				matTransform = pVM->EntityToWorldTransform();
 			}
 
-			if (vmInfo.pLightingOffset)
-			{
-				ConcatTransforms(matTransform, *vmInfo.pLightingOffset, matTransform);
-			}
-
 			static Vector s_vecLOrigin;
 			VectorTransform(pHdr->illumposition(), matTransform, s_vecLOrigin);
-			pInfo->pLightingOrigin = &s_vecLOrigin;
+			pInfo->pLightingOrigin = &s_vecLOrigin;			
 		}
 	}
 
