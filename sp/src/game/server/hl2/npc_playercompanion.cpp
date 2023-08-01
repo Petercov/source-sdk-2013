@@ -1021,7 +1021,7 @@ int CNPC_PlayerCompanion::SelectSchedulePriorityAction()
 
 
 #ifdef COMPANION_MANHACKS
-	if (GetEnemy() && CanDeployManhack() && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK))
+	if (GetEnemy() && (HasCondition(COND_NEW_ENEMY) || HasCondition(COND_ENEMY_UNREACHABLE)) && CanDeployManhack() && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK))
 	{
 		if (GetFollowBehavior().IsRunning())
 			KeepRunningBehavior();
@@ -4527,8 +4527,16 @@ void CNPC_PlayerCompanion::InputSetManhacks(inputdata_t& inputdata)
 
 bool CNPC_PlayerCompanion::CanDeployManhack(void)
 {
-	// Nope, can't attack right now.
-	if (!FCanCheckAttacks())
+	if (GetEnemy() && (IsSniper(GetEnemy()) || IsMortar(GetEnemy()) || IsTurret(GetEnemy())))
+	{
+		// Don't attack the sniper or the mortar.
+		return false;
+	}
+
+	// Not allowed to check attacks while climbing or jumping
+	// Otherwise schedule is interrupted while on ladder/etc
+	// which is NOT a legal place to attack from
+	if (GetNavType() == NAV_CLIMB || GetNavType() == NAV_JUMP)
 		return false;
 
 	// Nope, don't have any!

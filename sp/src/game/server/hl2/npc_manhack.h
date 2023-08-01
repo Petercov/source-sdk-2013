@@ -194,6 +194,10 @@ public:
 	void		TurnIntoNemesis() { m_bNemesis = true; }
 #endif
 
+#if defined(MANHACK_EZ2) || defined(MANHACK_EZU)
+	virtual	bool		IsValidEnemy(CBaseEntity* pEnemy);
+#endif
+
 	DEFINE_CUSTOM_AI;
 
 	DECLARE_DATADESC();

@@ -3533,6 +3533,16 @@ void CNPC_Manhack::SetEyeState( int state )
 	}
 }
 
+#if defined(MANHACK_EZ2) || defined(MANHACK_EZU)
+bool CNPC_Manhack::IsValidEnemy(CBaseEntity* pEnemy)
+{
+	// Manhacks can't attack other manhacks
+	if (pEnemy && pEnemy->m_iClassname == m_iClassname)
+		return false;
+
+	return BaseClass::IsValidEnemy(pEnemy);
+}
+#endif // defined(MANHACK_EZ2) || defined(MANHACK_EZU)
 
 unsigned int CNPC_Manhack::PhysicsSolidMaskForEntity( void ) const 
 { 
