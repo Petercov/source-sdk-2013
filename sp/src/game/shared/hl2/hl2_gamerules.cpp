@@ -475,6 +475,12 @@ ConVar hl1_sk_plr_dmg_satchel("sk_hl1_plr_dmg_satchel", "0", FCVAR_REPLICATED);
 ConVar hl1_sk_max_satchel("sk_hl1_max_satchel", "0", FCVAR_REPLICATED);
 
 ConVar hl1_sk_npc_dmg_12mm_bullet("sk_hl1_npc_dmg_12mm_bullet", "0", FCVAR_REPLICATED);
+
+#ifdef HL2_EPISODIC
+ConVar sk_plr_dmg_strider("sk_plr_dmg_strider", "5", FCVAR_REPLICATED);
+ConVar sk_npc_dmg_strider("sk_npc_dmg_strider", "15", FCVAR_REPLICATED);
+ConVar sk_max_strider("sk_max_strider", "15", FCVAR_REPLICATED);
+#endif // HL2_EPISODIC
 #endif // MAPBASE
 
 //-----------------------------------------------------------------------------
@@ -3150,7 +3156,11 @@ CAmmoDef *GetAmmoDef()
 		//
 		//=====================================================================
 #ifdef HL2_EPISODIC
-		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
+#ifdef MAPBASE
+		def.AddAmmoType("StriderMinigun", DMG_BULLET, TRACER_LINE, "sk_plr_dmg_strider", "sk_npc_dmg_strider", "sk_max_strider", 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED); // hit like a 1.0kg weight at 750 ft/s
+#else
+		def.AddAmmoType("StriderMinigun", DMG_BULLET, TRACER_LINE, 5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED); // hit like a 1.0kg weight at 750 ft/s
+#endif // MAPBASE
 #else
 		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 15,15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
 #endif//HL2_EPISODIC
