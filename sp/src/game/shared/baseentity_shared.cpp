@@ -1634,6 +1634,13 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 	CAmmoDef*	pAmmoDef	= GetAmmoDef();
 	int			nDamageType	= pAmmoDef->DamageType(info.m_iAmmoType);
 	int			nAmmoFlags	= pAmmoDef->Flags(info.m_iAmmoType);
+	int			iShotMask = MASK_SHOT;
+#ifdef MAPBASE
+	if (info.m_nFlags & FIRE_BULLETS_DONT_HIT_GLASS)
+	{
+		iShotMask = (MASK_OPAQUE_AND_NPCS | CONTENTS_DEBRIS | CONTENTS_HITBOX);
+	}
+#endif // MAPBASE
 	
 	bool bDoServerEffects = true;
 
@@ -1780,12 +1787,12 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			Ray_t rayBullet;
 			rayBullet.Init( info.m_vecSrc, vecEnd );
 			pShootThroughPortal = UTIL_Portal_FirstAlongRay( rayBullet, fPortalFraction );
-			if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, MASK_SHOT, &traceFilter, &tr ) )
+			if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, iShotMask, &traceFilter, &tr ) )
 			{
 				pShootThroughPortal = NULL;
 			}
 #else
-			AI_TraceHull( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), MASK_SHOT, &traceFilter, &tr );
+			AI_TraceHull( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), iShotMask, &traceFilter, &tr );
 #endif //#ifdef PORTAL
 		}
 		else
@@ -1794,7 +1801,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			Ray_t rayBullet;
 			rayBullet.Init( info.m_vecSrc, vecEnd );
 			pShootThroughPortal = UTIL_Portal_FirstAlongRay( rayBullet, fPortalFraction );
-			if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, MASK_SHOT, &traceFilter, &tr ) )
+			if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, iShotMask, &traceFilter, &tr ) )
 			{
 				pShootThroughPortal = NULL;
 			}
@@ -1803,14 +1810,14 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			if ( TFGameRules() && TFGameRules()->GameModeUsesUpgrades() )
 			{
 				CTraceFilterChain traceFilterChain( &traceFilter, &traceFilterCombatItem );
-				AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilterChain, &tr);
+				AI_TraceLine(info.m_vecSrc, vecEnd, iShotMask, &traceFilterChain, &tr);
 			}
 			else
 			{
-				AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
+				AI_TraceLine(info.m_vecSrc, vecEnd, iShotMask, &traceFilter, &tr);
 			}
 #else
-			AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
+			AI_TraceLine(info.m_vecSrc, vecEnd, iShotMask, &traceFilter, &tr);
 #endif //#ifdef PORTAL
 		}
 

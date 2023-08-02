@@ -700,6 +700,7 @@ enum FireBulletsFlags_t
 	FIRE_BULLETS_TEMPORARY_DANGER_SOUND = 0x8,		// Danger sounds added from this impact can be stomped immediately if another is queued
 #ifdef MAPBASE
 	FIRE_BULLETS_NO_AUTO_GIB_TYPE = 0x10,		// Don't automatically add DMG_ALWAYSGIB or DMG_NEVERGIB if m_flDamage is set
+	FIRE_BULLETS_DONT_HIT_GLASS = 0x20,			// Ignore glass windows in TraceLine (for lasers, etc.)
 #endif
 };
 
