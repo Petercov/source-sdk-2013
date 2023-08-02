@@ -53,6 +53,8 @@ void CNPC_SinJessica::UseFunc(CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 void CNPC_SinJessica::InputThrowItemAtPlayer(inputdata_t& inputdata)
 {
 	m_iszThrowItem = inputdata.value.StringID();
+	if (IsCustomInterruptConditionSet(COND_JESS_THROW_ITEM))
+		SetSchedule(SCHED_JESS_THROW_ITEM);
 }
 
 void CNPC_SinJessica::GatherConditions()

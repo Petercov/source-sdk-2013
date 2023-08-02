@@ -35,7 +35,13 @@ $Project
 			$File	"sin\npc_jessica.cpp"
 			$File	"sin\npc_jessica.h"
 			$File	"sin\npc_druglab_helicopter.cpp"
+
+			$File	"sin\weapon_sin_base.cpp"
+			$File	"sin\weapon_sin_base.h"
+			$File	"sin\weapon_assault_rifle.cpp"
 			$File	"sin\weapon_chaingun.cpp"
+			$File	"sin\weapon_magnum.cpp"
+			$File	"sin\weapon_scattergun.cpp"
 		}
 
 		$Folder "EZ2"
