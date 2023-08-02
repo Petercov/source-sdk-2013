@@ -7751,7 +7751,11 @@ void CBasePlayer::ResetAutoaim( void )
 //-----------------------------------------------------------------------------
 bool CBasePlayer::Weapon_CanUse( CBaseCombatWeapon *pWeapon )
 {
+#ifndef MAPBASE
 	return true;
+#else
+	return pWeapon && pWeapon->GetWpnData().m_nWeaponRestriction != WPNRESTRICT_NPCS_ONLY;
+#endif // !MAPBASE
 }
 
 

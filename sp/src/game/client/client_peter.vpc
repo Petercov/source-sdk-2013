@@ -22,6 +22,11 @@ $Project
 			$File	"peter\c_weapon_irifle.cpp"
 			$File	"hl2\c_weapon_gravitygun.cpp"
 		}
+
+		$Folder "SiN Episodes"
+		{
+			$File	"sin\c_weapon_stubs_sin.cpp"
+		}
 		
 		$Folder "Peter"
 		{

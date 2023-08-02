@@ -1462,3 +1462,21 @@ DEFINE_FIELD(m_flLastChargeSoundTime, FIELD_TIME),
 DEFINE_FIELD(m_hChargeSprite, FIELD_EHANDLE)
 END_DATADESC()
 #endif
+
+#ifdef SIN_WEAPONS
+class CSinWeaponPistol : public CWeaponPistol
+{
+public:
+	DECLARE_CLASS(CSinWeaponPistol, CWeaponPistol);
+	DECLARE_SERVERCLASS();
+
+#ifdef MAPBASE
+	bool	CanDualWield() const { return false; }
+#endif // MAPBASE
+};
+
+IMPLEMENT_SERVERCLASS_ST(CSinWeaponPistol, DT_SinWeaponPistol)
+END_SEND_TABLE()
+
+LINK_ENTITY_TO_CLASS(weapon_npc_pistol, CSinWeaponPistol);
+#endif // SIN_WEAPONS
