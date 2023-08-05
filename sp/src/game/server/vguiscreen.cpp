@@ -82,7 +82,11 @@ bool CVGuiScreen::KeyValue( const char *szKeyName, const char *szValue )
 		const char* pszOutputName = szKeyName + 1;
 		int i = m_PanelOutputs.Find(pszOutputName);
 		if (!m_PanelOutputs.IsValidIndex(i))
-			i = m_PanelOutputs.Insert(pszOutputName, new COutputEvent);
+		{
+			auto pMem = new COutputEvent;
+			V_memset(pMem, 0, sizeof(COutputEvent));
+			i = m_PanelOutputs.Insert(pszOutputName, pMem);
+		}
 
 		m_PanelOutputs[i]->ParseEventAction(szValue);
 		return true;
