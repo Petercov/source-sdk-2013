@@ -136,33 +136,6 @@ Activity ACT_TURRET_CARRY_WALK;
 Activity ACT_TURRET_CARRY_RUN;
 #endif
 
-// -----------------------------------------------
-//	> Squad slots
-// -----------------------------------------------
-enum SquadSlot_T
-{	
-	SQUAD_SLOT_GRENADE1 = LAST_SHARED_SQUADSLOT,
-	SQUAD_SLOT_GRENADE2,
-	SQUAD_SLOT_ATTACK_OCCLUDER,
-	SQUAD_SLOT_OVERWATCH,
-};
-
-enum TacticalVariant_T
-{
-	TACTICAL_VARIANT_DEFAULT = 0,
-	TACTICAL_VARIANT_PRESSURE_ENEMY,				// Always try to close in on the player.
-	TACTICAL_VARIANT_PRESSURE_ENEMY_UNTIL_CLOSE,	// Act like VARIANT_PRESSURE_ENEMY, but go to VARIANT_DEFAULT once within 30 feet
-#ifdef MAPBASE
-	TACTICAL_VARIANT_GRENADE_HAPPY,					// Throw grenades as if you're fighting a turret
-#endif
-};
-
-enum PathfindingVariant_T
-{
-	PATHFINDING_VARIANT_DEFAULT = 0,
-};
-
-
 #define bits_MEMORY_PAIN_LIGHT_SOUND		bits_MEMORY_CUSTOM1
 #define bits_MEMORY_PAIN_HEAVY_SOUND		bits_MEMORY_CUSTOM2
 #define bits_MEMORY_PLAYER_HURT				bits_MEMORY_CUSTOM3

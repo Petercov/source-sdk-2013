@@ -33,6 +33,32 @@
 #define COMBINE_SOLDIER_USES_RESPONSE_SYSTEM 1
 #endif
 
+// -----------------------------------------------
+//	> Squad slots
+// -----------------------------------------------
+enum SquadSlot_T
+{
+	SQUAD_SLOT_GRENADE1 = LAST_SHARED_SQUADSLOT,
+	SQUAD_SLOT_GRENADE2,
+	SQUAD_SLOT_ATTACK_OCCLUDER,
+	SQUAD_SLOT_OVERWATCH,
+};
+
+enum TacticalVariant_T
+{
+	TACTICAL_VARIANT_DEFAULT = 0,
+	TACTICAL_VARIANT_PRESSURE_ENEMY,				// Always try to close in on the player.
+	TACTICAL_VARIANT_PRESSURE_ENEMY_UNTIL_CLOSE,	// Act like VARIANT_PRESSURE_ENEMY, but go to VARIANT_DEFAULT once within 30 feet
+#ifdef MAPBASE
+	TACTICAL_VARIANT_GRENADE_HAPPY,					// Throw grenades as if you're fighting a turret
+#endif
+};
+
+enum PathfindingVariant_T
+{
+	PATHFINDING_VARIANT_DEFAULT = 0,
+};
+
 // Used when only what combine to react to what the spotlight sees
 #define SF_COMBINE_NO_LOOK	(1 << 16)
 #define SF_COMBINE_NO_GRENADEDROP ( 1 << 17 )
@@ -182,7 +208,7 @@ public:
 	bool			HandleInteraction(int interactionType, void *data, CBaseCombatCharacter *sourceEnt);
 	const char*		GetSquadSlotDebugName( int iSquadSlot );
 
-	bool			IsUsingTacticalVariant( int variant );
+	virtual bool	IsUsingTacticalVariant( int variant );
 	bool			IsUsingPathfindingVariant( int variant ) { return m_iPathfindingVariant == variant; }
 
 	bool			IsRunningApproachEnemySchedule();

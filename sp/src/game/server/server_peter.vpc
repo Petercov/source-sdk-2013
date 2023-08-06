@@ -10,7 +10,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS;SIN_WEAPONS"
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS;SIN_WEAPONS;SIN_NPCS"
 	}
 }
 
@@ -34,6 +34,8 @@ $Project
 			$File	"sin\npc_generic_actor.cpp"
 			$File	"sin\npc_jessica.cpp"
 			$File	"sin\npc_jessica.h"
+
+			$File	"sin\npc_druglab_grunt.cpp"
 			$File	"sin\npc_druglab_helicopter.cpp"
 
 			$File	"sin\weapon_sin_base.cpp"

@@ -574,6 +574,13 @@ void RegisterSharedScriptConstants()
 	ScriptRegisterConstant(g_pScriptVM, CLASS_ALIEN_BIOWEAPON, "Used by an alien grunt's hivehand hornets.");
 #endif
 
+#ifdef SIN_NPCS
+	ScriptRegisterConstant(g_pScriptVM, CLASS_SINTEK, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_SINTEK_PASSIVE, "");
+	ScriptRegisterConstant(g_pScriptVM, CLASS_MUTANT, "");
+#endif // SIN_NPCS
+
+
 #elif defined( HL1_DLL )
 
 	ScriptRegisterConstant( g_pScriptVM, CLASS_HUMAN_PASSIVE, "Used by scientists." );

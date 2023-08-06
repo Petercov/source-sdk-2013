@@ -13,6 +13,10 @@ public:
 	virtual void	Precache(void);
 	virtual void	Spawn(void);
 
+#ifdef SIN_NPCS
+	Class_T			Classify(void) { return CLASS_SINTEK; }
+#endif // SIN_NPCS
+
 protected:
 	virtual void	InitializeRotorSound(void);
 	virtual void	ChargeGunSound();

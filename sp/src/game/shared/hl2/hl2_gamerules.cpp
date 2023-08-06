@@ -2442,6 +2442,28 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 			CBaseCombatCharacter::SetDefaultRelationship(CLASS_ARBEIT_TECH, CLASS_ARBEIT_TECH, D_LI, 0);
 		}
 #endif
+
+#ifdef SIN_NPCS
+		// ------------------------------------------------------------
+		//	> CLASS_SINTEK
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK, CLASS_PLAYER, D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK, CLASS_SINTEK_PASSIVE, D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_SINTEK_PASSIVE
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK_PASSIVE, CLASS_SINTEK, D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK_PASSIVE, CLASS_PLAYER, D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK_PASSIVE, CLASS_PLAYER_ALLY, D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK_PASSIVE, CLASS_PLAYER_ALLY_VITAL, D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SINTEK_PASSIVE, CLASS_MUTANT, D_FR, 0);
+
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER, CLASS_SINTEK_PASSIVE, D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY, CLASS_SINTEK_PASSIVE, D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL, CLASS_SINTEK_PASSIVE, D_NU, 0);
+#endif // SIN_NPCS
+
 	}
 
 
@@ -2508,6 +2530,11 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 			case CLASS_ARBEIT_TECH:		return "CLASS_ARBEIT_TECH";
 			case CLASS_COMBINE_HUSK:	return "CLASS_COMBINE_HUSK";
 #endif
+#ifdef SIN_NPCS
+			case CLASS_SINTEK:			return "CLASS_SINTEK";
+			case CLASS_SINTEK_PASSIVE:	return "CLASS_SINTEK_PASSIVE";
+			case CLASS_MUTANT:			return "CLASS_MUTANT";
+#endif // SIN_NPCS
 			default:					return "MISSING CLASS in ClassifyText()";
 		}
 	}
