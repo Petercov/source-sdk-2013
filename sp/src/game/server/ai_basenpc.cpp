@@ -14229,6 +14229,16 @@ bool CAI_BaseNPC::OnObstructingDoor( AILocalMoveGoal_t *pMoveGoal,
 	{
 		if ( distClear < 0.1 )
 		{
+#ifdef MAPBASE
+			if ((CapabilitiesGet() & bits_CAP_AUTO_DOORS) && !pDoor->m_bLocked && !pDoor->HasSpawnFlags(SF_DOOR_NONPCS))
+			{
+				// Tell the door to open
+				m_flMoveWaitFinished = OpenDoorAndWait(pDoor);
+				*pResult = AIMR_OK;
+				GetNavigator()->NoteOpeningDoor();
+			}
+			else
+#endif // MAPBASE
 			*pResult = AIMR_BLOCKED_ENTITY;
 		}
 		else
@@ -14239,6 +14249,7 @@ bool CAI_BaseNPC::OnObstructingDoor( AILocalMoveGoal_t *pMoveGoal,
 
 		return true;
 	}
+
 
 	return false;
 }
