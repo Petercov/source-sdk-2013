@@ -384,6 +384,11 @@ static void SendToConsoleServer( const char *pszCommand )
 	engine->ServerCommand( UTIL_VarArgs("%s\n", pszCommand) );
 }
 
+static void ServerConsoleExecute()
+{
+	engine->ServerExecute();
+}
+
 static const char *GetMapName()
 {
 	return STRING( gpGlobals->mapname );
@@ -624,6 +629,7 @@ bool VScriptServerInit()
 				ScriptRegisterFunction( g_pScriptVM, FrameTime, "Get the time spent on the server in the last frame" );
 #ifdef MAPBASE_VSCRIPT
 				ScriptRegisterFunction( g_pScriptVM, SendToConsoleServer, "Send a string to the server console as a command" );
+				ScriptRegisterFunction(g_pScriptVM, ServerConsoleExecute, "Execute the server's command buffer immediately");
 				ScriptRegisterFunction( g_pScriptVM, MaxPlayers, "Get the maximum number of players allowed on this server" );
 				ScriptRegisterFunction( g_pScriptVM, GetLoadType, "Get the way the current game was loaded (corresponds to the MapLoad enum)" );
 				ScriptRegisterFunction( g_pScriptVM, DoEntFire, SCRIPT_ALIAS( "EntFire", "Generate an entity i/o event" ) );
