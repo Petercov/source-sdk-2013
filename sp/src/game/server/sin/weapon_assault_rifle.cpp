@@ -27,7 +27,7 @@ public:
 
 	int		GetMinBurst(void) { return 3; }
 	int		GetMaxBurst(void) { return 8; }
-	float	GetFireRate(void) { return 0.1f; }
+	float	GetFireRate(void) { return RPM_TO_RATE(700); }
 
 	int				WeaponSoundRealtime(WeaponSound_t shoot_type);
 	virtual void	FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir);

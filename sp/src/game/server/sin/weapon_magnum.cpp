@@ -25,10 +25,10 @@ public:
 		return 3;
 	}
 
-	virtual float GetFireRate(void) { return 0.4f; }
+	virtual float GetFireRate(void) { return RPM_TO_RATE(300); }
 	virtual const Vector& GetBulletSpread(void)
 	{
-		static Vector cone = VECTOR_CONE_5DEGREES;
+		static Vector cone = VECTOR_CONE_3DEGREES;
 		return cone;
 	}
 

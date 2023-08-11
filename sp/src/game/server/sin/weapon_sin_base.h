@@ -4,6 +4,8 @@
 
 #include "basehlcombatweapon.h"
 
+#define RPM_TO_RATE(rpm) (60.f / rpm)
+
 // Weapon base with melee and grenade attacks
 class CSinWeaponBase : public CBaseHLCombatWeapon
 {
