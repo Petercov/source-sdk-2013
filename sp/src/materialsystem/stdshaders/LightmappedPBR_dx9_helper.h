@@ -40,6 +40,7 @@ struct LightmappedPBR_DX9_Vars_t
 	int m_nUseSmoothness;
 	int m_nSeamlessMappingScale;
 	int m_nMRAOTexture;
+	int m_nBumpAlphaSmoothness;
 
 #ifdef PARALLAX_CORRECTED_CUBEMAPS
 	// Parallax cubemaps

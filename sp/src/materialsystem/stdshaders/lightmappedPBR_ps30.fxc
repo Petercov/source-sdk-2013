@@ -12,6 +12,7 @@
 // STATIC: "BUMPMAP"                    "0..1"
 // STATIC: "PARALLAXCORRECT"			"0..1"
 // STATIC: "MRAOTEX"					"0..1"
+// STATIC: "BUMPALPHASMOOTHNESS"		"0..1"
 
 // DYNAMIC: "WRITEWATERFOGTODESTALPHA"  "0..1"
 // DYNAMIC: "PIXELFOGTYPE"				"0..1"
@@ -41,7 +42,9 @@
 // SKIP: ($CSM == 0) && ($CSM_PERF != 0)
 
 // SKIP: $PARALLAXCORRECT && !$CUBEMAP
-// SKIP: $SMOOTHNESS && $MRAOTEX
+// SKIP: ($SMOOTHNESS == 1) && ($MRAOTEX == 1)
+// SKIP: ($BUMPALPHASMOOTHNESS == 1) && ($MRAOTEX == 1)
+// SKIP: ($BUMPALPHASMOOTHNESS == 1) && ($SMOOTHNESS == 1)
 
 #include "common_flashlight_fxc.h"
 #include "shader_constant_register_map.h"
@@ -207,6 +210,13 @@ float3 DoFlashlight(float3 vWorldNormal, float3 vWorldPos, float3 albedo, float 
 	float4 flashlightSpacePosition = mul( float4(vWorldPos, 1.0f ), g_FlashlightWorldToTexture );
 	float3 vProjCoords = flashlightSpacePosition.xyz / flashlightSpacePosition.w;
 	float3 flashlightColor = tex2D( FlashlightSampler, vProjCoords);
+	
+	// Fix for flashlight textures without Clamp S/T
+#if defined(SHADER_MODEL_PS_2_B) || defined(SHADER_MODEL_PS_3_0)
+	clip( vProjCoords.xyz );
+	clip( 1-vProjCoords.xyz );
+#endif
+	
 	float3 shadow = 1.0f;
 	#if FLASHLIGHTSHADOWS
 	shadow = tex2DprojBicubic(ShadowDepthSampler, g_vShadowTweaks.xx, vProjCoords.xy, vProjCoords.z);
@@ -375,26 +385,31 @@ PS_OUTPUT main(PS_INPUT i) : COLOR
     UV = i.SeamlessTexCoord;
 #endif
 	float3 worldPos = i.worldPos_projPosZ.xyz;
-#if MRAOTEX == 0
-#if SMOOTHNESS == 0
-	float  roughnessMap = tex2D( RoughnessSampler, UV.xy );
-#else
-	float  roughnessMap = 1.0f - tex2D( RoughnessSampler, UV.xy );
-#endif
-	float  metallicMap = tex2D( MetallicSampler, UV.xy );
-	float  AOSample = tex2D( AOSampler, UV.xy );
-#else
-    float3 mraoSample = tex2D(MRAOTextureSampler, UV.xy).xyz;
-    float metallicMap = mraoSample.x, roughnessMap = mraoSample.y, AOSample = mraoSample.z;
-#endif
-	float3  EmissiveSample = tex2D( EmissiveSampler, UV.xy );
 	float4 baseColor = tex2D( BaseTextureSampler, UV.xy );
 	float4 baseColor2 = 0.0f.xxxx;
 	float4 normalTexel = 0.0f.xxxx;
 	GetBaseTextureAndNormal( BaseTextureSampler, BaseTextureSampler, BumpmapSampler, false, bBumpmap, 
-		UV, i.vertexColor.rgb, baseColor, baseColor2, normalTexel );
-
-	float3 tangentSpaceNormal = normalTexel * 2.0f - 1.0f;
+		UV, i.vertexColor.rgb, baseColor, baseColor2, normalTexel);
+#if MRAOTEX
+    float4 mraoSample = 0.0f.xxxx;
+    GetBaseTextureAndNormal(MRAOTextureSampler, MRAOTextureSampler, MRAOTextureSampler, false, false, UV, i.vertexColor.rgb, mraoSample, mraoSample, mraoSample);
+    float metallicMap = mraoSample.x, roughnessMap = mraoSample.y, AOSample = mraoSample.z;
+#else
+#if BUMPALPHASMOOTHNESS
+	float roughnessMap = 1.0f - normalTexel.a;
+#elif SMOOTHNESS
+	float roughnessMap = 1.0f - tex2D( RoughnessSampler, UV.xy );
+#else
+	float roughnessMap = tex2D( RoughnessSampler, UV.xy );
+#endif
+    float metallicMap = tex2D(MetallicSampler, UV.xy);
+    float AOSample = tex2D(AOSampler, UV.xy);
+#endif
+    float3 EmissiveSample = tex2D(EmissiveSampler, UV.xy);
+	
+	
+	
+	float3 tangentSpaceNormal = normalTexel.rgb * 2.0f - 1.0f;
 
 	float3 vWorldNormal = mul( tangentSpaceNormal, i.TBN );
 	

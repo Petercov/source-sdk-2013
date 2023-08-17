@@ -307,6 +307,9 @@ float4 main( PS_INPUT i ) : COLOR
 #if !defined( SHADER_MODEL_PS_2_0 )
 		float3 vProjCoords = vFlashlightTexCoord.xyz / vFlashlightTexCoord.w;
 		float3 cFlashlightCookieColor = tex2D( g_tFlashlightCookieSampler, vProjCoords );
+		
+        clip(vProjCoords.xyz);
+        clip(1 - vProjCoords.xyz);
 #else 
 		float3 cFlashlightCookieColor = tex2Dproj( g_tFlashlightCookieSampler, vFlashlightTexCoord.xyzw );
 #endif

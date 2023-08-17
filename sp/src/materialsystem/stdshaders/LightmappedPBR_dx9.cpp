@@ -31,6 +31,7 @@ SHADER_PARAM(AO, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(MRAOTEXTURE, SHADER_PARAM_TYPE_TEXTURE, "", "Texture with metalness in R, roughness in G, ambient occlusion in B.")
 SHADER_PARAM(EMISSIVE, SHADER_PARAM_TYPE_TEXTURE, "", "")
 SHADER_PARAM(USESMOOTHNESS, SHADER_PARAM_TYPE_BOOL, "0", "Invert roughness")
+SHADER_PARAM(NORMALMAPALPHASMOOTHNESS, SHADER_PARAM_TYPE_BOOL, "0", "Use the alpha channel of bumpmap as inverted roughness")
 
 #ifdef PARALLAX_CORRECTED_CUBEMAPS
 // Parallax cubemaps
@@ -60,6 +61,7 @@ void SetupVars(LightmappedPBR_DX9_Vars_t& info)
 	info.m_nUseSmoothness = USESMOOTHNESS;
 	info.m_nSeamlessMappingScale = SEAMLESS_SCALE;
 	info.m_nMRAOTexture = MRAOTEXTURE;
+	info.m_nBumpAlphaSmoothness = NORMALMAPALPHASMOOTHNESS;
 
 #ifdef PARALLAX_CORRECTED_CUBEMAPS
 	// Parallax cubemaps

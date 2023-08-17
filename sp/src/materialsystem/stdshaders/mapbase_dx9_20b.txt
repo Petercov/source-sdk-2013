@@ -15,3 +15,6 @@ flowmapped_water_vs20.fxc
 
 solidenergy_ps20b.fxc
 solidenergy_vs20.fxc
+
+SDK_eye_refract_ps2x.fxc
+SDK_eye_refract_vs20.fxc

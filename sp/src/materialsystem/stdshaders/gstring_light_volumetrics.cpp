@@ -2,6 +2,7 @@
 #include "BaseVSShader.h"
 #include "mathlib/vmatrix.h"
 #include "convar.h"
+#include "cpp_shader_constant_register_map.h"
 
 #include "gstring_light_volumetrics_ps20b.inc"
 #include "gstring_light_volumetrics_vs20.inc"
@@ -74,6 +75,7 @@ BEGIN_VS_SHADER( gstring_light_volumetrics, "" )
 			ITexture *pFlashlightDepthTexture;
 			const FlashlightState_t &flashlightState = pShaderAPI->GetFlashlightStateEx( worldToTexture, &pFlashlightDepthTexture );
 			pShaderAPI->SetVertexShaderConstant( VERTEX_SHADER_SHADER_SPECIFIC_CONST_0, worldToTexture.Base(), 4 );
+			pShaderAPI->SetVertexShaderConstant(VERTEX_SHADER_SHADER_SPECIFIC_CONST_4, flashlightState.m_vecLightOrigin.Base());
 
 			BindTexture( SHADER_SAMPLER0, flashlightState.m_pSpotlightTexture, flashlightState.m_nSpotlightTextureFrame );
 			BindTexture( SHADER_SAMPLER1, pFlashlightDepthTexture, 0 );
@@ -83,6 +85,14 @@ BEGIN_VS_SHADER( gstring_light_volumetrics, "" )
 			//pShaderAPI->SetPixelShaderConstant( 0, flParam0 );
 			pShaderAPI->SetPixelShaderConstant( 0, flashlightState.m_Color );
 			pShaderAPI->SetDepthFeatheringPixelShaderConstant( 1, 50.0f );
+
+			float atten[4];										// Set the flashlight attenuation factors
+			atten[0] = flashlightState.m_fConstantAtten;
+			atten[1] = flashlightState.m_fLinearAtten;
+			atten[2] = flashlightState.m_fQuadraticAtten;
+			atten[3] = flashlightState.m_FarZ;
+			/*atten[3] = flashlightState.m_FarZAtten;*/
+			pShaderAPI->SetPixelShaderConstant(PSREG_FLASHLIGHT_ATTENUATION, atten, 1);
 		}
 
 		Draw();

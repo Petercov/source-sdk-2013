@@ -1,11 +1,13 @@
 
 // STATIC: "FLASHLIGHTDEPTHFILTERMODE"	"0..2"
 
+#include "shader_constant_register_map.h"
 #include "common_flashlight_fxc.h"
 
 //const float4x4 g_FlashlightWorldToTexture		: register( c24 ); // through c27
 const float4 g_FlashlightColor			: register( c0 );
-const float4 g_DepthBlendConstants		: register( c1 );
+const float4 g_DepthBlendConstants : register(c1);
+const float4 g_FlashlightAttenuation : register(PSREG_FLASHLIGHT_ATTENUATION);
 
 
 sampler SpotlightTextureSampler		: register( s0 );
@@ -33,7 +35,7 @@ float DoSimpleFlashlightShadow( sampler depthSampler, float3 flashlightSpacePosi
 
 struct PS_INPUT
 {
-	//float2 vTexCoord0				: TEXCOORD0;
+    float3 flashlightDelta : TEXCOORD0;
 	float4 flashlightSpacePos		: TEXCOORD1;
 	float4 vProjPos					: TEXCOORD2;
     float4 color : COLOR;
@@ -45,14 +47,20 @@ float4 main( PS_INPUT i ) : COLOR
 	float3 color = tex2D( SpotlightTextureSampler, UVZ.xy ).rgb;
 	
 	float shadow = DoSimpleFlashlightShadow( DepthSampler, UVZ );
-	float attn = 1.0f - UVZ.z;
 	float depthBlend = smoothstep( 7.0, 15, i.vProjPos.z );
+	
+	// Compute per-pixel distance attenuation
+    float distSquared = dot(i.flashlightDelta, i.flashlightDelta);
+    float dist = sqrt(distSquared);
+    float farZ = g_FlashlightAttenuation.w;
+    float endFalloffFactor = RemapValClamped(dist, farZ, 0.6f * farZ, 0.0f, 1.0f);
+    float flAtten = saturate(endFalloffFactor * dot(g_FlashlightAttenuation.xyz, float3(1.0f, 1.0f / dist, 1.0f / distSquared)));
 	
 	float2 screenUVs = i.vProjPos.xy / i.vProjPos.w * float2(0.5f, -0.5f) + 0.5f;
 	depthBlend *= DepthFeathering( FramebufferSampler, screenUVs, i.vProjPos.z, i.vProjPos.w, g_DepthBlendConstants );
 	
 	color *= g_FlashlightColor.rgb;
 	
-	return float4( color * i.color.rgb, shadow * attn * depthBlend * g_FlashlightColor.a * i.color.a );
+    return float4(color * i.color.rgb, shadow * flAtten * depthBlend * g_FlashlightColor.a * i.color.a);
 }
 

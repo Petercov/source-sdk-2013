@@ -249,6 +249,13 @@ float3 DoFlashlight(float3 vWorldNormal, float3 vWorldPos, float3 albedo, float 
 	float4 flashlightSpacePosition = mul( float4(vWorldPos, 1.0f ), g_FlashlightWorldToTexture );
 	float3 vProjCoords = flashlightSpacePosition.xyz / flashlightSpacePosition.w;
 	float3 flashlightColor = tex2D( FlashlightSampler, vProjCoords);
+
+	// Fix for flashlight textures without Clamp S/T
+#if defined(SHADER_MODEL_PS_2_B) || defined(SHADER_MODEL_PS_3_0)
+	clip( vProjCoords.xyz );
+	clip( 1-vProjCoords.xyz );
+#endif
+
 	float shadow = 1.0f;
 	#if FLASHLIGHTSHADOWS
 	shadow = tex2DprojBicubic(ShadowDepthSampler, g_ShadowTweaks.xx, vProjCoords.xy, vProjCoords.z);
