@@ -39,6 +39,7 @@ SHADER_PARAM(MRAOTEXTURE, SHADER_PARAM_TYPE_TEXTURE, "", "Texture with metalness
 SHADER_PARAM(LIGHTMAP, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "lightmap texture--will be bound by the engine")
 
 SHADER_PARAM(USESMOOTHNESS, SHADER_PARAM_TYPE_BOOL, "0", "Invert roughness")
+SHADER_PARAM(NORMALMAPALPHASMOOTHNESS, SHADER_PARAM_TYPE_BOOL, "0", "Use the alpha channel of bumpmap as inverted roughness")
 
 // Emissive Scroll Pass
 SHADER_PARAM(EMISSIVEBLENDENABLED, SHADER_PARAM_TYPE_BOOL, "0", "Enable emissive blend pass")
@@ -112,6 +113,7 @@ void SetupVars(VertexLitPBR_DX9_Vars_t& info)
 	info.m_nUseSmoothness = USESMOOTHNESS;
 	info.m_nLightmap = LIGHTMAP;
 	info.m_nMRAOTexture = MRAOTEXTURE;
+	info.m_nBumpAlphaSmoothness = NORMALMAPALPHASMOOTHNESS;
 }
 
 #if 0

@@ -168,7 +168,8 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 	bool bHasEnvmap =(info.m_nEnvmap != -1) && params[info.m_nEnvmap]->IsTexture();
 	//bool bHasLegacyEnvSphereMap = bHasEnvmap && IS_FLAG_SET(MATERIAL_VAR_ENVMAPSPHERE);
 	bool bHasBump = IsTextureSet(info.m_nBumpmap, params);
-	bool bUseSmoothness = !bHasMRAO && info.m_nUseSmoothness != -1 && params[info.m_nUseSmoothness]->GetIntValue() == 1;
+	bool bBumpAlphaSmoothness = !bHasMRAO && bHasBump && info.m_nBumpAlphaSmoothness != -1 && params[info.m_nBumpAlphaSmoothness]->GetIntValue() == 1;
+	bool bUseSmoothness = !bHasMRAO && !bBumpAlphaSmoothness && info.m_nUseSmoothness != -1 && params[info.m_nUseSmoothness]->GetIntValue() == 1;
 	bool bHasLightmap = (info.m_nLightmap != -1) && params[info.m_nLightmap]->IsTexture();
 	bool bIsDecal = IS_FLAG_SET(MATERIAL_VAR_DECAL);
 
@@ -234,7 +235,9 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 
 		if (!bHasMRAO)
 		{
-			pShaderShadow->EnableTexture(SHADER_SAMPLER1, true);		// Roughness map
+			if (!bBumpAlphaSmoothness)
+				pShaderShadow->EnableTexture(SHADER_SAMPLER1, true);		// Roughness map
+
 			pShaderShadow->EnableTexture(SHADER_SAMPLER2, true);		// Metallic map 
 		}
 
@@ -311,6 +314,7 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 		SET_STATIC_PIXEL_SHADER_COMBO( CONVERT_TO_SRGB, 0 );
 		SET_STATIC_PIXEL_SHADER_COMBO(SMOOTHNESS, bUseSmoothness);
 		SET_STATIC_PIXEL_SHADER_COMBO(MRAOTEX, bHasMRAO);
+		SET_STATIC_PIXEL_SHADER_COMBO(BUMPALPHASMOOTHNESS, bBumpAlphaSmoothness);
 		SET_STATIC_PIXEL_SHADER(vertexlitpbr_ps30);
 
 		if( bHasFlashlight )
@@ -338,10 +342,13 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 
 		if (!bHasMRAO)
 		{
-			if (bHasRoughness)
-				pShader->BindTexture(SHADER_SAMPLER1, info.m_nRoughness);
-			else
-				pShaderAPI->BindStandardTexture(SHADER_SAMPLER1, TEXTURE_WHITE);
+			if (!bBumpAlphaSmoothness)
+			{
+				if (bHasRoughness)
+					pShader->BindTexture(SHADER_SAMPLER1, info.m_nRoughness);
+				else
+					pShaderAPI->BindStandardTexture(SHADER_SAMPLER1, TEXTURE_WHITE);
+			}
 
 			if (bHasMetallic)
 				pShader->BindTexture(SHADER_SAMPLER2, info.m_nMetallic);

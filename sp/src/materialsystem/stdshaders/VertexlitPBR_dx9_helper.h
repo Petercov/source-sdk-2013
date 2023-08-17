@@ -40,6 +40,7 @@ struct VertexLitPBR_DX9_Vars_t
 	int m_nUseSmoothness;
 	int m_nLightmap;
 	int m_nMRAOTexture;
+	int m_nBumpAlphaSmoothness;
 };
 
 void InitParamsVertexLitPBR_DX9( CBaseVSShader *pShader, IMaterialVar** params,

@@ -106,6 +106,27 @@ public:
 		m_bMRAOTEX = true;
 #endif
 	}
+private:
+	int m_nBUMPALPHASMOOTHNESS;
+#ifdef _DEBUG
+	bool m_bBUMPALPHASMOOTHNESS;
+#endif
+public:
+	void SetBUMPALPHASMOOTHNESS( int i )
+	{
+		Assert( i >= 0 && i <= 1 );
+		m_nBUMPALPHASMOOTHNESS = i;
+#ifdef _DEBUG
+		m_bBUMPALPHASMOOTHNESS = true;
+#endif
+	}
+	void SetBUMPALPHASMOOTHNESS( bool i )
+	{
+		m_nBUMPALPHASMOOTHNESS = i ? 1 : 0;
+#ifdef _DEBUG
+		m_bBUMPALPHASMOOTHNESS = true;
+#endif
+	}
 public:
 	vertexlitpbr_ps30_Static_Index( )
 	{
@@ -129,19 +150,23 @@ public:
 		m_bMRAOTEX = false;
 #endif // _DEBUG
 		m_nMRAOTEX = 0;
+#ifdef _DEBUG
+		m_bBUMPALPHASMOOTHNESS = false;
+#endif // _DEBUG
+		m_nBUMPALPHASMOOTHNESS = 0;
 	}
 	int GetIndex()
 	{
 		// Asserts to make sure that we aren't using any skipped combinations.
 		// Asserts to make sure that we are setting all of the combination vars.
 #ifdef _DEBUG
-		bool bAllStaticVarsDefined = m_bCONVERT_TO_SRGB && m_bFLASHLIGHT && m_bCUBEMAP && m_bSMOOTHNESS && m_bMRAOTEX;
+		bool bAllStaticVarsDefined = m_bCONVERT_TO_SRGB && m_bFLASHLIGHT && m_bCUBEMAP && m_bSMOOTHNESS && m_bMRAOTEX && m_bBUMPALPHASMOOTHNESS;
 		Assert( bAllStaticVarsDefined );
 #endif // _DEBUG
-		return ( 480 * m_nCONVERT_TO_SRGB ) + ( 480 * m_nFLASHLIGHT ) + ( 960 * m_nCUBEMAP ) + ( 1920 * m_nSMOOTHNESS ) + ( 3840 * m_nMRAOTEX ) + 0;
+		return ( 480 * m_nCONVERT_TO_SRGB ) + ( 480 * m_nFLASHLIGHT ) + ( 960 * m_nCUBEMAP ) + ( 1920 * m_nSMOOTHNESS ) + ( 3840 * m_nMRAOTEX ) + ( 7680 * m_nBUMPALPHASMOOTHNESS ) + 0;
 	}
 };
-#define shaderStaticTest_vertexlitpbr_ps30 psh_forgot_to_set_static_CONVERT_TO_SRGB + psh_forgot_to_set_static_FLASHLIGHT + psh_forgot_to_set_static_CUBEMAP + psh_forgot_to_set_static_SMOOTHNESS + psh_forgot_to_set_static_MRAOTEX + 0
+#define shaderStaticTest_vertexlitpbr_ps30 psh_forgot_to_set_static_CONVERT_TO_SRGB + psh_forgot_to_set_static_FLASHLIGHT + psh_forgot_to_set_static_CUBEMAP + psh_forgot_to_set_static_SMOOTHNESS + psh_forgot_to_set_static_MRAOTEX + psh_forgot_to_set_static_BUMPALPHASMOOTHNESS + 0
 class vertexlitpbr_ps30_Dynamic_Index
 {
 private:
