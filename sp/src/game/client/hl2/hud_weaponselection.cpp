@@ -93,7 +93,7 @@ protected:
 			ActivateFastswitchWeaponDisplay( GetSelectedWeapon() );
 			break;
 		case HUDTYPE_PLUS:
-			ActivateWeaponHighlight( GetSelectedWeapon() );
+			ActivateWeaponHighlight( GetSelectedWeapon(), true);
 			break;
 		default:
 			// do nothing
@@ -107,7 +107,7 @@ private:
 
 	void DrawLargeWeaponBox( C_BaseCombatWeapon *pWeapon, bool bSelected, int x, int y, int wide, int tall, Color color, float alpha, int number );
 	void ActivateFastswitchWeaponDisplay( C_BaseCombatWeapon *pWeapon );
-	void ActivateWeaponHighlight( C_BaseCombatWeapon *pWeapon );
+	void ActivateWeaponHighlight( C_BaseCombatWeapon *pWeapon, bool b360 );
 	float GetWeaponBoxAlpha( bool bSelected );
 	int GetLastPosInSlot( int iSlot ) const;
     
@@ -385,7 +385,7 @@ void CHudWeaponSelection::ActivateFastswitchWeaponDisplay( C_BaseCombatWeapon *p
 //-----------------------------------------------------------------------------
 // Purpose: starts animating the highlight for the selected weapon
 //-----------------------------------------------------------------------------
-void CHudWeaponSelection::ActivateWeaponHighlight( C_BaseCombatWeapon *pSelectedWeapon )
+void CHudWeaponSelection::ActivateWeaponHighlight( C_BaseCombatWeapon *pSelectedWeapon, bool b360 )
 {
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 	if ( !pPlayer )
@@ -1392,7 +1392,7 @@ void CHudWeaponSelection::PlusTypeFastWeaponSwitch( int iWeaponSlot )
 			int i = 0;
 			while ( i < MAX_WEAPON_POSITIONS )
 			{
-				C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( iWeaponSlot, i );
+				C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( iWeaponSlot, i, true );
 				if ( pWeapon )
 					break;
 				i++;
@@ -1418,7 +1418,7 @@ void CHudWeaponSelection::PlusTypeFastWeaponSwitch( int iWeaponSlot )
 				int iZeroPos = 0;
 				while ( iZeroPos < MAX_WEAPON_POSITIONS )
 				{
-					C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( m_iSelectedSlot, iZeroPos );
+					C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( m_iSelectedSlot, iZeroPos, true );
 					if ( pWeapon )
 						break;
 					iZeroPos++;
@@ -1457,7 +1457,7 @@ void CHudWeaponSelection::PlusTypeFastWeaponSwitch( int iWeaponSlot )
 			int i = m_iSelectedBoxPosition + increment;
 			while ( i >= 0 && i < lastSlotPos )
 			{
-				C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( newSlot, i );
+				C_BaseCombatWeapon *pWeapon = GetWeaponInSlot( newSlot, i, true );
 				if ( !pWeapon )
 				{
 					if (increment < 0)
@@ -1554,7 +1554,7 @@ void CHudWeaponSelection::SelectWeaponSlot( int iSlot )
 			}
 				
 			PlusTypeFastWeaponSwitch( iSlot );
-			ActivateWeaponHighlight( GetSelectedWeapon() );
+			ActivateWeaponHighlight( GetSelectedWeapon(), true);
 		}
 		break;
 
