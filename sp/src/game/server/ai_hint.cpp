@@ -1795,7 +1795,7 @@ hinttypedescs_t g_pszHintDescriptions[] =
 
 	{	HINT_CSTRIKE_HOSTAGE_ESCAPE, "CS Port: Hostage Escape"	},
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 	{	HINT_BEAST_HOME, "EZ2: Beast Home"	},
 	{	HINT_BEAST_FRUSTRATION, "EZ2: Beast Frustration"	},
 	{	HINT_SURRENDER_IDLE_DEST, "EZ2: Surrender Idle Destination"	},
