@@ -35,7 +35,7 @@ VS_OUTPUT main( const VS_INPUT v )
 	//o.vTexCoord0 = v.vTexCoord0;
 	o.flashlightSpacePos = mul( float4( worldPos, 1.0f ), g_FlashlightWorldToTexture );
     o.color = v.color;
-    o.flashlightDelta = g_FlashlightPos.xyz - v.vPos.xyz;
+    o.flashlightDelta = g_FlashlightPos.xyz - worldPos;
 
 	return o;
 }
