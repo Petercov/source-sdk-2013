@@ -251,7 +251,11 @@ void CAI_MoveAndShootOverlay::RunShootWhileMove()
 				}
 			}
 		}
-		else if ( pOuter->HasCondition( COND_NO_PRIMARY_AMMO, false ) )
+		else if ( pOuter->HasCondition( COND_NO_PRIMARY_AMMO, false )
+#ifdef MAPBASE
+			&& !pOuter->IsCurSchedule(SCHED_HIDE_AND_RELOAD, true) // Don't reload while we're moving to reload
+#endif // MAPBASE
+			)
 		{
 			if ( pOuter->GetNavigator()->GetPathTimeToGoal() > 1.0 )
 			{

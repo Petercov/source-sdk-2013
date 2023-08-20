@@ -45,6 +45,10 @@
 #include "scenefilecache/INewSceneCache.h"
 #endif // MAPBASE_SCENECACHE
 
+#ifdef MAPBASE
+#include "soundchars.h"
+#endif // MAPBASE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -920,6 +924,20 @@ void CSceneEntity::UpdateOnRemove( void )
 	}
 }
 
+#ifdef MAPBASE
+static const char* UTIL_TranslateSoundName(const char* soundname, gender_t gender)
+{
+	Assert(soundname);
+
+	if (Q_stristr(soundname, ".wav") || Q_stristr(soundname, ".mp3"))
+	{
+		return soundname;
+	}
+
+	return soundemitterbase->GetWavFileForSound(soundname, gender);
+}
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *actor - 
@@ -928,7 +946,13 @@ void CSceneEntity::UpdateOnRemove( void )
 //-----------------------------------------------------------------------------
 CChoreoScene *CSceneEntity::GenerateSceneForSound( CBaseFlex *pFlexActor, const char *soundname )
 {
-	float duration = CBaseEntity::GetSoundDuration( soundname, pFlexActor ? STRING( pFlexActor->GetModelName() ) : NULL );
+#ifndef MAPBASE
+	float duration = CBaseEntity::GetSoundDuration(soundname, pFlexActor ? STRING(pFlexActor->GetModelName()) : NULL);
+#else
+	const char* pszSoundFile = UTIL_TranslateSoundName(soundname, pFlexActor ? soundemitterbase->GetActorGender(STRING(pFlexActor->GetModelName())) : GENDER_NONE);
+	float duration = enginesound->GetSoundDuration(PSkipSoundChars(pszSoundFile));
+#endif // !MAPBASE
+
 	if( duration <= 0.0f )
 	{
 		Warning( "CSceneEntity::GenerateSceneForSound:  Couldn't determine duration of %s\n", soundname );
@@ -974,7 +998,13 @@ CChoreoScene *CSceneEntity::GenerateSceneForSound( CBaseFlex *pFlexActor, const 
 		// Set us up the eventz
 		event->SetType( CChoreoEvent::SPEAK );
 		event->SetName( soundname );
-		event->SetParameters( soundname );
+#ifndef MAPBASE
+		event->SetParameters(soundname);
+#else
+		event->SetParameters(pszSoundFile);
+		event->SetCloseCaptionToken(soundname);
+		event->SetCloseCaptionTokenValid(true);
+#endif // !MAPBASE
 		event->SetStartTime( 0.0f );
 		event->SetUsingRelativeTag( false );
 		event->SetEndTime( duration );
