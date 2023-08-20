@@ -919,7 +919,7 @@ void CNPC_Combine::StartTask( const Task_t *pTask )
 		{
 			CBasePlayer *pPlayer = AI_GetSinglePlayer();
 
-			if( pPlayer && OccupyStrategySlot( SQUAD_SLOT_EXCLUSIVE_HANDSIGN ) && pPlayer->FInViewCone( this ) )
+			if( pPlayer && pPlayer->FInViewCone(this) && OccupyStrategySlot( SQUAD_SLOT_EXCLUSIVE_HANDSIGN )  )
 			{
 				CSound *pSound;
 				pSound = GetBestSound();
@@ -938,18 +938,36 @@ void CNPC_Combine::StartTask( const Task_t *pTask )
 					tosound.z = 0;
 					right.z = 0;
 
-					if( DotProduct( right, tosound ) > 0 )
+					if (IsPlayerAlly(pPlayer))
 					{
-						// Right
-						SetIdealActivity( ACT_SIGNAL_RIGHT );
+						if (DotProduct(right, tosound) > 0)
+						{
+							// Right
+							AddGesture(ACT_GESTURE_SIGNAL_RIGHT);
+						}
+						else
+						{
+							// Left
+							AddGesture(ACT_GESTURE_SIGNAL_LEFT);
+						}
+
+						// Fall through to TaskComplete
 					}
 					else
 					{
-						// Left
-						SetIdealActivity( ACT_SIGNAL_LEFT );
-					}
+						if (DotProduct(right, tosound) > 0)
+						{
+							// Right
+							SetIdealActivity(ACT_SIGNAL_RIGHT);
+						}
+						else
+						{
+							// Left
+							SetIdealActivity(ACT_SIGNAL_LEFT);
+						}
 
-					break;
+						break;
+					}
 				}
 			}
 		}
@@ -2219,6 +2237,9 @@ int CNPC_Combine::SelectSchedule( void )
 				{
 					if( m_pSquad && m_pSquad->GetSquadMemberNearestTo( pSound->GetSoundReactOrigin() ) == this && OccupyStrategySlot( SQUAD_SLOT_INVESTIGATE_SOUND ) )
 					{
+#ifdef COMBINE_SOLDIER_USES_RESPONSE_SYSTEM
+						SpeakIfAllowed(TLK_COP_HEARD_SOMETHING);
+#endif // COMBINE_SOLDIER_USES_RESPONSE_SYSTEM
 						return SCHED_INVESTIGATE_SOUND;
 					}
 				}
@@ -3145,6 +3166,12 @@ void CNPC_Combine::SpeakSentence( int sentenceType )
 #endif
 		}
 		break;
+#ifdef MAPBASE
+	case 2:
+		SpeakIfAllowed(TLK_CMB_OVERWATCH);
+		break;
+#endif // MAPBASE
+
 	}
 }
 
@@ -4426,6 +4453,7 @@ DEFINE_SCHEDULE
  "		TASK_COMBINE_SET_STANDING	0"
  "		TASK_SET_ACTIVITY			ACTIVITY:ACT_IDLE"
  "		TASK_FACE_ENEMY				0"
+ "		TASK_SPEAK_SENTENCE			2"
  "		TASK_SET_SCHEDULE			SCHEDULE:SCHED_COMBINE_OVERWATCH"
  ""
  "	Interrupts"
@@ -4906,7 +4934,9 @@ DEFINE_SCHEDULE
 	"		COND_ENEMY_DEAD"
 	"		COND_ENEMY_WENT_NULL"
  )
+#endif
 
+#ifdef SOLDIER_OBSTRUCTION
  //=========================================================
  // Soldier attacks a prop
  //=========================================================
