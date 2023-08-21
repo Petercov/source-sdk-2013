@@ -1,6 +1,6 @@
 
 #include "cbase.h"
-#include "basehlcombatweapon.h"
+#include "peter/weapon_minigun_base.h"
 #include "npcevent.h"
 #include "basecombatcharacter.h"
 #include "ai_basenpc.h"
@@ -17,18 +17,16 @@ acttable_t* GetAR2Acttable();
 int GetAR2ActtableCount();
 #endif
 
-class CSinWeaponChaingun : public CHLMachineGun
+class CSinWeaponChaingun : public CBaseHLMinigun
 {
 public:
-	DECLARE_CLASS(CSinWeaponChaingun, CHLMachineGun);
+	DECLARE_CLASS(CSinWeaponChaingun, CBaseHLMinigun);
 	DECLARE_SERVERCLASS();
 	DECLARE_ACTTABLE();
 
 	CSinWeaponChaingun();
 
 #ifdef MAPBASE
-	WeaponClass_t			WeaponClassify() { return WEPCLASS_HEAVY; }
-
 	// Pistols are their own backup activities
 	virtual acttable_t* GetBackupActivityList() { return GetAR2Acttable(); }
 	virtual int			GetBackupActivityListCount() { return GetAR2ActtableCount(); }
@@ -45,10 +43,6 @@ public:
 		static const Vector cone = VECTOR_CONE_7DEGREES;
 		return cone;
 	}
-
-	void FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir);
-	void Operator_ForceNPCFire(CBaseCombatCharacter* pOperator, bool bSecondary);
-	void Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
 };
 
 IMPLEMENT_SERVERCLASS_ST(CSinWeaponChaingun, DT_SinWeaponChaingun)
@@ -64,7 +58,7 @@ acttable_t	CSinWeaponChaingun::m_acttable[] =
 	{ ACT_IDLE,						ACT_IDLE_SHOTGUN,		true },
 
 	{ ACT_RANGE_ATTACK1,			ACT_RANGE_ATTACK_AUTOSHOTGUN,		true },
-	{ ACT_RELOAD,					ACT_RELOAD_SHOTGUN,					false },
+	{ ACT_RELOAD,					ACT_RELOAD_SMG1,					false },
 	{ ACT_WALK,						ACT_WALK_SHOTGUN,					true },
 	{ ACT_IDLE_ANGRY,				ACT_IDLE_ANGRY_SHOTGUN,				true },
 
@@ -108,8 +102,8 @@ acttable_t	CSinWeaponChaingun::m_acttable[] =
 #endif
 	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_GESTURE_RANGE_ATTACK_AUTOSHOTGUN,	true },
 	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_AUTOSHOTGUN_LOW,		true },
-	{ ACT_RELOAD_LOW,				ACT_RELOAD_SHOTGUN_LOW,				false },
-	{ ACT_GESTURE_RELOAD,			ACT_GESTURE_RELOAD_SHOTGUN,			false },
+	{ ACT_RELOAD_LOW,				ACT_RELOAD_SMG1_LOW,				false },
+	{ ACT_GESTURE_RELOAD,			ACT_GESTURE_RELOAD_SMG1,			false },
 	{ ACT_COVER_LOW,				ACT_COVER_SHOTGUN_LOW,				false },
 	{ ACT_RANGE_AIM_LOW,			ACT_RANGE_AIM_SHOTGUN_LOW,			false },
 
@@ -246,58 +240,4 @@ CSinWeaponChaingun::CSinWeaponChaingun()
 	m_fMaxRange1 = 2000;
 
 	m_bAltFiresUnderwater = false;
-}
-
-void CSinWeaponChaingun::FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir)
-{
-	// FIXME: use the returned number of bullets to account for >10hz firerate
-	WeaponSoundRealtime(SINGLE_NPC);
-
-	CSoundEnt::InsertSound(SOUND_COMBAT | SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy());
-	pOperator->FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED,
-		MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2, entindex(), 0);
-
-	pOperator->DoMuzzleFlash();
-	m_iClip1 = m_iClip1 - 1;
-}
-
-void CSinWeaponChaingun::Operator_ForceNPCFire(CBaseCombatCharacter* pOperator, bool bSecondary)
-{
-	// Ensure we have enough rounds in the clip
-	m_iClip1++;
-
-	Vector vecShootOrigin, vecShootDir;
-	QAngle	angShootDir;
-	GetAttachment(LookupAttachment("muzzle"), vecShootOrigin, angShootDir);
-	AngleVectors(angShootDir, &vecShootDir);
-	FireNPCPrimaryAttack(pOperator, vecShootOrigin, vecShootDir);
-}
-
-void CSinWeaponChaingun::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
-{
-	switch (pEvent->event)
-	{
-	case EVENT_WEAPON_SMG1:
-	{
-		Vector vecShootOrigin, vecShootDir;
-		QAngle angDiscard;
-
-		// Support old style attachment point firing
-		if ((pEvent->options == NULL) || (pEvent->options[0] == '\0') || (!pOperator->GetAttachment(pEvent->options, vecShootOrigin, angDiscard)))
-		{
-			vecShootOrigin = pOperator->Weapon_ShootPosition();
-		}
-
-		CAI_BaseNPC* npc = pOperator->MyNPCPointer();
-		ASSERT(npc != NULL);
-		vecShootDir = npc->GetActualShootTrajectory(vecShootOrigin);
-
-		FireNPCPrimaryAttack(pOperator, vecShootOrigin, vecShootDir);
-	}
-	break;
-
-	default:
-		BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
-		break;
-	}
 }

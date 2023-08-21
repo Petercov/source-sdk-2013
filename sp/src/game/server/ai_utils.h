@@ -167,7 +167,12 @@ public:
 	// Prevent/Allow shooting
 	void EnableShooting( void );
 	void DisableShooting( void );
-	
+
+#ifdef MAPBASE
+	// Call this when the weapon refused to fire
+	void NoteWeaponUnfired();
+#endif // MAPBASE
+
 private:
 	float	m_flNextShotTime;
 	bool	m_bInRestInterval;

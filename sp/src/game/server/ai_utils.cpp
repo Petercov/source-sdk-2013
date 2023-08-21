@@ -229,6 +229,15 @@ void CAI_ShotRegulator::DisableShooting( void )
 	m_bDisabled = true;
 }
 
+#ifdef MAPBASE
+void CAI_ShotRegulator::NoteWeaponUnfired()
+{
+	if (!IsInRestInterval())
+		m_nBurstShotsRemaining++;
+}
+#endif // MAPBASE
+
+
 
 //-----------------------------------------------------------------------------
 //

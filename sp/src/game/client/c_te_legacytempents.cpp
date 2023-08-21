@@ -2993,7 +2993,7 @@ void CTempEnts::MuzzleFlash_Combine_SMG_NPC(ClientEntityHandle_t hEntity, int at
 			return;
 
 		pParticle->m_flLifetime = 0.0f;
-		pParticle->m_flDieTime = /*bOneFrame ?*/ 0.0001f /*: 0.1f*/;
+		pParticle->m_flDieTime = /*bOneFrame ?*/ 0.05f /*: 0.1f*/;
 
 		pParticle->m_vecVelocity.Init();
 
