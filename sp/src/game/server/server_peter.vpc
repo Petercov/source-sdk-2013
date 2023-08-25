@@ -29,6 +29,14 @@ $Project
 			$File	"physgun.cpp"
 		}
 
+		$Folder "HL2 DLL"
+		{
+			$File	"peter\npc_combine_suppressor.cpp"
+			$File	"peter\weapon_minigun_base.cpp"
+			$File	"peter\weapon_minigun_base.h"
+			$File	"peter\weapon_suppressor_lmg.cpp"
+		}
+
 		$Folder "SiN Episodes"
 		{
 			$File	"sin\npc_generic_actor.cpp"
