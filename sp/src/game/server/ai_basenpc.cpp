@@ -16686,7 +16686,13 @@ void CAI_BaseNPC::GetEnemyCriteriaModifiers( CBaseEntity *pEnemy, char *szCriter
 void CAI_BaseNPC::ModifyOrAppendDamageCriteria( AI_CriteriaSet& set, const CTakeDamageInfo &info )
 {
 	if ( info.GetAttacker() && info.GetAttacker() != this )
-		set.AppendCriteria("attacker", info.GetAttacker()->GetClassname());
+	{
+		CBaseEntity* pAttacker = info.GetAttacker();
+		set.AppendCriteria("attacker", pAttacker->GetClassname());
+		set.AppendCriteria("attackername", STRING(pAttacker->GetEntityName()));
+		set.AppendCriteria("attackerclass", g_pGameRules->AIClassText(pAttacker->Classify()));
+		pAttacker->AppendContextToCriteria(set, "attacker_");
+	}
 	else
 		set.AppendCriteria("attacker", "");
 
@@ -16695,6 +16701,9 @@ void CAI_BaseNPC::ModifyOrAppendDamageCriteria( AI_CriteriaSet& set, const CTake
 		CBaseEntity* pInflictor = info.GetInflictor();
 		set.AppendCriteria("inflictor", pInflictor->GetClassname());
 		set.AppendCriteria("inflictor_is_physics", pInflictor->GetMoveType() == MOVETYPE_VPHYSICS ? "1" : "0");
+		set.AppendCriteria("inflictorname", STRING(pInflictor->GetEntityName()));
+		set.AppendCriteria("inflictorclass", g_pGameRules->AIClassText(pInflictor->Classify()));
+		pInflictor->AppendContextToCriteria(set, "inflictor_");
 	}
 
 	set.AppendCriteria("damage", info.GetDamage());
