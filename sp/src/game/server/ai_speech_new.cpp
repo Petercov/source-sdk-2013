@@ -553,6 +553,9 @@ void CAI_Expresser::GatherCriteria( AI_CriteriaSet * RESTRICT outputSet, const A
 		}
 }
 #endif  
+#else
+	AI_CriteriaSet modifierSet;
+	modifierSet.Merge(modifiers);
 #endif // !MAPBASE
 
 
@@ -574,7 +577,7 @@ void CAI_Expresser::GatherCriteria( AI_CriteriaSet * RESTRICT outputSet, const A
 	if (inputCriteria)
 		outputSet->Merge(inputCriteria);
 
-	outputSet->Merge(modifiers);
+	outputSet->Merge(&modifierSet);
 
 	GetOuter()->ReAppendContextCriteria( *outputSet );
 #endif
