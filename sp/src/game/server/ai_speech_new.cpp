@@ -518,36 +518,43 @@ static void ModifyOrAppendGlobalCriteria( AI_CriteriaSet * RESTRICT outputSet )
 }
 
 
-void CAI_Expresser::GatherCriteria( AI_CriteriaSet * RESTRICT outputSet, const AIConcept_t &concept, const char * RESTRICT modifiers )
+void CAI_Expresser::GatherCriteria( AI_CriteriaSet * RESTRICT outputSet, const AIConcept_t &concept, const char * RESTRICT modifiers
+#ifdef MAPBASE
+	, AI_CriteriaSet* inputCriteria
+#endif // MAPBASE
+)
 {
 	// Always include the concept name
 	outputSet->AppendCriteria( "concept", concept, CONCEPT_WEIGHT );
 
+#ifndef MAPBASE
 #if 1
-	outputSet->Merge( modifiers );
+	outputSet->Merge(modifiers);
 #else
 	// Always include any optional modifiers
-	if ( modifiers != NULL )
+	if (modifiers != NULL)
 	{
-		char copy_modifiers[ 255 ];
-		const char *pCopy;
-		char key[ 128 ] = { 0 };
-		char value[ 128 ] = { 0 };
+		char copy_modifiers[255];
+		const char* pCopy;
+		char key[128] = { 0 };
+		char value[128] = { 0 };
 
-		Q_strncpy( copy_modifiers, modifiers, sizeof( copy_modifiers ) );
+		Q_strncpy(copy_modifiers, modifiers, sizeof(copy_modifiers));
 		pCopy = copy_modifiers;
 
-		while( pCopy )
+		while (pCopy)
 		{
-			pCopy = SplitContext( pCopy, key, sizeof( key ), value, sizeof( value ), NULL, modifiers );
+			pCopy = SplitContext(pCopy, key, sizeof(key), value, sizeof(value), NULL, modifiers);
 
-			if( *key && *value )
+			if (*key && *value)
 			{
-				outputSet->AppendCriteria( key, value, CONCEPT_WEIGHT );
+				outputSet->AppendCriteria(key, value, CONCEPT_WEIGHT);
 			}
 		}
-	}
-#endif
+}
+#endif  
+#endif // !MAPBASE
+
 
 	// include any global criteria
 	ModifyOrAppendGlobalCriteria( outputSet );
@@ -564,6 +571,11 @@ void CAI_Expresser::GatherCriteria( AI_CriteriaSet * RESTRICT outputSet, const A
 	}
 
 #ifdef MAPBASE
+	if (inputCriteria)
+		outputSet->Merge(inputCriteria);
+
+	outputSet->Merge(modifiers);
+
 	GetOuter()->ReAppendContextCriteria( *outputSet );
 #endif
 }

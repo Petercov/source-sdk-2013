@@ -168,7 +168,11 @@ public:
 	// Given modifiers (which are colon-delimited strings), fill out a criteria set including this 
 	// character's contexts and the ones in the modifier. This lets us hang on to them after a call
 	// to SpeakFindResponse.
-	void GatherCriteria( AI_CriteriaSet *outputCritera, const AIConcept_t &concept, const char *modifiers );
+	void GatherCriteria( AI_CriteriaSet *outputCritera, const AIConcept_t &concept, const char *modifiers
+#ifdef MAPBASE
+		, AI_CriteriaSet* inputCriteria = NULL
+#endif // MAPBASE
+	);
 	// These two methods allow looking up a response and dispatching it to be two different steps
 	// AI_Response *SpeakFindResponse( AIConcept_t concept, const char *modifiers = NULL );
 	// AI_Response *SpeakFindResponse( AIConcept_t &concept, AI_CriteriaSet *criteria );
@@ -387,10 +391,18 @@ inline bool CAI_ExpresserHost<BASE_NPC>::Speak( AIConcept_t concept, AI_Criteria
 	AssertOnce( this->GetExpresser()->GetOuter() == this );
 	CAI_Expresser * const RESTRICT pExpresser = this->GetExpresser();
 	concept.SetSpeaker(this);
+#ifndef MAPBASE
 	// add in any local criteria to the one passed on the command line.
-	pExpresser->GatherCriteria( pCriteria, concept, NULL );
+	pExpresser->GatherCriteria(pCriteria, concept, NULL);
 	// call the "I have aleady gathered criteria" version of Expresser::Speak
-	return pExpresser->Speak( concept, pCriteria, pszOutResponseChosen, bufsize, filter ); 
+	return pExpresser->Speak(concept, pCriteria, pszOutResponseChosen, bufsize, filter);
+#else
+	AI_CriteriaSet set;
+	// add in any local criteria to the one passed on the command line.
+	pExpresser->GatherCriteria(&set, concept, NULL, pCriteria);
+	// call the "I have aleady gathered criteria" version of Expresser::Speak
+	return pExpresser->Speak(concept, &set, pszOutResponseChosen, bufsize, filter);
+#endif // !MAPBASE
 }
 
 
