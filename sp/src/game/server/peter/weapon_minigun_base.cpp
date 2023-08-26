@@ -344,7 +344,12 @@ void CBaseHLMinigun::NPC_SpinDown()
 {
 	if (GetOwnerNPC())
 	{
-		if (GetOwnerNPC()->HasCondition(COND_SEE_ENEMY) && m_iClip1 > 0 || !UsesClipsForAmmo1())
+		if ((GetOwnerNPC()->HasCondition(COND_SEE_ENEMY) ||
+			GetOwnerNPC()->HasCondition(COND_SEE_HATE) ||
+			GetOwnerNPC()->HasCondition(COND_SEE_DISLIKE) ||
+			//GetOwnerNPC()->HasCondition(COND_SEE_FEAR) ||
+			GetOwnerNPC()->HasCondition(COND_SEE_NEMESIS)
+			) && (m_iClip1 > 0 || !UsesClipsForAmmo1()))
 		{
 			SetNextThink(gpGlobals->curtime + 0.1f, MiniSoundContext);
 			return;
@@ -378,10 +383,10 @@ acttable_t	CBaseHLMinigun::m_acttable[] = {
 	{ ACT_RUN_CROUCH,				ACT_RUN_CROUCH_RIFLE,			true },
 	{ ACT_RUN_CROUCH_AIM,			ACT_RUN_CROUCH_AIM_RIFLE,		true },
 	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_DOD_PRIMARYATTACK_MG,		true },
-	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_AR2_LOW,		true },
-	{ ACT_COVER_LOW,				ACT_COVER_AR2_LOW,				false },
-	{ ACT_RANGE_AIM_LOW,			ACT_RANGE_AIM_AR2_LOW,			false },
-	{ ACT_RELOAD_LOW,				ACT_RELOAD_AR1_LOW,				false },
+	{ ACT_RANGE_ATTACK1_LOW,		ACT_DOD_PRIMARYATTACK_PRONE_MG,		true },
+	{ ACT_COVER_LOW,				ACT_DOD_CROUCH_AIM_MG,				false },
+	{ ACT_RANGE_AIM_LOW,			ACT_DOD_CROUCH_AIM_MG,			false },
+	{ ACT_RELOAD_LOW,				ACT_DOD_RELOAD_PRONE_DEPLOYED_MG34,				false },
 	{ ACT_GESTURE_RELOAD,			ACT_DOD_RELOAD_DEPLOYED_MG,		true },
 
 // Readiness activities (not aiming)

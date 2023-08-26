@@ -6,7 +6,7 @@
 
 class CAI_BaseNPC;
 
-typedef enum MinigunState_e
+typedef enum MinigunState_e : char
 {
 	MINI_IDLE = 0,
 	MINI_SPINUP,
