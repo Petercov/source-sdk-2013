@@ -462,6 +462,7 @@ public:
 	int					ScriptRelationType( HSCRIPT pTarget );
 	int					ScriptRelationPriority( HSCRIPT pTarget );
 	void				ScriptSetRelationship( HSCRIPT pTarget, int disposition, int priority );
+	void				ScriptSetClassRelationship( int classify, int disposition, int priority );
 
 	HSCRIPT				ScriptGetVehicleEntity();
 
@@ -484,6 +485,7 @@ public:
 	static void			AllocateDefaultRelationships( );
 	static void			SetDefaultRelationship( Class_T nClass, Class_T nClassTarget,  Disposition_t nDisposition, int nPriority );
 #ifdef MAPBASE
+	static bool			DefaultRelationshipsLoaded();
 	static Disposition_t	GetDefaultRelationshipDisposition( Class_T nClassSource, Class_T nClassTarget );
 	static int				GetDefaultRelationshipPriority( Class_T nClassSource, Class_T nClassTarget );
 	int						GetDefaultRelationshipPriority( Class_T nClassTarget );
