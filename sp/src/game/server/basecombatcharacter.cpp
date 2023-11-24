@@ -138,12 +138,20 @@ BEGIN_DATADESC( CBaseCombatCharacter )
 	DEFINE_INPUTFUNC( FIELD_STRING, "GiveWeapon", InputGiveWeapon ),
 	DEFINE_INPUTFUNC( FIELD_STRING, "DropWeapon", InputDropWeapon ),
 	DEFINE_INPUTFUNC( FIELD_EHANDLE, "PickupWeaponInstant", InputPickupWeaponInstant ),
+
+	DEFINE_INPUTFUNC(FIELD_BOOLEAN, "BecomeTempRagdoll", InputBecomeTempRagdoll),
+	DEFINE_INPUTFUNC(FIELD_VOID, "StopTempRagdoll", InputStopTempRagdoll),
+
 	DEFINE_OUTPUT( m_OnWeaponEquip, "OnWeaponEquip" ),
 	DEFINE_OUTPUT( m_OnWeaponDrop, "OnWeaponDrop" ),
 
 	DEFINE_OUTPUT( m_OnKilledEnemy, "OnKilledEnemy" ),
 	DEFINE_OUTPUT( m_OnKilledPlayer, "OnKilledPlayer" ),
 	DEFINE_OUTPUT( m_OnHealthChanged, "OnHealthChanged" ),
+
+	DEFINE_FIELD(m_hTempRagdoll, FIELD_EHANDLE),
+	DEFINE_FIELD(m_nTempMoveType, FIELD_INTEGER),
+	DEFINE_KEYFIELD(m_nTempRagdollMode, FIELD_SHORT, "TempRagdollMode"),
 #endif
 
 END_DATADESC()
@@ -1037,6 +1045,22 @@ void CBaseCombatCharacter::UpdateOnRemove( void )
 	RemoveGlowEffect();
 #endif // GLOWS_ENABLE
 
+#ifdef MAPBASE
+	if (m_hTempRagdoll)
+	{
+		if (IsAlive())
+		{
+			UTIL_Remove(m_hTempRagdoll);
+		}
+		else
+		{
+			m_hTempRagdoll->SetDamageEntity(NULL);
+			FixupBurningServerRagdoll(m_hTempRagdoll);
+			m_hTempRagdoll = NULL;
+		}
+	}
+#endif // MAPBASE
+
 	// Chain at end to mimic destructor unwind order
 	BaseClass::UpdateOnRemove();
 }
@@ -1700,6 +1724,16 @@ CBaseEntity *CBaseCombatCharacter::BecomeRagdollBoogie( CBaseEntity *pKiller, co
 //-----------------------------------------------------------------------------
 bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vector &forceVector )
 {
+	if (m_hTempRagdoll)
+	{
+		m_hTempRagdoll->SetDamageEntity(NULL);
+		m_hTempRagdoll->TakeDamage(info);
+		FixupBurningServerRagdoll(m_hTempRagdoll);
+		m_hTempRagdoll = NULL;
+		RemoveDeferred();
+		return true;
+	}
+
 	if ( (info.GetDamageType() & DMG_VEHICLE) && !g_pGameRules->IsMultiplayer() )
 	{
 		CTakeDamageInfo info2 = info;
@@ -2059,8 +2093,6 @@ void CBaseCombatCharacter::DropWeaponForWeaponStrip( CBaseCombatWeapon *pWeapon,
 	pWeapon->SetRemoveable( false );
 	Weapon_Detach( pWeapon );
 }
-
-
 
 //-----------------------------------------------------------------------------
 // For weapon strip
@@ -5162,3 +5194,77 @@ float CBaseCombatCharacter::GetTimeSinceLastInjury( int team /*= TEAM_ANY */ ) c
 	return never;
 }
 
+#ifdef MAPBASE
+CRagdollProp* CBaseCombatCharacter::BecomeTempRagdoll(const CTakeDamageInfo& info, bool bWaitForInput, const Vector* forceVector, float boogieduration, int boogieflags, const Vector* vecboogieColor)
+{
+	if (m_hTempRagdoll)
+	{
+		if (bWaitForInput)
+			m_nTempRagdollMode = RAGDOLL_WAIT_FOR_INPUT;
+
+		return m_hTempRagdoll;
+	}
+
+	if (!CanBecomeTempRagdoll())
+		return nullptr;
+
+	m_nTempMoveType = GetMoveType();
+	AddSolidFlags(FSOLID_NOT_SOLID);
+	AddEffects(EF_NODRAW);
+
+	CTakeDamageInfo info2(info);
+	if (forceVector)
+		info2.SetDamageForce(*forceVector);
+
+	CRagdollProp *pRagdoll = static_cast<CRagdollProp*> (CreateServerRagdoll(this, m_nForceBone, info2, COLLISION_GROUP_INTERACTIVE, false));
+	pRagdoll->SetUnragdoll(this);
+	pRagdoll->SetDamageEntity(this);
+	pRagdoll->m_hDamageFilter = m_hDamageFilter;
+	m_hTempRagdoll = pRagdoll;
+	m_nTempRagdollMode = bWaitForInput ? RAGDOLL_WAIT_FOR_INPUT : RAGDOLL_WAIT_FOR_SETTLE;
+
+	if (IsNPC())
+	{
+		MyNPCPointer()->SetState(NPC_STATE_PRONE);
+	}
+
+	FollowEntity(pRagdoll, true);
+
+	if (boogieduration > 0.f)
+		CRagdollBoogie::Create(pRagdoll, 200, gpGlobals->curtime, boogieduration, boogieflags, vecboogieColor);
+
+	return pRagdoll;
+}
+
+void CBaseCombatCharacter::UndoTempRagdoll()
+{
+	if (m_hTempRagdoll)
+	{
+		m_nTempRagdollMode = RAGDOLL_NONE;
+		StopFollowingEntity();
+		SetMoveType(m_nTempMoveType);
+		RemoveEffects(EF_NODRAW);
+
+		UTIL_Remove(m_hTempRagdoll);
+		m_hTempRagdoll = NULL;
+	}
+}
+
+void CBaseCombatCharacter::InputBecomeTempRagdoll(inputdata_t& inputdata)
+{
+	CTakeDamageInfo info(this, this, 1.f, DMG_GENERIC);
+	BecomeTempRagdoll(info, inputdata.value.Bool());
+}
+
+void CBaseCombatCharacter::InputStopTempRagdoll(inputdata_t& inputdata)
+{
+	// Get up when the ragdoll sleeps
+	if (m_nTempRagdollMode == RAGDOLL_WAIT_FOR_INPUT)
+		m_nTempRagdollMode = RAGDOLL_WAIT_FOR_SETTLE;
+}
+
+bool CBaseCombatCharacter::IsTempRagdollSettled()
+{
+	return m_hTempRagdoll && m_hTempRagdoll->IsAllAsleep();
+}
+#endif // MAPBASE

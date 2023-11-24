@@ -736,6 +736,24 @@ void C_ServerRagdoll::UpdateOnRemove()
 		anim->CreateUnragdollInfo( this );
 	}
 
+#ifdef MAPBASE
+	// Undo the model instance swap
+	if (GetOwnerEntity())
+	{
+		if (GetOwnerEntity()->GetModelName() == GetModelName())
+		{
+			// TODO: Is there a better place for this?
+			if (GetOwnerEntity()->GetBaseAnimating())
+				GetOwnerEntity()->GetBaseAnimating()->m_pServerRagdoll = NULL;
+
+			if (g_ragdoll_server_snatch_instance.GetBool())
+			{
+				SnatchModelInstance(GetOwnerEntity());
+			}
+		}
+	}
+#endif
+
 	// Do last to mimic destrictor order
 	BaseClass::UpdateOnRemove();
 }

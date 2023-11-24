@@ -115,6 +115,17 @@ struct Relationship_t
 	DECLARE_SIMPLE_DATADESC();
 };
 
+#ifdef MAPBASE
+typedef enum RagdollMode_e : short
+{
+	RAGDOLL_NONE = 0,
+	RAGDOLL_WAIT_FOR_SETTLE,
+	RAGDOLL_WAIT_FOR_INPUT,
+} RagdollMode_t;
+
+class CRagdollProp;
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: This should contain all of the combat entry points / functionality 
 // that are common between NPCs and players
@@ -684,6 +695,24 @@ protected:
 	CNavArea *m_lastNavArea;
 	CAI_MoveMonitor m_NavAreaUpdateMonitor;
 	int m_registeredNavTeam;	// ugly, but needed to clean up player team counts in nav mesh
+
+#ifdef MAPBASE
+protected:
+	CHandle<CRagdollProp>	m_hTempRagdoll;
+	MoveType_t				m_nTempMoveType;
+	RagdollMode_t			m_nTempRagdollMode;
+
+	virtual void UndoTempRagdoll();
+public:
+	virtual bool CanBecomeTempRagdoll() { return false; }
+	virtual CRagdollProp* BecomeTempRagdoll(const CTakeDamageInfo& info, bool bWaitForInput = false, const Vector* forceVector = NULL,
+		float boogieduration = 0.f, int boogieflags = 0, const Vector* vecboogieColor = NULL);
+	void InputBecomeTempRagdoll(inputdata_t& inputdata);
+	void InputStopTempRagdoll(inputdata_t& inputdata);
+
+	bool	IsTempRagdoll() { return m_hTempRagdoll != NULL; }
+	bool	IsTempRagdollSettled();
+#endif // MAPBASE
 };
 
 

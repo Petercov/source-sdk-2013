@@ -853,6 +853,9 @@ private:
 	virtual int			SelectDeadSchedule();
 	int					SelectScriptSchedule();
 	int					SelectInteractionSchedule();
+#ifdef MAPBASE
+	virtual int			SelectProneSchedule();
+#endif // MAPBASE
 
 	void				OnStartTask( void ) 					{ SetTaskStatus( TASKSTATUS_RUN_MOVE_AND_TASK ); }
 	void 				SetTaskStatus( TaskStatus_e status )	{ m_ScheduleState.fTaskStatus = status; 	}

@@ -123,6 +123,10 @@ public:
 	int				ScriptGetRagdollObjectCount();
 #endif
 
+#ifdef MAPBASE
+	bool			IsAllAsleep() { return m_allAsleep; }
+#endif // MAPBASE
+
 	DECLARE_DATADESC();
 
 protected:

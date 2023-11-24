@@ -500,6 +500,8 @@ enum sharedtasks_e
 
 		TASK_WEAPON_HOLSTER,	// Taskdata 1 destroys the weapon
 		TASK_WEAPON_UNHOLSTER,	// Taskdata 1 doesn't wait for unholster
+
+		TASK_PRONE_GETUP,
 #endif
 
 		// ======================================

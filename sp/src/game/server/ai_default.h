@@ -111,6 +111,10 @@ enum
 
 	SCHED_SLEEP,
 
+#ifdef MAPBASE
+	SCHED_PRONE_GETUP,
+#endif // MAPBASE
+
 	// ======================================
 	// IMPORTANT: This must be the last enum
 	// ======================================

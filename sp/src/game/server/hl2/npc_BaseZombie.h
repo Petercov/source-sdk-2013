@@ -240,6 +240,10 @@ public:
 
 	virtual	bool		AllowedToIgnite( void ) { return true; }
 
+#ifdef MAPBASE
+	virtual bool CanBecomeTempRagdoll() { return true; }
+#endif // MAPBASE
+
 public:
 	CAI_ActBusyBehavior		m_ActBusyBehavior;
 

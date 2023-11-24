@@ -873,7 +873,13 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 	{
 		CTakeDamageInfo subInfo = info;
 		subInfo.AddDamageType( DMG_REMOVENORAGDOLL );
-		return m_hDamageEntity->OnTakeDamage( subInfo );
+#ifdef MAPBASE
+		VPhysicsTakeDamage(info);
+		m_hDamageEntity->TakeDamage(subInfo);
+		return 1;
+#else
+		return m_hDamageEntity->OnTakeDamage(subInfo);
+#endif // MAPBASE
 	}
 
 	return BaseClass::OnTakeDamage( info );

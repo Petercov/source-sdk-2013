@@ -112,6 +112,11 @@ enum SCOND_t
 	
 	COND_NO_CUSTOM_INTERRUPTS,		// Don't call BuildScheduleTestBits for this schedule. Used for schedules that must strictly control their interruptibility.
 
+#ifdef MAPBASE
+	COND_RAGDOLL,
+	COND_RAGDOLL_SETTLED,
+#endif // MAPBASE
+
 	// ======================================
 	// IMPORTANT: This must be the last enum
 	// ======================================

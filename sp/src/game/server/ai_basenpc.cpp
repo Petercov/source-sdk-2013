@@ -5411,6 +5411,25 @@ void CAI_BaseNPC::GatherConditions( void )
 				ClearCondition( COND_IN_PVS );
 		}
 
+#ifdef MAPBASE
+		if (IsTempRagdoll())
+		{
+			SetCondition(COND_RAGDOLL);
+			if (IsTempRagdollSettled())
+				SetCondition(COND_RAGDOLL_SETTLED);
+		}
+		/*else
+		{
+			static int conditionsToClear[] =
+			{
+				COND_RAGDOLL,
+				COND_RAGDOLL_SETTLED
+			};
+
+			ClearConditions(conditionsToClear, ARRAYSIZE(conditionsToClear));
+		}*/
+#endif // MAPBASE
+
 		// Sample the environment. Do this unconditionally if there is a player in this
 		// npc's PVS. NPCs in COMBAT state are allowed to simulate when there is no player in
 		// the same PVS. This is so that any fights in progress will continue even if the player leaves the PVS.
@@ -10666,7 +10685,7 @@ int CAI_BaseNPC::DrawDebugTextOverlays(void)
 		// --------------
 		// Print State
 		// --------------
-		static const char *pStateNames[] = { "None", "Idle", "Alert", "Combat", "Scripted", "PlayDead", "Dead" };
+		static const char *pStateNames[] = { "None", "Idle", "Alert", "Combat", "Scripted", "PlayDead", "Prone", "Dead"};
 		if ( (int)m_NPCState < ARRAYSIZE(pStateNames) )
 		{
 			Q_snprintf(tempstr,sizeof(tempstr),"Stat: %s, ", pStateNames[m_NPCState] );

@@ -3197,7 +3197,13 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 		TakeHealth( (int)pTask->flTaskData, DMG_GENERIC );
 		TaskComplete();
 		break;
-
+#ifdef MAPBASE
+	case TASK_PRONE_GETUP:
+		UndoTempRagdoll();
+		SetIdealState(NPC_STATE_ALERT);
+		TaskComplete();
+		break;
+#endif // MAPBASE
 	default:
 		{
 			CGMsg( 1, CON_GROUP_NPC_AI, "No StartTask entry for %s\n", TaskName( task ) );
@@ -4949,7 +4955,11 @@ int CAI_BaseNPC::SelectSchedule( void )
 		break;
 
 	case NPC_STATE_PRONE:
+#ifdef MAPBASE
+		return SelectProneSchedule();
+#else
 		return SCHED_IDLE_STAND;
+#endif // MAPBASE
 
 	case NPC_STATE_IDLE:
 		AssertMsgOnce( GetEnemy() == NULL, "NPC has enemy but is not in combat state?" );
@@ -4983,3 +4993,15 @@ int CAI_BaseNPC::SelectFailSchedule( int failedSchedule, int failedTask, AI_Task
 {
 	return ( m_failSchedule != SCHED_NONE ) ? m_failSchedule : SCHED_FAIL;
 }
+
+#ifdef MAPBASE
+int CAI_BaseNPC::SelectProneSchedule()
+{
+	if (m_nTempRagdollMode == RAGDOLL_WAIT_FOR_SETTLE && HasCondition(COND_RAGDOLL_SETTLED))
+	{
+		return SCHED_PRONE_GETUP;
+	}
+
+	return SCHED_IDLE_STAND;
+}
+#endif // MAPBASE

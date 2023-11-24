@@ -43,6 +43,10 @@ public:
 
 	// Purpose: check ammo
 	virtual void CheckAmmo( void );
+
+#ifdef MAPBASE
+	virtual bool CanBecomeTempRagdoll() { return true; }
+#endif // MAPBASE
 };
 
 //-----------------------------------------------------------------------------
