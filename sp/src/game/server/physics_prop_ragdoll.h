@@ -125,6 +125,7 @@ public:
 
 #ifdef MAPBASE
 	bool			IsAllAsleep() { return m_allAsleep; }
+	bool			IsLaunchedByCannon() { return m_bFirstCollisionAfterLaunch; }
 #endif // MAPBASE
 
 	DECLARE_DATADESC();

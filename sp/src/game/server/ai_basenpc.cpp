@@ -959,6 +959,14 @@ bool CAI_BaseNPC::PassesDamageFilter( const CTakeDamageInfo &info )
 #ifdef MAPBASE
 int CAI_BaseNPC::OnTakeDamage(const CTakeDamageInfo& inputInfo)
 {
+	// Don't actually take damage from ragdoll impacts.
+	// Unless we were launched by the physcannon.
+	if (IsTempRagdoll() && !m_hTempRagdoll->IsLaunchedByCannon() && (inputInfo.GetDamageType() & DMG_CRUSH | DMG_VEHICLE) == DMG_CRUSH)
+	{
+		PainSound(inputInfo);
+		return 0;
+	}
+
 	CTakeDamageInfo info = inputInfo;
 
 	if (info.GetDamage() && info.GetDamageType() != DMG_GENERIC && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION))) // armor doesn't protect against fall or drown damage!
