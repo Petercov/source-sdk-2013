@@ -7206,6 +7206,10 @@ QAngle CBasePlayer::BodyAngles()
 //------------------------------------------------------------------------------
 Vector CBasePlayer::BodyTarget( const Vector &posSrc, bool bNoisy ) 
 { 
+#ifdef MAPBASE
+	if (IsTempRagdoll())
+		return BaseClass::BodyTarget(posSrc, bNoisy);
+#endif // MAPBASE
 	if ( IsInAVehicle() )
 	{
 		return GetVehicle()->GetVehicleEnt()->BodyTarget( posSrc, bNoisy );

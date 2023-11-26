@@ -536,6 +536,11 @@ Vector  CNPC_Vortigaunt::FacingPosition( void )
 
 Vector CNPC_Vortigaunt::BodyTarget( const Vector &posSrc, bool bNoisy ) 
 { 
+#ifdef MAPBASE
+	if (IsTempRagdoll())
+		return BaseClass::BodyTarget(posSrc, bNoisy);
+#endif // MAPBASE
+
 	Vector low = WorldSpaceCenter() - ( WorldSpaceCenter() - GetAbsOrigin() ) * .25;
 
 	Vector high;

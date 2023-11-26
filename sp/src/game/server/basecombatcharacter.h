@@ -714,6 +714,9 @@ public:
 
 	bool	IsTempRagdoll() { return m_hTempRagdoll != NULL; }
 	bool	IsTempRagdollSettled();
+
+	virtual Vector	BodyTarget(const Vector& posSrc, bool bNoisy = true);		// position to shoot at
+	virtual Vector	HeadTarget(const Vector& posSrc);
 #endif // MAPBASE
 };
 

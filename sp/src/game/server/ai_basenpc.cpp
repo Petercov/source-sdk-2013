@@ -11496,6 +11496,11 @@ Vector CAI_BaseNPC::GetActualShootTrajectory( const Vector &shootOrigin )
 
 Vector CAI_BaseNPC::BodyTarget( const Vector &posSrc, bool bNoisy ) 
 { 
+#ifdef MAPBASE
+	if (IsTempRagdoll())
+		return BaseClass::BodyTarget(posSrc, bNoisy);
+#endif // MAPBASE
+
 	Vector low = WorldSpaceCenter() - ( WorldSpaceCenter() - GetAbsOrigin() ) * .25;
 	Vector high = EyePosition();
 	Vector delta = high - low;

@@ -5306,4 +5306,22 @@ bool CBaseCombatCharacter::IsTempRagdollSettled()
 {
 	return m_hTempRagdoll && m_hTempRagdoll->IsAllAsleep();
 }
+
+// position to shoot at
+Vector CBaseCombatCharacter::BodyTarget(const Vector& posSrc, bool bNoisy)
+{
+	if (IsTempRagdoll())
+		return m_hTempRagdoll->BodyTarget(posSrc, bNoisy);
+
+	return BaseClass::BodyTarget(posSrc, bNoisy);
+}
+
+// return the position of my head. someone's trying to attack it.
+Vector CBaseCombatCharacter::HeadTarget(const Vector& posSrc)
+{
+	if (IsTempRagdoll())
+		return m_hTempRagdoll->HeadTarget(posSrc);
+	
+	return BaseClass::HeadTarget(posSrc);
+}
 #endif // MAPBASE
