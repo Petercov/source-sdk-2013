@@ -1338,7 +1338,7 @@ void CBaseAnimating::HandleAnimEvent( animevent_t *pEvent )
 #ifdef MAPBASE
 		else if ( pEvent->event == AE_NPC_RESPONSE )
 		{
-			if (!MyNPCPointer()->GetExpresser()->IsSpeaking())
+			if (!MyNPCPointer() || !MyNPCPointer()->GetExpresser() || !MyNPCPointer()->GetExpresser()->IsSpeaking())
 			{
 				DispatchResponse( pEvent->options );
 			}
