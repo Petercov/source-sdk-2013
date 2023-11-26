@@ -23,6 +23,7 @@
 #include "grenade_frag.h"
 #include "mapbase/GlobalStrings.h"
 #include "gib.h"
+#include "RagdollBoogie.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -5915,7 +5916,23 @@ int CNPC_MetroPolice::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 		m_flRecentDamageTime = gpGlobals->curtime;
 	}
 
-	return BaseClass::OnTakeDamage_Alive( info ); 
+#ifndef MAPBASE
+	return BaseClass::OnTakeDamage_Alive(info);
+#else
+	if (BaseClass::OnTakeDamage_Alive(info))
+	{
+		if (info.GetDamageType() & DMG_SHOCK)
+		{
+			float flShockTime = info.GetDamage() * 0.1f;
+			if (flShockTime >= 1.f)
+				BecomeTempRagdoll(info, false, nullptr, flShockTime, SF_RAGDOLL_BOOGIE_ELECTRICAL);
+		}
+
+		return 1;
+	}
+
+	return 0;
+#endif // !MAPBASE
 }
 
 

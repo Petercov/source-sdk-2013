@@ -249,6 +249,13 @@ public:
 	void			ModifyOrAppendCriteria( AI_CriteriaSet& set );
 #endif
 
+#ifdef MAPBASE
+	//---------------------------------
+	// Damage handling
+	//---------------------------------
+	int 			OnTakeDamage_Alive(const CTakeDamageInfo& info);
+#endif // MAPBASE
+
 	virtual int		TranslateSchedule( int scheduleType );
 	void			OnStartSchedule( int scheduleType );
 

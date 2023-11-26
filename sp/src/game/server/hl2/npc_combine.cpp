@@ -33,6 +33,7 @@
 #include "mapbase/GlobalStrings.h"
 #include "globalstate.h"
 #include "sceneentity.h"
+#include "RagdollBoogie.h"
 #endif
 #ifdef SOLDIER_OBSTRUCTION
 #include "props.h"
@@ -2540,6 +2541,26 @@ int CNPC_Combine::SelectScheduleAttack()
 
 	return SCHED_NONE;
 }
+
+#ifdef MAPBASE
+int CNPC_Combine::OnTakeDamage_Alive(const CTakeDamageInfo& info)
+{
+	if (BaseClass::OnTakeDamage_Alive(info))
+	{
+		if (info.GetDamageType() & DMG_SHOCK)
+		{
+			float flShockTime = info.GetDamage() * 0.1f;
+			if (flShockTime >= 1.f)
+				BecomeTempRagdoll(info, false, nullptr, flShockTime, SF_RAGDOLL_BOOGIE_ELECTRICAL);
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
+#endif // MAPBASE
+
 
 //-----------------------------------------------------------------------------
 // Purpose:
