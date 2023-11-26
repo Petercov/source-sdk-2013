@@ -276,6 +276,11 @@ void CAI_BaseNPC::NextScheduledTask ( void )
 void CAI_BaseNPC::BuildScheduleTestBits( void )
 {
 	//NOTENOTE: Always defined in the leaf classes
+#ifdef MAPBASE
+	SetCustomInterruptCondition(COND_RAGDOLL);
+	if (IsTempRagdoll())
+		SetCustomInterruptCondition(COND_RAGDOLL_SETTLED);
+#endif // MAPBASE
 }
 
 
@@ -4997,7 +5002,7 @@ int CAI_BaseNPC::SelectFailSchedule( int failedSchedule, int failedTask, AI_Task
 #ifdef MAPBASE
 int CAI_BaseNPC::SelectProneSchedule()
 {
-	if (m_nTempRagdollMode == RAGDOLL_WAIT_FOR_SETTLE && HasCondition(COND_RAGDOLL_SETTLED))
+	if (HasCondition(COND_RAGDOLL_SETTLED))
 	{
 		return SCHED_PRONE_GETUP;
 	}

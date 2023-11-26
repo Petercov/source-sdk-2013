@@ -5415,7 +5415,7 @@ void CAI_BaseNPC::GatherConditions( void )
 		if (IsTempRagdoll())
 		{
 			SetCondition(COND_RAGDOLL);
-			if (IsTempRagdollSettled())
+			if (m_nTempRagdollMode == RAGDOLL_WAIT_FOR_SETTLE && IsTempRagdollSettled())
 				SetCondition(COND_RAGDOLL_SETTLED);
 		}
 		/*else

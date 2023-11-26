@@ -1055,6 +1055,7 @@ void CBaseCombatCharacter::UpdateOnRemove( void )
 		}
 		else
 		{
+			m_hTempRagdoll->SetDebrisThink();
 			m_hTempRagdoll->SetDamageEntity(NULL);
 			FixupBurningServerRagdoll(m_hTempRagdoll);
 			m_hTempRagdoll = NULL;
@@ -1736,15 +1737,22 @@ CBaseEntity *CBaseCombatCharacter::BecomeRagdollBoogie( CBaseEntity *pKiller, co
 //-----------------------------------------------------------------------------
 bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vector &forceVector )
 {
+#ifdef MAPBASE
+#define SF_RAGDOLLPROP_USE_LRU_RETIREMENT	0x1000
 	if (m_hTempRagdoll)
 	{
+		m_hTempRagdoll->SetDebrisThink();
 		m_hTempRagdoll->SetDamageEntity(NULL);
 		m_hTempRagdoll->TakeDamage(info);
+		m_hTempRagdoll->AddSpawnFlags(SF_RAGDOLLPROP_USE_LRU_RETIREMENT);
+		s_RagdollLRU.MoveToTopOfLRU(m_hTempRagdoll);
 		FixupBurningServerRagdoll(m_hTempRagdoll);
 		m_hTempRagdoll = NULL;
 		RemoveDeferred();
 		return true;
 	}
+#endif // MAPBASE
+
 
 	if ( (info.GetDamageType() & DMG_VEHICLE) && !g_pGameRules->IsMultiplayer() )
 	{
@@ -5230,6 +5238,9 @@ CRagdollProp* CBaseCombatCharacter::BecomeTempRagdoll(const CTakeDamageInfo& inf
 		if (bWaitForInput)
 			m_nTempRagdollMode = RAGDOLL_WAIT_FOR_INPUT;
 
+		if (boogieduration > 0.f)
+			CRagdollBoogie::Create(m_hTempRagdoll, 200, gpGlobals->curtime, boogieduration, boogieflags, vecboogieColor);
+
 		return m_hTempRagdoll;
 	}
 
@@ -5238,7 +5249,6 @@ CRagdollProp* CBaseCombatCharacter::BecomeTempRagdoll(const CTakeDamageInfo& inf
 
 	m_nTempMoveType = GetMoveType();
 	AddSolidFlags(FSOLID_NOT_SOLID);
-	AddEffects(EF_NODRAW);
 
 	CTakeDamageInfo info2(info);
 	if (forceVector)
@@ -5257,6 +5267,7 @@ CRagdollProp* CBaseCombatCharacter::BecomeTempRagdoll(const CTakeDamageInfo& inf
 	}
 
 	FollowEntity(pRagdoll, true);
+	AddEffects(EF_NODRAW);
 
 	if (boogieduration > 0.f)
 		CRagdollBoogie::Create(pRagdoll, 200, gpGlobals->curtime, boogieduration, boogieflags, vecboogieColor);
