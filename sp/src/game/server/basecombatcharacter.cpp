@@ -71,6 +71,8 @@ ConVar nb_last_area_update_tolerance( "nb_last_area_update_tolerance", "4.0", FC
 #ifdef MAPBASE
 // ShouldUseVisibilityCache() is used as an actual function now
 ConVar ai_use_visibility_cache( "ai_use_visibility_cache", "1" );
+
+#define SF_RAGDOLLPROP_USE_LRU_RETIREMENT	0x1000
 #else
 #ifndef _RETAIL
 ConVar ai_use_visibility_cache( "ai_use_visibility_cache", "1" );
@@ -1057,6 +1059,8 @@ void CBaseCombatCharacter::UpdateOnRemove( void )
 		{
 			m_hTempRagdoll->SetDebrisThink();
 			m_hTempRagdoll->SetDamageEntity(NULL);
+			m_hTempRagdoll->AddSpawnFlags(SF_RAGDOLLPROP_USE_LRU_RETIREMENT);
+			s_RagdollLRU.MoveToTopOfLRU(m_hTempRagdoll);
 			FixupBurningServerRagdoll(m_hTempRagdoll);
 			m_hTempRagdoll = NULL;
 		}
@@ -1738,7 +1742,6 @@ CBaseEntity *CBaseCombatCharacter::BecomeRagdollBoogie( CBaseEntity *pKiller, co
 bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vector &forceVector )
 {
 #ifdef MAPBASE
-#define SF_RAGDOLLPROP_USE_LRU_RETIREMENT	0x1000
 	if (m_hTempRagdoll)
 	{
 		m_hTempRagdoll->SetDebrisThink();
