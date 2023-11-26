@@ -19,6 +19,7 @@ ipch
 *.idb
 *.vcxproj
 *.sln
+*.recipe
 
 # OSX/Linux build products
 *.mak
@@ -117,3 +118,4 @@ sp/src/devtools/gcc9+support.o
 /sp/src/game/gamepadui/*/*.dll
 /sp/src/game/gamepadui/*/*.pdb
 /sp/src/vgui2/vgui_controls/Release/vgui_controls.vcxproj.FileListAbsolute.txt
+/sp/src/game/gamepadui/Release_mod_episodic/gamepadui_episodic.vcxproj.FileListAbsolute.txt
