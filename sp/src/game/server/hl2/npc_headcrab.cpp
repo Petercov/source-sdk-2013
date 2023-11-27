@@ -32,6 +32,9 @@
 #include "physics_npc_solver.h"
 #include "hl2_gamerules.h"
 #include "decals.h"
+#ifdef MAPBASE
+#include "ai_behavior_follow.h"
+#endif // MAPBASE
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -2550,6 +2553,63 @@ void CHeadcrab::BiteSound( void )
 	EmitSound( "NPC_HeadCrab.Bite" );
 }
 
+#ifdef MAPBASE
+class CHeadcrabLamarr : public CAI_BehaviorHost< CHeadcrab >
+{
+	DECLARE_CLASS(CHeadcrabLamarr, CAI_BehaviorHost< CHeadcrab >);
+public:
+	DECLARE_DATADESC();
+
+	void Precache();
+	void Spawn();
+	Class_T Classify(void);
+	virtual bool 	CreateBehaviors();
+
+private:
+	CAI_FollowBehavior m_FollowBehavior;
+};
+
+BEGIN_DATADESC(CHeadcrabLamarr)
+DEFINE_EMBEDDED(m_FollowBehavior),
+END_DATADESC();
+
+LINK_ENTITY_TO_CLASS(npc_headcrab_lamarr, CHeadcrabLamarr);
+
+void CHeadcrabLamarr::Precache()
+{
+	if (GetModelName() == NULL_STRING)
+	{
+		SetModelName(AllocPooledString_StaticConstantStringPointer("models/lamarr.mdl"));
+	}
+
+	BaseClass::Precache();
+}
+
+void CHeadcrabLamarr::Spawn()
+{
+	BaseClass::Spawn();
+
+	CapabilitiesAdd(bits_CAP_FRIENDLY_DMG_IMMUNE);
+}
+
+Class_T CHeadcrabLamarr::Classify(void)
+{
+	if (m_bHidden)
+	{
+		// Effectively invisible to other AI's while hidden.
+		return CLASS_NONE;
+	}
+	else
+	{
+		return CLASS_PLAYER_ALLY_VITAL;
+	}
+}
+bool CHeadcrabLamarr::CreateBehaviors()
+{
+	AddBehavior(&m_FollowBehavior);
+	return true;
+}
+#endif // MAPBASE
 
 //---------------------------------------------------------
 // Save/Restore
