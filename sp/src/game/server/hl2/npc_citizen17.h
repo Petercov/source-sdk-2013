@@ -63,6 +63,8 @@ enum CitizenType_t
 	CT_CONSCRIPT,
 	CT_HAZMAT,
 	CT_WORKER,
+	CT_GASMASK,
+	CT_WASTELAND,
 
 	CT_HOSTAGE,
 };

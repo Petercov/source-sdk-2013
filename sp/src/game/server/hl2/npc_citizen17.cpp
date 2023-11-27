@@ -351,6 +351,8 @@ static const char *g_ppszModelLocs[] =
 	"Group04c%s", // Conscript
 	"Hazmat01", // Hazmat
 	"Group06", // Worker
+	"Group01g", // Gasmask
+	"Group02g", // Wasteland Gasmask
 
 	"Office1"
 };
@@ -797,6 +799,8 @@ void CNPC_Citizen::SelectModel()
 		PrecacheAllOfType(CT_ARBEIT_SEC);
 		PrecacheAllOfType(CT_HAZMAT);
 		PrecacheAllOfType(CT_WORKER);
+		PrecacheAllOfType(CT_GASMASK);
+		PrecacheAllOfType(CT_WASTELAND);
 		PrecacheAllOfType(CT_HOSTAGE);
 	}
 
@@ -828,6 +832,7 @@ void CNPC_Citizen::SelectModel()
 			{ "c17",			CT_REBEL		},
 			{ "citadel",		CT_DOWNTRODDEN	},
 			{ "office",			CT_HOSTAGE		},
+			{ "waste",			CT_WASTELAND },
 		};
 
 		char szMapName[256];
@@ -1005,31 +1010,21 @@ void CNPC_Citizen::SelectExpressionType()
 	switch (m_Type)
 	{
 	case CT_DOWNTRODDEN:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
-		break;
 	case CT_REFUGEE:
+	case CT_HAZMAT:
+	case CT_WORKER:
+	case CT_GASMASK:
+	case CT_WASTELAND:
 		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
 		break;
 	case CT_REBEL:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
-		break;
-	case CT_BRUTE:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_NORMAL, CIT_EXP_ANGRY); // Brutes show no fear
-		break;
-	case CT_LONGFALL:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_NORMAL, CIT_EXP_ANGRY); // Long fall boot rebels are crazy
-		break;
 	case CT_ARCTIC:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
-		break;
-	case CT_HAZMAT:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
-		break;
-	case CT_WORKER:
-		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_NORMAL);
-		break;
 	case CT_CONSCRIPT:
 		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_SCARED, CIT_EXP_ANGRY);
+		break;
+	case CT_BRUTE: // Brutes show no fear
+	case CT_LONGFALL: // Long fall boot rebels are crazy
+		m_ExpressionType = (CitizenExpressionTypes_t)RandomInt(CIT_EXP_NORMAL, CIT_EXP_ANGRY);
 		break;
 	case CT_DEFAULT:
 	case CT_UNIQUE:
