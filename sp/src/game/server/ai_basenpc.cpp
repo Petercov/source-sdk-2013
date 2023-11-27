@@ -176,6 +176,8 @@ extern ISoundEmitterSystemBase *soundemitterbase;
 ConVar	ai_dynint_always_enabled( "ai_dynint_always_enabled", "0", FCVAR_NONE, "Makes the \"Don't Care\" setting equivalent to \"Yes\"." );
 
 ConVar	ai_debug_fake_sequence_gestures_always_play( "ai_debug_fake_sequence_gestures_always_play", "0", FCVAR_NONE, "Always plays fake sequence gestures." );
+
+ConVar	ai_disable_attack("ai_disable_attack", "0", FCVAR_CHEAT);
 #endif
 
 #ifndef _RETAIL
@@ -6269,6 +6271,11 @@ bool CAI_BaseNPC::InnateWeaponLOSCondition( const Vector &ownerPos, const Vector
 //=========================================================
 bool CAI_BaseNPC::FCanCheckAttacks( void )
 {
+#ifdef MAPBASE
+	if (ai_disable_attack.GetBool())
+		return false;
+#endif // MAPBASE
+
 	// Not allowed to check attacks while climbing or jumping
 	// Otherwise schedule is interrupted while on ladder/etc
 	// which is NOT a legal place to attack from
