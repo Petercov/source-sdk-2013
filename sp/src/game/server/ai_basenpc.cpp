@@ -15179,6 +15179,8 @@ void CAI_BaseNPC::ParseScriptedNPCInteractions(void)
 						{
 							if (!Q_strncmp(szValue, "auto_in_combat", 14))
 								sInteraction.iTriggerMethod = SNPCINT_AUTOMATIC_IN_COMBAT;
+							else if (!Q_strncmp(szValue, "respond_to_hello", 16))
+								sInteraction.iTriggerMethod = SNPCINT_RESPOND_TO_HELLO;
 						}
 						else if (!Q_strncmp(szValue, "loop_break_trigger", 18))
 						{
@@ -16216,7 +16218,7 @@ bool CAI_BaseNPC::InteractionIsAllowed( CAI_BaseNPC *pOtherNPC, ScriptedNPCInter
 	// 
 	// Forced interactions should still work, but this prevents regular interactions from targeting vital allies.
 	// Hopefully there aren't any maps that already have hunters murder Barneys.
-	if (pOtherNPC->Classify() == CLASS_PLAYER_ALLY_VITAL)
+	if (pInteraction->iTriggerMethod == SNPCINT_AUTOMATIC_IN_COMBAT && pOtherNPC->Classify() == CLASS_PLAYER_ALLY_VITAL)
 		return false;
 
 	// This convar allows all NPCs to perform Mapbase interactions for both testing and player fun.

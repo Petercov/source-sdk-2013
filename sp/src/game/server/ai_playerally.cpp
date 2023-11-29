@@ -1033,6 +1033,53 @@ void CAI_PlayerAlly::AnswerQuestion( CAI_PlayerAlly *pQuestioner, int iQARandomN
 
 		// Prevent idle speech for a while
 		DeferAllIdleSpeech( random->RandomFloat( TALKER_DEFER_IDLE_SPEAK_MIN, TALKER_DEFER_IDLE_SPEAK_MAX ), GetSpeechTarget()->MyNPCPointer() );
+
+#ifdef MAPBASE
+		if (CanRunAScriptedNPCInteraction(false) && pQuestioner->CanRunAScriptedNPCInteraction(false))
+		{
+			// Find the interaction from the name, and ensure it's one that the target NPC can play
+			int iInteraction = -1;
+			for (int i = 0; i < m_ScriptedInteractions.Count(); i++)
+			{
+				if (m_ScriptedInteractions[i].iTriggerMethod != SNPCINT_RESPOND_TO_HELLO || !InteractionIsAllowed(pQuestioner, &m_ScriptedInteractions[i]))
+					continue;
+
+				if ((m_ScriptedInteractions[i].iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
+				{
+					if (pQuestioner->LookupSequence(STRING(m_ScriptedInteractions[i].iszRecvPhases[SNPCINT_SEQUENCE])) == -1)
+						continue;
+				}
+				else
+					// Use sequence? or activity?
+					if (m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity != ACT_INVALID)
+					{
+						if (!pQuestioner->HaveSequenceForActivity((Activity)m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity))
+						{
+							// Other NPC may have all the matching sequences, but just without the activity specified.
+							// Lets find a single sequence for us, and ensure they have a matching one.
+							int iMySeq = SelectWeightedSequence((Activity)m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity);
+							if (pQuestioner->LookupSequence(GetSequenceName(iMySeq)) == -1)
+								continue;
+						}
+					}
+					else
+					{
+						if (pQuestioner->LookupSequence(STRING(m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iszSequence)) == -1)
+							continue;
+					}
+
+				iInteraction = i;
+				break;
+			}
+
+			if (iInteraction != -1)
+			{
+				// Found both pieces of data, lets dance.
+				StartForcedInteraction(pQuestioner, iInteraction);
+				pQuestioner->StartForcedInteraction(this, NPCINT_NONE);
+			}			
+		}
+#endif // MAPBASE
 	}
 	else if ( rr_debug_qa.GetBool() )
 	{

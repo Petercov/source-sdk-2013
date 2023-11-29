@@ -364,6 +364,9 @@ enum
 {
 	SNPCINT_CODE = 0,
 	SNPCINT_AUTOMATIC_IN_COMBAT = 1,
+#ifdef MAPBASE
+	SNPCINT_RESPOND_TO_HELLO,
+#endif // MAPBASE
 };
 
 // -----------------------------------------
