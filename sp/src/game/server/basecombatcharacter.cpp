@@ -3995,7 +3995,7 @@ CBaseEntity *CBaseCombatCharacter::Weapon_FindUsable( const Vector &range )
 				continue;
 			}
 
-			if ( pWeapon->GetWeight() != 0 && GetActiveWeapon()->GetWeight() > pWeapon->GetWeight() )
+			if ( pWeapon->GetWeight() != 0 && GetActiveWeapon()->GetWeight() >= pWeapon->GetWeight() )
 			{
 				// Discard if our target weapon supports weight but our current weapon has more of it.
 				// 

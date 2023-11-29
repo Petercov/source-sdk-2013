@@ -1647,7 +1647,7 @@ int CNPC_Citizen::SelectScheduleRetrieveItem()
 {
 	if ( HasCondition(COND_BETTER_WEAPON_AVAILABLE) )
 	{
-		CBaseHLCombatWeapon *pWeapon = dynamic_cast<CBaseHLCombatWeapon *>(Weapon_FindUsable( WEAPON_SEARCH_DELTA ));
+		CBaseCombatWeapon *pWeapon = dynamic_cast<CBaseCombatWeapon *>(Weapon_FindUsable( WEAPON_SEARCH_DELTA ));
 		if ( pWeapon )
 		{
 			m_flNextWeaponSearchTime = gpGlobals->curtime + 10.0;
