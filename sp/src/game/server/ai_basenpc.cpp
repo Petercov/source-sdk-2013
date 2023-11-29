@@ -3333,6 +3333,10 @@ void CAI_BaseNPC::RelaxAim( )
 	SetPoseParameter( m_poseAim_Pitch, newPitch );
 	SetPoseParameter( m_poseAim_Yaw, newYaw );
 	// DevMsg("relax aim %.0f %0.f\n", newPitch, newYaw ); 
+
+#ifdef MAPBASE
+	m_flInteractionYaw = GetAbsAngles().y;
+#endif // MAPBASE
 }
 
 //-----------------------------------------------------------------------------
