@@ -241,7 +241,7 @@ public:
 	virtual	bool		AllowedToIgnite( void ) { return true; }
 
 #ifdef MAPBASE
-	virtual bool CanBecomeTempRagdoll() { return true; }
+	virtual bool CanBecomeTempRagdoll() { return !IsSlumped() && CanBecomeRagdoll(); }
 #endif // MAPBASE
 
 public:
@@ -290,6 +290,16 @@ protected:
 	static int ACT_ZOM_SWATRIGHTLOW;
 	static int ACT_ZOM_RELEASECRAB;
 	static int ACT_ZOM_FALL;
+
+#ifdef MAPBASE
+	static int ACT_ZOM_IDLETOEAT;
+	static int ACT_ZOM_EAT;
+	static int ACT_ZOM_EATTOIDLE;
+	static int ACT_ZOM_GETUP_BACK;
+	static int ACT_ZOM_GETUP_LEFT;
+	static int ACT_ZOM_GETUP_RIGHT;
+	static int ACT_ZOM_GETUP_FRONT;
+#endif // MAPBASE
 
 	DECLARE_DATADESC();
 

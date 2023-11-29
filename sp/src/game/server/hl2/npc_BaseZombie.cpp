@@ -47,7 +47,10 @@
 #include "weapon_physcannon.h"
 #include "ammodef.h"
 #include "vehicle_base.h"
- 
+#ifdef MAPBASE
+#include "physics_prop_ragdoll.h"
+#endif // MAPBASE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -137,6 +140,18 @@ int CNPC_BaseZombie::ACT_ZOM_SWATLEFTLOW;
 int CNPC_BaseZombie::ACT_ZOM_SWATRIGHTLOW;
 int CNPC_BaseZombie::ACT_ZOM_RELEASECRAB;
 int CNPC_BaseZombie::ACT_ZOM_FALL;
+
+#ifdef MAPBASE
+int CNPC_BaseZombie::ACT_ZOM_IDLETOEAT;
+int CNPC_BaseZombie::ACT_ZOM_EAT;
+int CNPC_BaseZombie::ACT_ZOM_EATTOIDLE;
+int CNPC_BaseZombie::ACT_ZOM_GETUP_BACK;
+int CNPC_BaseZombie::ACT_ZOM_GETUP_LEFT;
+int CNPC_BaseZombie::ACT_ZOM_GETUP_RIGHT;
+int CNPC_BaseZombie::ACT_ZOM_GETUP_FRONT;
+
+ConVar	sk_zombie_knockout_dmg("sk_zombie_knockout_dmg", "20");
+#endif // MAPBASE
 
 ConVar	sk_zombie_dmg_one_slash( "sk_zombie_dmg_one_slash","0");
 ConVar	sk_zombie_dmg_both_slash( "sk_zombie_dmg_both_slash","0");
@@ -953,6 +968,13 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 					m_iHealth = 0;
 					BecomeRagdollOnClient( info.GetDamageForce() );
 				}
+
+#ifdef MAPBASE
+				if (!IsRagdoll())
+				{
+					BecomeTempRagdoll(info);
+				}
+#endif // MAPBASE
 			}
 			else if ( random->RandomInt(1, 3) == 1 )
 				DieChopped( info );
@@ -965,6 +987,11 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 		// ignited zombie to 'wake up' and rise out of its actbusy slump. (sjb)
 		SetCondition( COND_LIGHT_DAMAGE );
 	}
+
+#if 0 //def MAPBASE
+	if (IsAlive() && ((inputInfo.GetDamageType() & (/*DMG_KICK |*/ DMG_CLUB | DMG_CRUSH)) || (inputInfo.GetDamage() >= sk_zombie_knockout_dmg.GetFloat())))
+		BecomeTempRagdoll(info);
+#endif // MAPBASE
 
 	// IMPORTANT: always clear the headshot flag after applying damage. No early outs!
 	m_bHeadShot = false;
@@ -2260,6 +2287,41 @@ void CNPC_BaseZombie::StartTask( const Task_t *pTask )
 		}
 		break;
 
+#ifdef MAPBASE
+	case TASK_PRONE_GETUP:
+	{
+		int iChest = LookupAttachment("chest");
+		Vector origin, forward, right, up;
+		Vector gUp(0, 0, 1.0f);
+		m_hTempRagdoll->GetAttachment(iChest, origin, &forward, &right, &up);
+
+		float up_dot = DotProduct(gUp, forward);
+
+		int currentActivity = ACT_ZOM_GETUP_FRONT;
+
+		if (up_dot > 0.35f)
+			currentActivity = ACT_ZOM_GETUP_BACK;
+		else if (up_dot < -0.35f)
+			currentActivity = ACT_ZOM_GETUP_FRONT;
+		else
+		{
+			float right_dot = DotProduct(gUp, right);
+			if (right_dot > 0.0f)
+				currentActivity = ACT_ZOM_GETUP_LEFT;
+			else
+				currentActivity = ACT_ZOM_GETUP_RIGHT;
+		}
+		
+		StopFollowingEntity();
+		SetAbsAngles(QAngle(0, UTIL_VecToYaw(up), 0));
+		UTIL_DropToFloor(this, PhysicsSolidMaskForEntity(), m_hTempRagdoll);
+		SetActivity((Activity)currentActivity);
+		//IncrementInterpolationFrame();
+		UndoTempRagdoll();
+	}
+	break;
+#endif // MAPBASE
+
 	default:
 		BaseClass::StartTask( pTask );
 	}
@@ -2287,6 +2349,17 @@ void CNPC_BaseZombie::RunTask( const Task_t *pTask )
 			}
 		}
 		break;
+#ifdef MAPBASE
+	case TASK_PRONE_GETUP:
+	{
+		if (IsActivityFinished())
+		{
+			SetIdealState(NPC_STATE_ALERT);
+			TaskComplete();
+		}
+	}
+	break;
+#endif // MAPBASE
 	default:
 		BaseClass::RunTask( pTask );
 		break;
@@ -2878,6 +2951,16 @@ AI_BEGIN_CUSTOM_NPC( base_zombie, CNPC_BaseZombie )
 	DECLARE_ACTIVITY( ACT_ZOM_SWATRIGHTLOW )
 	DECLARE_ACTIVITY( ACT_ZOM_RELEASECRAB )
 	DECLARE_ACTIVITY( ACT_ZOM_FALL )
+
+#ifdef MAPBASE
+	DECLARE_ACTIVITY(ACT_ZOM_EAT);
+	DECLARE_ACTIVITY(ACT_ZOM_EATTOIDLE);
+	DECLARE_ACTIVITY(ACT_ZOM_IDLETOEAT);
+	DECLARE_ACTIVITY(ACT_ZOM_GETUP_BACK);
+	DECLARE_ACTIVITY(ACT_ZOM_GETUP_FRONT);
+	DECLARE_ACTIVITY(ACT_ZOM_GETUP_LEFT);
+	DECLARE_ACTIVITY(ACT_ZOM_GETUP_RIGHT);
+#endif // MAPBASE
 
 	DECLARE_CONDITION( COND_ZOMBIE_CAN_SWAT_ATTACK )
 	DECLARE_CONDITION( COND_ZOMBIE_RELEASECRAB )
