@@ -1035,7 +1035,7 @@ void CAI_PlayerAlly::AnswerQuestion( CAI_PlayerAlly *pQuestioner, int iQARandomN
 		DeferAllIdleSpeech( random->RandomFloat( TALKER_DEFER_IDLE_SPEAK_MIN, TALKER_DEFER_IDLE_SPEAK_MAX ), GetSpeechTarget()->MyNPCPointer() );
 
 #ifdef MAPBASE
-		if (CanRunAScriptedNPCInteraction(false) && pQuestioner->CanRunAScriptedNPCInteraction(false))
+		if (bAnsweringHello && CanRunAScriptedNPCInteraction(false) && pQuestioner->CanRunAScriptedNPCInteraction(false))
 		{
 			// Find the interaction from the name, and ensure it's one that the target NPC can play
 			int iInteraction = -1;
