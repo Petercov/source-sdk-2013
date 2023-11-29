@@ -5121,6 +5121,9 @@ void CAI_BaseNPC::Wake( bool bFireOutput )
 #ifndef MAPBASE
 		SetSleepState( AISS_AWAKE );
 #endif
+#ifdef MAPBASE
+		if (!IsTempRagdoll())
+#endif // MAPBASE
 		RemoveEffects( EF_NODRAW );
 		if ( bFireOutput )
 #ifdef MAPBASE
@@ -5176,6 +5179,7 @@ void CAI_BaseNPC::Wake( CBaseEntity *pActivator )
 	if ( GetSleepState() != AISS_AWAKE )
 	{
 		m_nWakeTick = gpGlobals->tickcount;
+		if (!IsTempRagdoll())
 		RemoveEffects( EF_NODRAW );
 
 		m_OnWake.FireOutput( pActivator, this );
@@ -8860,6 +8864,17 @@ void CAI_BaseNPC::NPCInitThink ( void )
 
 	m_flLastRealThinkTime = gpGlobals->curtime;
 }
+
+#ifdef MAPBASE
+void CAI_BaseNPC::PostNPCInit()
+{
+	if (m_nTempRagdollMode != RAGDOLL_NONE)
+	{
+		CTakeDamageInfo info(this, this, 0.f, DMG_GENERIC);
+		BecomeTempRagdoll(info, m_nTempRagdollMode == RAGDOLL_WAIT_FOR_INPUT);
+	}
+}
+#endif // MAPBASE
 
 //=========================================================
 // StartNPC - final bit of initization before a npc

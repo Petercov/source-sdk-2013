@@ -711,6 +711,8 @@ void CFastZombie::Spawn( void )
 //-----------------------------------------------------------------------------
 void CFastZombie::PostNPCInit( void )
 {
+	BaseClass::PostNPCInit();
+
 	SoundInit();
 
 	m_flTimeUpdateSound = gpGlobals->curtime;

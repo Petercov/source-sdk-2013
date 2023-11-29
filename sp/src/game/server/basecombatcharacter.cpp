@@ -5280,9 +5280,10 @@ CRagdollProp* CBaseCombatCharacter::BecomeTempRagdoll(const CTakeDamageInfo& inf
 
 void CBaseCombatCharacter::UndoTempRagdoll()
 {
+	m_nTempRagdollMode = RAGDOLL_NONE;
+
 	if (m_hTempRagdoll)
 	{
-		m_nTempRagdollMode = RAGDOLL_NONE;
 		StopFollowingEntity();
 		SetMoveType(m_nTempMoveType);
 		RemoveEffects(EF_NODRAW);

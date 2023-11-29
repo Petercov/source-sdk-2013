@@ -621,7 +621,11 @@ public:
 	virtual bool 		CreateVPhysics();
 	virtual void		NPCInit( void ); // derived calls after Spawn()
 	void				NPCInitThink( void );
-	virtual void		PostNPCInit() {};// called after NPC_InitThink
+#ifndef MAPBASE
+	virtual void		PostNPCInit() {};// called after NPC_InitThink 
+#else
+	virtual void		PostNPCInit();// called after NPC_InitThink 
+#endif // !MAPBASE
 	virtual void		StartNPC( void );
 	virtual bool		IsTemplate( void );
 
