@@ -50,7 +50,11 @@ ConceptInfo_t g_ConceptInfos[] =
 	{ 	TLK_LOOK,			SPEECH_PRIORITY, 	-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT | AICF_TARGET_PLAYER, },
 	{ 	TLK_HELLO,			SPEECH_IDLE, 		5,		10,		-1,		-1,		-1,		-1,		AICF_DEFAULT | AICF_SPEAK_ONCE | AICF_PROPAGATE_SPOKEN | AICF_TARGET_PLAYER,	},
 	{ 	TLK_PHELLO,			SPEECH_IDLE, 		-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT | AICF_SPEAK_ONCE | AICF_PROPAGATE_SPOKEN | AICF_TARGET_PLAYER,	},
+#ifdef MAPBASE
+	{ 	TLK_HELLO_NPC,		SPEECH_IDLE, 		5,		10,		-1,		-1,		-1,		-1,		AICF_DEFAULT | AICF_QUESTION | AICF_SPEAK_ONCE | AICF_PROPAGATE_SPOKEN,	},
+#else
 	{ 	TLK_HELLO_NPC,		SPEECH_IDLE, 		5,		10,		-1,		-1,		-1,		-1,		AICF_DEFAULT | AICF_QUESTION | AICF_SPEAK_ONCE,	},
+#endif // MAPBASE
 	{ 	TLK_PIDLE,			SPEECH_IDLE, 		-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
 	{ 	TLK_PQUESTION,		SPEECH_IDLE, 		-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
 	{ 	TLK_SMELL,			SPEECH_IDLE, 		-1,		-1,		-1,		-1,		-1,		-1,		AICF_DEFAULT,	},
@@ -874,7 +878,9 @@ bool CAI_PlayerAlly::SelectQuestionFriend( CBaseEntity *pFriend, AISpeechSelecti
 		if ( SelectSpeechResponse( TLK_HELLO_NPC, NULL, pFriend, pSelection ) )
 			return true;
 
-		GetExpresser()->SetSpokeConcept( TLK_HELLO_NPC, NULL );
+#ifndef MAPBASE
+		GetExpresser()->SetSpokeConcept(TLK_HELLO_NPC, NULL);
+#endif // !MAPBASE
 	}
 
 	return SelectSpeechResponse( TLK_QUESTION, NULL, pFriend, pSelection );
