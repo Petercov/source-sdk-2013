@@ -3289,7 +3289,11 @@ void CNPC_Alyx::Weapon_Equip( CBaseCombatWeapon *pWeapon )
 //-----------------------------------------------------------------------------
 bool CNPC_Alyx::Weapon_CanUse( CBaseCombatWeapon *pWeapon )
 {
-	if( !pWeapon->ClassMatches( CLASSNAME_SHOTGUN ) )
+	if( 
+#ifdef MAPBASE
+		hl2_episodic.GetBool() && Q_strncmp(STRING(gpGlobals->mapname), "ep1_", 4) == 0 &&
+#endif // MAPBASE
+		!pWeapon->ClassMatches( CLASSNAME_SHOTGUN ) )
 		return false;
 
 	return BaseClass::Weapon_CanUse( pWeapon );
