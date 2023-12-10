@@ -21,6 +21,7 @@
 #include "weapon_flaregun.h"
 #include "props.h"
 #include "ai_basenpc.h"
+#include "npcevent.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -35,6 +36,15 @@ ConVar	flaregun_dynamic_lights("sv_flaregun_dynamic_lights", "1");
 
 extern ConVar    sk_plr_dmg_flare_round;
 extern ConVar    sk_npc_dmg_flare_round;
+
+#ifdef MAPBASE
+extern acttable_t* GetPistolActtable();
+extern int GetPistolActtableCount();
+
+// Allows Weapon_BackupActivity() to access the 357's activity table.
+extern acttable_t* Get357Acttable();
+extern int Get357ActtableCount();
+#endif
 
 // Custom derived class for flare gun projectiles
 class CFlareGunProjectile : public CFlare
@@ -52,6 +62,51 @@ class CFlaregunCustom : public CFlaregun
 	public:
 		DECLARE_CLASS(CFlaregunCustom, CFlaregun);
 		virtual bool	Reload(void);
+
+#ifdef MAPBASE
+		int		CapabilitiesGet(void) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
+
+		virtual int	GetMinBurst() { return 1; }
+		virtual int	GetMaxBurst() { return 1; }
+		virtual float	GetMinRestTime(void) { return 1.0f; }
+		virtual float	GetMaxRestTime(void) { return 2.5f; }
+
+		virtual float GetFireRate(void)
+		{
+			return 1.0f;
+		}
+
+		virtual const Vector& GetBulletSpread(void)
+		{
+			static Vector cone = VECTOR_CONE_15DEGREES;
+			if (!GetOwner() || !GetOwner()->IsNPC())
+				return cone;
+
+			static Vector AllyCone = VECTOR_CONE_2DEGREES;
+			static Vector NPCCone = VECTOR_CONE_5DEGREES;
+
+			if (GetOwner()->MyNPCPointer()->IsPlayerAlly())
+			{
+				// 357 allies should be cooler
+				return AllyCone;
+			}
+
+			return NPCCone;
+		}
+
+		void	FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir);
+		void	Operator_ForceNPCFire(CBaseCombatCharacter* pOperator, bool bSecondary);
+		void	Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
+
+		virtual acttable_t* ActivityList(void) { return Get357Acttable(); }
+		virtual int ActivityListCount(void) { return Get357ActtableCount(); }
+
+		virtual acttable_t* GetBackupActivityList() { return GetPistolActtable(); }
+		virtual int				GetBackupActivityListCount() { return GetPistolActtableCount(); }
+
+		virtual float			NPC_GetProjectileSpeed() { return flaregun_primary_velocity.GetFloat(); }
+		virtual float			NPC_GetProjectileGravity() { return 1.f; }
+#endif
 };
 
 IMPLEMENT_SERVERCLASS_ST(CFlaregun, DT_Flaregun)
@@ -361,3 +416,68 @@ void CFlareGunProjectile::IgniteOtherIfAllowed(CBaseEntity * pOther)
 		pOther->TakeDamage(CTakeDamageInfo(this, m_pOwner, sk_npc_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN)));
 
 }
+
+#ifdef MAPBASE
+void CFlaregunCustom::FireNPCPrimaryAttack(CBaseCombatCharacter* pOperator, Vector& vecShootOrigin, Vector& vecShootDir)
+{
+	CSoundEnt::InsertSound(SOUND_COMBAT | SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy());
+
+	QAngle angles;
+	VectorAngles(vecShootDir, angles);
+	CFlare* pFlare = CFlareGunProjectile::Create(vecShootOrigin, angles, pOperator, FLARE_DURATION);
+
+	if (pFlare == NULL)
+		return;
+
+	Vector forward = vecShootDir;
+	forward *= flaregun_primary_velocity.GetFloat();
+	forward += pOperator->GetAbsVelocity(); // Add the player's velocity to the forward vector so that the flare follows the player's motion
+
+	pFlare->SetAbsVelocity(forward);
+	pFlare->SetGravity(1.0f);
+	pFlare->SetFriction(0.85f);
+	pFlare->SetMoveType(MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE);
+
+	WeaponSound(SINGLE_NPC);
+	pOperator->DoMuzzleFlash();
+	m_iClip1 = m_iClip1 - 1;
+}
+
+void CFlaregunCustom::Operator_ForceNPCFire(CBaseCombatCharacter* pOperator, bool bSecondary)
+{
+	// Ensure we have enough rounds in the clip
+	m_iClip1++;
+
+	Vector vecShootOrigin, vecShootDir;
+	QAngle	angShootDir;
+	GetAttachment(LookupAttachment("muzzle"), vecShootOrigin, angShootDir);
+	AngleVectors(angShootDir, &vecShootDir);
+	FireNPCPrimaryAttack(pOperator, vecShootOrigin, vecShootDir);
+}
+void CFlaregunCustom::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator)
+{
+	switch (pEvent->event)
+	{
+	case EVENT_WEAPON_PISTOL_FIRE:
+	{
+		// HACKHACK: Ignore the regular firing event while dual-wielding
+		if (GetLeftHandGun())
+			return;
+
+		Vector vecShootOrigin, vecShootDir;
+		vecShootOrigin = pOperator->Weapon_ShootPosition();
+
+		CAI_BaseNPC* npc = pOperator->MyNPCPointer();
+		ASSERT(npc != NULL);
+
+		vecShootDir = npc->GetShootEnemyDir(vecShootOrigin);
+
+		FireNPCPrimaryAttack(pOperator, vecShootOrigin, vecShootDir);
+	}
+	break;
+	default:
+		BaseClass::Operator_HandleAnimEvent(pEvent, pOperator);
+		break;
+	}
+}
+#endif // MAPBASE

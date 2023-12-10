@@ -323,8 +323,6 @@ public:
 #ifdef MAPBASE
 	// Originally created for the crossbow, can be used to add special NPC reloading behavior
 	virtual void			Reload_NPC( bool bPlaySound = true );
-
-	virtual bool			NPC_HasAltFire(void) { return false; }
 #endif
 
 	virtual bool			AutoFiresFullClip( void ) { return false; }
@@ -575,6 +573,12 @@ public:
 	void					Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 
 	virtual CDmgAccumulator	*GetDmgAccumulator( void ) { return NULL; }
+
+#ifdef MAPBASE
+	virtual bool			NPC_HasAltFire(void) { return false; }
+	virtual float			NPC_GetProjectileSpeed() { return 0.f; }
+	virtual float			NPC_GetProjectileGravity() { return 0.f; }
+#endif // MAPBASE
 
 // Client only methods
 #else

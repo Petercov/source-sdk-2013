@@ -11212,6 +11212,29 @@ Vector CAI_BaseNPC::GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy )
 			}
 		}
 #endif
+#ifdef MAPBASE
+		CBaseCombatWeapon* pWeapon = GetActiveWeapon();
+		if (pWeapon && pWeapon->NPC_GetProjectileSpeed() > 0.f)
+		{
+			float flSpeed = pWeapon->NPC_GetProjectileSpeed();
+			float flGravity = pWeapon->NPC_GetProjectileGravity();
+			Vector vecEnemyPosition = vecEnemyOffset + vecEnemyLKP, vecTargetPosition;
+			UTIL_PredictedPosition(pEnemy, vecEnemyPosition, shootOrigin.DistTo(vecEnemyPosition) / flSpeed, &vecTargetPosition);
+
+			if (flGravity > 0.f)
+			{
+				Vector retval = VecThrow(shootOrigin, vecTargetPosition, flSpeed, flGravity);
+				VectorNormalize(retval);
+				return retval;
+			}
+			else
+			{
+				Vector retval = vecTargetPosition - shootOrigin;
+				VectorNormalize(retval);
+				return retval;
+			}
+		}
+#endif // MAPBASE
 
 		Vector retval = vecEnemyOffset + vecEnemyLKP - shootOrigin;
 		VectorNormalize( retval );
@@ -11411,7 +11434,11 @@ Vector CAI_BaseNPC::GetAttackSpread( CBaseCombatWeapon *pWeapon, CBaseEntity *pT
 //-----------------------------------------------------------------------------
 Vector CAI_BaseNPC::GetActualShootTrajectory( const Vector &shootOrigin )
 {
-	if( !GetEnemy() )
+	if( !GetEnemy() 
+#ifdef MAPBASE
+		|| (GetActiveWeapon() && GetActiveWeapon()->NPC_GetProjectileSpeed() > 0.f)
+#endif // MAPBASE
+		)
 		return GetShootEnemyDir( shootOrigin );
 
 	// If we're above water shooting at a player underwater, bias some of the shots forward of

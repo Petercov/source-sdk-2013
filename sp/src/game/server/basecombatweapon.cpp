@@ -289,6 +289,33 @@ bool CBaseCombatWeapon::WeaponLOSCondition( const Vector &ownerPos, const Vector
 	// Use the custom LOS trace filter
 	CWeaponLOSFilter traceFilter( m_hOwner.Get(), npcOwner->GetEnemy(), COLLISION_GROUP_BREAKABLE_GLASS );
 	trace_t tr;
+
+#ifdef MAPBASE
+	if (NPC_GetProjectileGravity() > 0.f)
+	{
+		Vector vecThrow = VecCheckThrow(&traceFilter, tr, barrelPos, targetPos, NPC_GetProjectileSpeed(), NPC_GetProjectileGravity());
+		if (vecThrow != vec3_origin)
+		{
+			return true;
+		}
+		else
+		{
+			if (bSetConditions)
+			{
+				npcOwner->SetCondition(COND_WEAPON_SIGHT_OCCLUDED);
+				npcOwner->SetEnemyOccluder(tr.m_pEnt);
+			}
+
+			if (ai_debug_shoot_positions.GetBool())
+			{
+				NDebugOverlay::Line(tr.startpos, tr.endpos, 255, 0, 0, false, 1.0);
+			}
+
+			return false;
+		}
+	}
+#endif // MAPBASE
+
 	UTIL_TraceLine( barrelPos, targetPos, MASK_SHOT, &traceFilter, &tr );
 
 	// See if we completed the trace without interruption

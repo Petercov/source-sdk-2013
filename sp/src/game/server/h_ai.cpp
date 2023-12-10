@@ -11,6 +11,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+#include "ai_basenpc.h"
 
 #define		NUM_LATERAL_CHECKS		13  // how many checks are made on each side of a NPC looking for lateral cover
 #define		NUM_LATERAL_LOS_CHECKS		6  // how many checks are made on each side of a NPC looking for lateral cover
@@ -264,3 +265,74 @@ Vector VecCheckThrow ( CBaseEntity *pEdict, const Vector &vecSpot1, Vector vecSp
 
 	return vecGrenadeVel;
 }
+
+#ifdef MAPBASE
+Vector VecCheckThrow(ITraceFilter* pFilter, trace_t& tr, const Vector& vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj, unsigned int mask, Vector* vecMins, Vector* vecMaxs)
+{
+	float			flGravity = GetCurrentGravity() * flGravityAdj;
+
+	Vector vecGrenadeVel = (vecSpot2 - vecSpot1);
+
+	// throw at a constant time
+	float time = vecGrenadeVel.Length() / flSpeed;
+	vecGrenadeVel = vecGrenadeVel * (1.0 / time);
+
+	// adjust upward toss to compensate for gravity loss
+	vecGrenadeVel.z += flGravity * time * 0.5;
+
+	Vector vecApex = vecSpot1 + (vecSpot2 - vecSpot1) * 0.5;
+	vecApex.z += 0.5 * flGravity * (time * 0.5) * (time * 0.5);
+
+	UTIL_TraceLine(vecSpot1, vecApex, mask, pFilter, &tr);
+	if (tr.fraction != 1.0)
+	{
+		// fail!
+		//NDebugOverlay::Line( vecSpot1, vecApex, 255, 0, 0, true, 5.0 );
+		return vec3_origin;
+	}
+
+	//NDebugOverlay::Line( vecSpot1, vecApex, 0, 255, 0, true, 5.0 );
+
+	UTIL_TraceLine(vecSpot2, vecApex, mask & ~(CONTENTS_MONSTER|CONTENTS_HITBOX), pFilter, &tr);
+	if (tr.fraction != 1.0)
+	{
+		// fail!
+		//NDebugOverlay::Line( vecApex, vecSpot2, 255, 0, 0, true, 5.0 );
+		return vec3_origin;
+	}
+
+	//NDebugOverlay::Line( vecApex, vecSpot2, 0, 255, 0, true, 5.0 );
+
+	if (vecMins && vecMaxs)
+	{
+		// Check to ensure the entity's hull can travel the first half of the grenade throw
+		UTIL_TraceHull(vecSpot1, vecApex, *vecMins, *vecMaxs, mask, pFilter, &tr);
+		if (tr.fraction < 1.0)
+		{
+			//NDebugOverlay::SweptBox( vecSpot1, tr.endpos, *vecMins, *vecMaxs, vec3_angle, 255, 0, 0, 64, 5.0 );
+			return vec3_origin;
+		}
+	}
+
+	//NDebugOverlay::SweptBox( vecSpot1, vecApex, *vecMins, *vecMaxs, vec3_angle, 0, 255, 0, 64, 5.0 );
+
+	return vecGrenadeVel;
+}
+
+Vector VecThrow(const Vector& vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj)
+{
+	float			flGravity = GetCurrentGravity() * flGravityAdj;
+
+	Vector vecGrenadeVel = (vecSpot2 - vecSpot1);
+
+	// throw at a constant time
+	float time = vecGrenadeVel.Length() / flSpeed;
+	vecGrenadeVel = vecGrenadeVel * (1.0 / time);
+
+	// adjust upward toss to compensate for gravity loss
+	vecGrenadeVel.z += flGravity * time * 0.5;
+
+	return vecGrenadeVel;
+}
+#endif // MAPBASE
+

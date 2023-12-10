@@ -523,6 +523,11 @@ struct EyeGlow_t
 Vector VecCheckToss ( CBaseEntity *pEdict, Vector vecSpot1, Vector vecSpot2, float flHeightMaxRatio, float flGravityAdj, bool bRandomize, Vector *vecMins = NULL, Vector *vecMaxs = NULL );
 Vector VecCheckToss ( CBaseEntity *pEntity, ITraceFilter *pFilter, Vector vecSpot1, Vector vecSpot2, float flHeightMaxRatio, float flGravityAdj, bool bRandomize, Vector *vecMins = NULL, Vector *vecMaxs = NULL );
 Vector VecCheckThrow( CBaseEntity *pEdict, const Vector &vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj = 1.0f, Vector *vecMins = NULL, Vector *vecMaxs = NULL );
+#ifdef MAPBASE
+Vector VecCheckThrow(ITraceFilter* pFilter, trace_t& tr, const Vector& vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj = 1.0f, unsigned int mask = MASK_SOLID, Vector* vecMins = NULL, Vector* vecMaxs = NULL);
+Vector VecThrow(const Vector& vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj = 1.0f);
+#endif // MAPBASE
+
 
 extern Vector g_vecAttackDir;
 
