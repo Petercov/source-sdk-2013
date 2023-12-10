@@ -293,40 +293,32 @@ bool CBaseCombatWeapon::WeaponLOSCondition( const Vector &ownerPos, const Vector
 #ifdef MAPBASE
 	if (NPC_GetProjectileGravity() > 0.f)
 	{
-		Vector vecThrow = VecCheckThrow(&traceFilter, tr, barrelPos, targetPos, NPC_GetProjectileSpeed(), NPC_GetProjectileGravity());
+		Vector vecThrow = VecCheckThrow(&traceFilter, tr, barrelPos, targetPos, NPC_GetProjectileSpeed(), NPC_GetProjectileGravity(), NPC_GetProjectileSolidMask());
 		if (vecThrow != vec3_origin)
 		{
-			return true;
-		}
-		else
-		{
-			if (bSetConditions)
-			{
-				npcOwner->SetCondition(COND_WEAPON_SIGHT_OCCLUDED);
-				npcOwner->SetEnemyOccluder(tr.m_pEnt);
-			}
-
 			if (ai_debug_shoot_positions.GetBool())
 			{
-				NDebugOverlay::Line(tr.startpos, tr.endpos, 255, 0, 0, false, 1.0);
+				NDebugOverlay::Line(barrelPos, targetPos, 0, 255, 0, false, 1.0);
 			}
 
-			return false;
+			return true;
 		}
 	}
+	else
 #endif // MAPBASE
-
-	UTIL_TraceLine( barrelPos, targetPos, MASK_SHOT, &traceFilter, &tr );
-
-	// See if we completed the trace without interruption
-	if ( tr.fraction == 1.0 )
 	{
-		if ( ai_debug_shoot_positions.GetBool() )
-		{
-			NDebugOverlay::Line( barrelPos, targetPos, 0, 255, 0, false, 1.0 );
-		}
+		UTIL_TraceLine(barrelPos, targetPos, MASK_SHOT, &traceFilter, &tr);
 
-		return true;
+		// See if we completed the trace without interruption
+		if (tr.fraction == 1.0)
+		{
+			if (ai_debug_shoot_positions.GetBool())
+			{
+				NDebugOverlay::Line(barrelPos, targetPos, 0, 255, 0, false, 1.0);
+			}
+
+			return true;
+		}
 	}
 
 	CBaseEntity	*pHitEnt = tr.m_pEnt;

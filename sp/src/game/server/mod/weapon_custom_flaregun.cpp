@@ -55,6 +55,10 @@ class CFlareGunProjectile : public CFlare
 		void	IgniteOtherIfAllowed(CBaseEntity *pOther);
 		void	FlareGunProjectileTouch(CBaseEntity *pOther);
 		void	FlareGunProjectileBurnTouch(CBaseEntity *pOther);
+
+#ifdef MAPBASE
+		DECLARE_DATADESC();
+#endif // MAPBASE
 };
 
 class CFlaregunCustom : public CFlaregun
@@ -106,6 +110,7 @@ class CFlaregunCustom : public CFlaregun
 
 		virtual float			NPC_GetProjectileSpeed() { return flaregun_primary_velocity.GetFloat(); }
 		virtual float			NPC_GetProjectileGravity() { return 1.f; }
+		virtual unsigned int	NPC_GetProjectileSolidMask() { return MASK_NPCSOLID; }
 #endif
 };
 
@@ -199,6 +204,15 @@ bool CFlaregunCustom::Reload(void)
 	return fRet;
 }
 
+#ifdef MAPBASE
+BEGIN_DATADESC(CFlareGunProjectile)
+DEFINE_ENTITYFUNC(FlareGunProjectileTouch),
+DEFINE_ENTITYFUNC(FlareGunProjectileBurnTouch),
+END_DATADESC();
+
+LINK_ENTITY_TO_CLASS(env_flare_projectile, CFlareGunProjectile);
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: Create function for Flare Gun projectile
 // Input  : vecOrigin - 
@@ -208,7 +222,11 @@ bool CFlaregunCustom::Reload(void)
 //-----------------------------------------------------------------------------
 CFlareGunProjectile *CFlareGunProjectile::Create(Vector vecOrigin, QAngle vecAngles, CBaseEntity *pOwner, float lifetime)
 {
-	CFlareGunProjectile *pFlare = (CFlareGunProjectile *)CreateEntityByName("env_flare");
+#ifndef MAPBASE
+	CFlareGunProjectile* pFlare = (CFlareGunProjectile*)CreateEntityByName("env_flare");
+#else
+	CFlareGunProjectile* pFlare = (CFlareGunProjectile*)CreateEntityByName("env_flare_projectile");
+#endif // !MAPBASE
 
 	if (pFlare == NULL)
 		return NULL;

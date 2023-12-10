@@ -578,6 +578,7 @@ public:
 	virtual bool			NPC_HasAltFire(void) { return false; }
 	virtual float			NPC_GetProjectileSpeed() { return 0.f; }
 	virtual float			NPC_GetProjectileGravity() { return 0.f; }
+	virtual unsigned int	NPC_GetProjectileSolidMask() { return MASK_SHOT_HULL; }
 #endif // MAPBASE
 
 // Client only methods
