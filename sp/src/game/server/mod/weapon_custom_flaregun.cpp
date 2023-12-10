@@ -393,45 +393,52 @@ void CFlareGunProjectile::FlareGunProjectileBurnTouch(CBaseEntity *pOther)
 
 void CFlareGunProjectile::IgniteOtherIfAllowed(CBaseEntity * pOther)
 {
-	// Don't burn the player
-	if (pOther->IsPlayer())
+	if (!m_pOwner)
 		return;
 
-	CAI_BaseNPC *pNPC;
-	pNPC = dynamic_cast<CAI_BaseNPC*>(pOther);
-	if (pNPC) {
-		// Don't burn friendly NPCs
-		if (pNPC->IsPlayerAlly())
-			return;
+	CTakeDamageInfo info;
+	if (m_pOwner->IsPlayer())
+		info.Set(this, m_pOwner, sk_plr_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN));
+	else
+		info.Set(this, m_pOwner, sk_npc_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN));
 
-		// Don't burn boss enemies
-		if (FStrEq(STRING(pNPC->m_iClassname), "npc_combinegunship")
-		 || FStrEq(STRING(pNPC->m_iClassname), "npc_combinedropship")
-		 || FStrEq(STRING(pNPC->m_iClassname), "npc_strider")
-		 || FStrEq(STRING(pNPC->m_iClassname), "npc_helicopter")
-			)
-			return;
-
-		// Burn this NPC
-		pNPC->IgniteLifetime(flaregun_duration_seconds.GetFloat());
-	}
-
-	// If this is a breakable prop, ignite it!
-	CBreakableProp *pBreakable;
-	pBreakable = dynamic_cast<CBreakableProp*>(pOther);
-	if (pBreakable) 
+	// Don't burn the player
+	if (!pOther->IsPlayer())
 	{
-		pBreakable->IgniteLifetime(flaregun_duration_seconds.GetFloat());
-		// Don't do damage to props that are on fire
-		if (pBreakable->IsOnFire())
-			return;
+		CAI_BaseNPC* pNPC;
+		pNPC = dynamic_cast<CAI_BaseNPC*>(pOther);
+		if (pNPC) {
+			// Don't burn boss enemies
+			if (FStrEq(STRING(pNPC->m_iClassname), "npc_combinegunship")
+				|| FStrEq(STRING(pNPC->m_iClassname), "npc_combinedropship")
+				|| FStrEq(STRING(pNPC->m_iClassname), "npc_strider")
+				|| FStrEq(STRING(pNPC->m_iClassname), "npc_helicopter")
+				)
+				return;
+
+			// Don't burn friendly NPCs
+			if (!pNPC->IsPlayerAlly() && pNPC->PassesDamageFilter(info))
+			{
+				// Burn this NPC
+				pNPC->IgniteLifetime(flaregun_duration_seconds.GetFloat());
+			}
+
+		}
+
+		// If this is a breakable prop, ignite it!
+		CBreakableProp* pBreakable;
+		pBreakable = dynamic_cast<CBreakableProp*>(pOther);
+		if (pBreakable)
+		{
+			pBreakable->IgniteLifetime(flaregun_duration_seconds.GetFloat());
+			// Don't do damage to props that are on fire
+			if (pBreakable->IsOnFire())
+				return;
+		}
 	}
 
 	// Do damage
-	if (m_pOwner->IsPlayer()) 
-		pOther->TakeDamage(CTakeDamageInfo(this, m_pOwner, sk_plr_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN)));
-	else
-		pOther->TakeDamage(CTakeDamageInfo(this, m_pOwner, sk_npc_dmg_flare_round.GetFloat(), (DMG_BULLET | DMG_BURN)));
+	pOther->TakeDamage(info);
 
 }
 
