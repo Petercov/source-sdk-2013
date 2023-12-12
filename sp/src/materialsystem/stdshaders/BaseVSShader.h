@@ -151,6 +151,7 @@ public:
 	// Helper for dealing with modulation
 	void SetModulationVertexShaderDynamicState();
 	void SetModulationPixelShaderDynamicState( int modulationVar );
+	void SetModulationPixelShaderDynamicState_LinearScale(int modulationVar, float flScale);
 	void SetModulationPixelShaderDynamicState_LinearColorSpace( int modulationVar );
 	void SetModulationPixelShaderDynamicState_LinearColorSpace_LinearScale( int modulationVar, float flScale );
 

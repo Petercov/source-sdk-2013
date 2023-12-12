@@ -461,7 +461,14 @@ static void DrawVertexLitGeneric_DX9_Internal( CBaseVSShader *pShader, IMaterial
 
 	bool bHasEnvmap = (!bHasFlashlight || IsX360() ) && info.m_nEnvmap != -1 && params[info.m_nEnvmap]->IsTexture();
 
-	
+#ifdef MAPBASE
+	bool bSRGBWrite = true;
+	if ((info.m_nLinearWrite != -1) && (params[info.m_nLinearWrite]->GetIntValue() == 1))
+	{
+		bSRGBWrite = false;
+	}
+#endif // MAPBASE
+
 	bool bHasVertexColor = bVertexLitGeneric ? false : IS_FLAG_SET( MATERIAL_VAR_VERTEXCOLOR );
 	bool bHasVertexAlpha = bVertexLitGeneric ? false : IS_FLAG_SET( MATERIAL_VAR_VERTEXALPHA );
 
@@ -671,11 +678,13 @@ static void DrawVertexLitGeneric_DX9_Internal( CBaseVSShader *pShader, IMaterial
 				pShaderShadow->EnableTexture( SHADER_SAMPLER11, true );	// self illum mask
 			}
 
+#ifndef MAPBASE
 			bool bSRGBWrite = true;
-			if( (info.m_nLinearWrite != -1) && (params[info.m_nLinearWrite]->GetIntValue() == 1) )
+			if ((info.m_nLinearWrite != -1) && (params[info.m_nLinearWrite]->GetIntValue() == 1))
 			{
 				bSRGBWrite = false;
 			}
+#endif // !MAPBASE
 
 			pShaderShadow->EnableSRGBWrite( bSRGBWrite );
 		
@@ -1520,22 +1529,35 @@ static void DrawVertexLitGeneric_DX9_Internal( CBaseVSShader *pShader, IMaterial
 		bool bAllowDiffuseModulation = (info.m_nAllowDiffuseModulation == -1) ? true : (params[info.m_nAllowDiffuseModulation]->GetIntValue() != 0);
 
 		if (bAllowDiffuseModulation)
-#endif
 		{
 			if ( ( info.m_nHDRColorScale != -1 ) && pShader->IsHDREnabled() )
 			{
-				pShader->SetModulationPixelShaderDynamicState_LinearColorSpace_LinearScale( 1, params[info.m_nHDRColorScale]->GetFloatValue() );
+				if (bSRGBWrite)
+					pShader->SetModulationPixelShaderDynamicState_LinearColorSpace_LinearScale(1, params[info.m_nHDRColorScale]->GetFloatValue());
+				else
+					pShader->SetModulationPixelShaderDynamicState_LinearScale(1, params[info.m_nHDRColorScale]->GetFloatValue());
 			}
 			else
 			{
-				pShader->SetModulationPixelShaderDynamicState_LinearColorSpace( 1 );
+				if (bSRGBWrite)
+					pShader->SetModulationPixelShaderDynamicState_LinearColorSpace(1);
+				else
+					pShader->SetModulationPixelShaderDynamicState(1);
 			}
 		}
-#ifdef MAPBASE
 		else
 		{
 			float color[4] = { 1.0, 1.0, 1.0, 1.0 };
 			pShaderAPI->SetPixelShaderConstant( 1, color );
+		}
+#else
+		if ((info.m_nHDRColorScale != -1) && pShader->IsHDREnabled())
+		{
+			pShader->SetModulationPixelShaderDynamicState_LinearColorSpace_LinearScale(1, params[info.m_nHDRColorScale]->GetFloatValue());
+		}
+		else
+		{
+			pShader->SetModulationPixelShaderDynamicState_LinearColorSpace(1);
 		}
 #endif
 

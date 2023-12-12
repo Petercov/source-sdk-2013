@@ -1,92 +1,116 @@
-default:  fxctmp9_tmp\gstring_light_volumetrics_ps20b.inc shaders\fxc\gstring_light_volumetrics_ps20b.vcs fxctmp9_tmp\gstring_light_volumetrics_vs20.inc shaders\fxc\gstring_light_volumetrics_vs20.vcs fxctmp9_tmp\flowmapped_water_ps20b.inc shaders\fxc\flowmapped_water_ps20b.vcs fxctmp9_tmp\flowmapped_water_vs20.inc shaders\fxc\flowmapped_water_vs20.vcs fxctmp9_tmp\solidenergy_ps20b.inc shaders\fxc\solidenergy_ps20b.vcs fxctmp9_tmp\solidenergy_vs20.inc shaders\fxc\solidenergy_vs20.vcs fxctmp9_tmp\SDK_eye_refract_ps20.inc shaders\fxc\SDK_eye_refract_ps20.vcs fxctmp9_tmp\SDK_eye_refract_ps20b.inc shaders\fxc\SDK_eye_refract_ps20b.vcs fxctmp9_tmp\SDK_eye_refract_vs20.inc shaders\fxc\SDK_eye_refract_vs20.vcs
+default:  fxctmp9_tmp\gstring_light_volumetrics_ps20b.inc shaders\fxc\gstring_light_volumetrics_ps20b.vcs fxctmp9_tmp\gstring_light_volumetrics_vs20.inc shaders\fxc\gstring_light_volumetrics_vs20.vcs fxctmp9_tmp\flowmapped_water_ps20b.inc shaders\fxc\flowmapped_water_ps20b.vcs fxctmp9_tmp\flowmapped_water_vs20.inc shaders\fxc\flowmapped_water_vs20.vcs fxctmp9_tmp\solidenergy_ps20b.inc shaders\fxc\solidenergy_ps20b.vcs fxctmp9_tmp\solidenergy_vs20.inc shaders\fxc\solidenergy_vs20.vcs fxctmp9_tmp\SDK_eye_refract_ps20.inc shaders\fxc\SDK_eye_refract_ps20.vcs fxctmp9_tmp\SDK_eye_refract_ps20b.inc shaders\fxc\SDK_eye_refract_ps20b.vcs fxctmp9_tmp\SDK_eye_refract_vs20.inc shaders\fxc\SDK_eye_refract_vs20.vcs fxctmp9_tmp\object_motion_blur_vs20.inc shaders\fxc\object_motion_blur_vs20.vcs fxctmp9_tmp\object_motion_blur_ps20.inc shaders\fxc\object_motion_blur_ps20.vcs fxctmp9_tmp\object_motion_blur_ps20b.inc shaders\fxc\object_motion_blur_ps20b.vcs
 
-fxctmp9_tmp\gstring_light_volumetrics_ps20b.inc shaders\fxc\gstring_light_volumetrics_ps20b.vcs: gstring_light_volumetrics_ps20b.fxc shader_constant_register_map.h common_fxc.h common_ps_fxc.h common_flashlight_fxc.h common_hlsl_cpp_consts.h common_vertexlitgeneric_dx9.h common_pragmas.h
+fxctmp9_tmp\gstring_light_volumetrics_ps20b.inc shaders\fxc\gstring_light_volumetrics_ps20b.vcs: gstring_light_volumetrics_ps20b.fxc common_ps_fxc.h common_hlsl_cpp_consts.h common_fxc.h common_flashlight_fxc.h common_vertexlitgeneric_dx9.h common_pragmas.h shader_constant_register_map.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." gstring_light_volumetrics_ps20b.fxc-----gstring_light_volumetrics_ps20b
 	echo gstring_light_volumetrics_ps20b.fxc>> filestocopy.txt
-	echo shader_constant_register_map.h>> filestocopy.txt
-	echo common_fxc.h>> filestocopy.txt
 	echo common_ps_fxc.h>> filestocopy.txt
-	echo common_flashlight_fxc.h>> filestocopy.txt
 	echo common_hlsl_cpp_consts.h>> filestocopy.txt
+	echo common_fxc.h>> filestocopy.txt
+	echo common_flashlight_fxc.h>> filestocopy.txt
 	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
+	echo shader_constant_register_map.h>> filestocopy.txt
 
-fxctmp9_tmp\gstring_light_volumetrics_vs20.inc shaders\fxc\gstring_light_volumetrics_vs20.vcs: gstring_light_volumetrics_vs20.fxc common_vs_fxc.h common_pragmas.h common_hlsl_cpp_consts.h common_fxc.h
+fxctmp9_tmp\gstring_light_volumetrics_vs20.inc shaders\fxc\gstring_light_volumetrics_vs20.vcs: gstring_light_volumetrics_vs20.fxc common_vs_fxc.h common_hlsl_cpp_consts.h common_pragmas.h common_fxc.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." gstring_light_volumetrics_vs20.fxc-----gstring_light_volumetrics_vs20
 	echo gstring_light_volumetrics_vs20.fxc>> filestocopy.txt
 	echo common_vs_fxc.h>> filestocopy.txt
-	echo common_pragmas.h>> filestocopy.txt
 	echo common_hlsl_cpp_consts.h>> filestocopy.txt
+	echo common_pragmas.h>> filestocopy.txt
 	echo common_fxc.h>> filestocopy.txt
 
-fxctmp9_tmp\flowmapped_water_ps20b.inc shaders\fxc\flowmapped_water_ps20b.vcs: flowmapped_water_ps20b.fxc common_fog_ps_fxc.h shader_constant_register_map.h common_fxc.h common_hlsl_cpp_consts.h common_ps_fxc.h common_flashlight_fxc.h common_vertexlitgeneric_dx9.h common_pragmas.h
+fxctmp9_tmp\flowmapped_water_ps20b.inc shaders\fxc\flowmapped_water_ps20b.vcs: flowmapped_water_ps20b.fxc common_fxc.h common_fog_ps_fxc.h common_flashlight_fxc.h common_ps_fxc.h common_hlsl_cpp_consts.h common_pragmas.h shader_constant_register_map.h common_vertexlitgeneric_dx9.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." flowmapped_water_ps20b.fxc-----flowmapped_water_ps20b
 	echo flowmapped_water_ps20b.fxc>> filestocopy.txt
-	echo common_fog_ps_fxc.h>> filestocopy.txt
-	echo shader_constant_register_map.h>> filestocopy.txt
 	echo common_fxc.h>> filestocopy.txt
-	echo common_hlsl_cpp_consts.h>> filestocopy.txt
-	echo common_ps_fxc.h>> filestocopy.txt
+	echo common_fog_ps_fxc.h>> filestocopy.txt
 	echo common_flashlight_fxc.h>> filestocopy.txt
-	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
+	echo common_ps_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
+	echo shader_constant_register_map.h>> filestocopy.txt
+	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
 
-fxctmp9_tmp\flowmapped_water_vs20.inc shaders\fxc\flowmapped_water_vs20.vcs: flowmapped_water_vs20.fxc common_fxc.h common_pragmas.h common_vs_fxc.h common_hlsl_cpp_consts.h
+fxctmp9_tmp\flowmapped_water_vs20.inc shaders\fxc\flowmapped_water_vs20.vcs: flowmapped_water_vs20.fxc common_fxc.h common_pragmas.h common_hlsl_cpp_consts.h common_vs_fxc.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." flowmapped_water_vs20.fxc-----flowmapped_water_vs20
 	echo flowmapped_water_vs20.fxc>> filestocopy.txt
 	echo common_fxc.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
-	echo common_vs_fxc.h>> filestocopy.txt
 	echo common_hlsl_cpp_consts.h>> filestocopy.txt
+	echo common_vs_fxc.h>> filestocopy.txt
 
-fxctmp9_tmp\solidenergy_ps20b.inc shaders\fxc\solidenergy_ps20b.vcs: solidenergy_ps20b.fxc common_pragmas.h common_hlsl_cpp_consts.h common_ps_fxc.h common_fog_ps_fxc.h common_fxc.h shader_constant_register_map.h common_vertexlitgeneric_dx9.h
+fxctmp9_tmp\solidenergy_ps20b.inc shaders\fxc\solidenergy_ps20b.vcs: solidenergy_ps20b.fxc common_hlsl_cpp_consts.h common_ps_fxc.h common_fog_ps_fxc.h common_fxc.h common_vertexlitgeneric_dx9.h shader_constant_register_map.h common_pragmas.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." solidenergy_ps20b.fxc-----solidenergy_ps20b
 	echo solidenergy_ps20b.fxc>> filestocopy.txt
-	echo common_pragmas.h>> filestocopy.txt
 	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_ps_fxc.h>> filestocopy.txt
 	echo common_fog_ps_fxc.h>> filestocopy.txt
 	echo common_fxc.h>> filestocopy.txt
-	echo shader_constant_register_map.h>> filestocopy.txt
 	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
+	echo shader_constant_register_map.h>> filestocopy.txt
+	echo common_pragmas.h>> filestocopy.txt
 
-fxctmp9_tmp\solidenergy_vs20.inc shaders\fxc\solidenergy_vs20.vcs: solidenergy_vs20.fxc common_fog_vs_fxc.h common_fxc.h common_hlsl_cpp_consts.h common_vs_fxc.h common_pragmas.h
+fxctmp9_tmp\solidenergy_vs20.inc shaders\fxc\solidenergy_vs20.vcs: solidenergy_vs20.fxc common_pragmas.h common_fxc.h common_vs_fxc.h common_hlsl_cpp_consts.h common_fog_vs_fxc.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." solidenergy_vs20.fxc-----solidenergy_vs20
 	echo solidenergy_vs20.fxc>> filestocopy.txt
-	echo common_fog_vs_fxc.h>> filestocopy.txt
-	echo common_fxc.h>> filestocopy.txt
-	echo common_hlsl_cpp_consts.h>> filestocopy.txt
-	echo common_vs_fxc.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
+	echo common_fxc.h>> filestocopy.txt
+	echo common_vs_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
+	echo common_fog_vs_fxc.h>> filestocopy.txt
 
-fxctmp9_tmp\SDK_eye_refract_ps20.inc shaders\fxc\SDK_eye_refract_ps20.vcs: SDK_eye_refract_ps2x.fxc shader_constant_register_map.h common_fxc.h common_hlsl_cpp_consts.h common_flashlight_fxc.h common_ps_fxc.h common_vertexlitgeneric_dx9.h common_pragmas.h
+fxctmp9_tmp\SDK_eye_refract_ps20.inc shaders\fxc\SDK_eye_refract_ps20.vcs: SDK_eye_refract_ps2x.fxc common_fxc.h common_flashlight_fxc.h common_hlsl_cpp_consts.h common_ps_fxc.h common_pragmas.h shader_constant_register_map.h common_vertexlitgeneric_dx9.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." SDK_eye_refract_ps2x.fxc-----SDK_eye_refract_ps20
 	echo SDK_eye_refract_ps2x.fxc>> filestocopy.txt
-	echo shader_constant_register_map.h>> filestocopy.txt
 	echo common_fxc.h>> filestocopy.txt
-	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_flashlight_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_ps_fxc.h>> filestocopy.txt
-	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
+	echo shader_constant_register_map.h>> filestocopy.txt
+	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
 
-fxctmp9_tmp\SDK_eye_refract_ps20b.inc shaders\fxc\SDK_eye_refract_ps20b.vcs: SDK_eye_refract_ps2x.fxc shader_constant_register_map.h common_fxc.h common_hlsl_cpp_consts.h common_flashlight_fxc.h common_ps_fxc.h common_vertexlitgeneric_dx9.h common_pragmas.h
+fxctmp9_tmp\SDK_eye_refract_ps20b.inc shaders\fxc\SDK_eye_refract_ps20b.vcs: SDK_eye_refract_ps2x.fxc common_fxc.h common_flashlight_fxc.h common_hlsl_cpp_consts.h common_ps_fxc.h common_pragmas.h shader_constant_register_map.h common_vertexlitgeneric_dx9.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." SDK_eye_refract_ps2x.fxc-----SDK_eye_refract_ps20b
 	echo SDK_eye_refract_ps2x.fxc>> filestocopy.txt
-	echo shader_constant_register_map.h>> filestocopy.txt
 	echo common_fxc.h>> filestocopy.txt
-	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_flashlight_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_ps_fxc.h>> filestocopy.txt
-	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
+	echo shader_constant_register_map.h>> filestocopy.txt
+	echo common_vertexlitgeneric_dx9.h>> filestocopy.txt
 
-fxctmp9_tmp\SDK_eye_refract_vs20.inc shaders\fxc\SDK_eye_refract_vs20.vcs: SDK_eye_refract_vs20.fxc common_hlsl_cpp_consts.h common_pragmas.h common_vs_fxc.h common_fxc.h vortwarp_vs20_helper.h
+fxctmp9_tmp\SDK_eye_refract_vs20.inc shaders\fxc\SDK_eye_refract_vs20.vcs: SDK_eye_refract_vs20.fxc common_vs_fxc.h common_hlsl_cpp_consts.h common_pragmas.h vortwarp_vs20_helper.h common_fxc.h
 	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." SDK_eye_refract_vs20.fxc-----SDK_eye_refract_vs20
 	echo SDK_eye_refract_vs20.fxc>> filestocopy.txt
+	echo common_vs_fxc.h>> filestocopy.txt
 	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 	echo common_pragmas.h>> filestocopy.txt
-	echo common_vs_fxc.h>> filestocopy.txt
-	echo common_fxc.h>> filestocopy.txt
 	echo vortwarp_vs20_helper.h>> filestocopy.txt
+	echo common_fxc.h>> filestocopy.txt
+
+fxctmp9_tmp\object_motion_blur_vs20.inc shaders\fxc\object_motion_blur_vs20.vcs: object_motion_blur_vs20.fxc common_pragmas.h common_fxc.h common_hlsl_cpp_consts.h common_vs_fxc.h
+	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." object_motion_blur_vs20.fxc-----object_motion_blur_vs20
+	echo object_motion_blur_vs20.fxc>> filestocopy.txt
+	echo common_pragmas.h>> filestocopy.txt
+	echo common_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
+	echo common_vs_fxc.h>> filestocopy.txt
+
+fxctmp9_tmp\object_motion_blur_ps20.inc shaders\fxc\object_motion_blur_ps20.vcs: object_motion_blur_ps2x.fxc common_pragmas.h common_fxc.h common_ps_fxc.h common_hlsl_cpp_consts.h
+	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." object_motion_blur_ps2x.fxc-----object_motion_blur_ps20
+	echo object_motion_blur_ps2x.fxc>> filestocopy.txt
+	echo common_pragmas.h>> filestocopy.txt
+	echo common_fxc.h>> filestocopy.txt
+	echo common_ps_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
+
+fxctmp9_tmp\object_motion_blur_ps20b.inc shaders\fxc\object_motion_blur_ps20b.vcs: object_motion_blur_ps2x.fxc common_pragmas.h common_fxc.h common_ps_fxc.h common_hlsl_cpp_consts.h
+	perl ..\..\devtools\bin\fxc_prep.pl   -source "..\.." object_motion_blur_ps2x.fxc-----object_motion_blur_ps20b
+	echo object_motion_blur_ps2x.fxc>> filestocopy.txt
+	echo common_pragmas.h>> filestocopy.txt
+	echo common_fxc.h>> filestocopy.txt
+	echo common_ps_fxc.h>> filestocopy.txt
+	echo common_hlsl_cpp_consts.h>> filestocopy.txt
 
