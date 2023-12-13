@@ -3393,15 +3393,17 @@ int C_BaseAnimating::DrawModel( int flags )
 			extraFlags |= STUDIO_WIREFRAME;
 		}
 
-		if ( flags & STUDIO_SHADOWDEPTHTEXTURE )
+#ifndef MAPBASE
+		if (flags & STUDIO_SHADOWDEPTHTEXTURE)
 		{
 			extraFlags |= STUDIO_SHADOWDEPTHTEXTURE;
 		}
 
-		if ( flags & STUDIO_SSAODEPTHTEXTURE )
+		if (flags & STUDIO_SSAODEPTHTEXTURE)
 		{
 			extraFlags |= STUDIO_SSAODEPTHTEXTURE;
 		}
+#endif // !MAPBASE
 
 		if ( ( flags & ( STUDIO_SSAODEPTHTEXTURE | STUDIO_SHADOWDEPTHTEXTURE ) ) == 0 &&
 			g_pStudioStatsEntity != NULL && g_pStudioStatsEntity == GetClientRenderable() )
@@ -3430,7 +3432,12 @@ int C_BaseAnimating::DrawModel( int flags )
 				// BUGBUG: Fixup bbox and do a separate cull for follow object
 				if ( baseDrawn )
 				{
-					drawn = InternalDrawModel( STUDIO_RENDER|extraFlags );
+#ifndef MAPBASE
+					drawn = InternalDrawModel(STUDIO_RENDER | extraFlags);
+#else
+					drawn = InternalDrawModel(flags | extraFlags);
+#endif // !MAPBASE
+
 				}
 			}
 		}
@@ -3583,6 +3590,14 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 		return 0;
 	}
 
+#ifdef MAPBASE
+	// Don't give the engine something it won't understand.
+	{
+		flags = pInfo->flags;
+		pInfo->flags &= STUDIO_ENGINE_FLAGS;
+	}
+#endif // MAPBASE
+
 	Assert( !pInfo->pModelToWorld);
 	if ( !pInfo->pModelToWorld )
 	{
@@ -3609,6 +3624,21 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 			VectorScale( (*pBoneToWorld)[2], flScale, (*pBoneToWorld)[2] );
 		}
 	}
+
+#ifdef MAPBASE
+	if (bMarkAsDrawn)
+	{
+		if (flags & STUDIO_SKIP_DECALS)
+		{
+			state.m_decals = STUDIORENDER_DECAL_INVALID;
+		}
+
+		if (flags & STUDIO_SKIP_FLEXES)
+		{
+			state.m_drawFlags |= STUDIORENDER_DRAW_NO_FLEXES;
+		}
+	}
+#endif // MAPBASE
 
 	DoInternalDrawModel( pInfo, ( bMarkAsDrawn && ( pInfo->flags & STUDIO_RENDER ) ) ? &state : NULL, pBoneToWorld );
 

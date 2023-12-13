@@ -1516,6 +1516,11 @@ void CViewRender::ViewDrawScene( bool bDrew3dSkybox, SkyboxVisibility_t nSkyboxV
 	// UNDONE: Don't do this with masked brush models, they should probably be in a separate list
 	// render->DrawMaskEntities()
 
+#ifdef MAPBASE
+	if (IsMainView(CurrentViewID()))
+		DoObjectMotionBlur(&view);
+#endif // MAPBASE
+
 	// Here are the overlays...
 
 	CGlowOverlay::DrawOverlays( view.m_bCacheFullSceneState );

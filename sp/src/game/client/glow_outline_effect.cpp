@@ -24,6 +24,7 @@ extern bool g_bDumpRenderTargets; // in viewpostprocess.cpp
 
 CGlowObjectManager g_GlowObjectManager;
 
+#ifndef MAPBASE
 struct ShaderStencilState_t
 {
 	bool m_bEnable;
@@ -44,18 +45,19 @@ struct ShaderStencilState_t
 		m_nTestMask = m_nWriteMask = 0xFFFFFFFF;
 	}
 
-	void SetStencilState( CMatRenderContextPtr &pRenderContext  )
+	void SetStencilState(CMatRenderContextPtr& pRenderContext)
 	{
-		pRenderContext->SetStencilEnable( m_bEnable );
-		pRenderContext->SetStencilFailOperation( m_FailOp );
-		pRenderContext->SetStencilZFailOperation( m_ZFailOp );
-		pRenderContext->SetStencilPassOperation( m_PassOp );
-		pRenderContext->SetStencilCompareFunction( m_CompareFunc );
-		pRenderContext->SetStencilReferenceValue( m_nReferenceValue );
-		pRenderContext->SetStencilTestMask( m_nTestMask );
-		pRenderContext->SetStencilWriteMask( m_nWriteMask );
+		pRenderContext->SetStencilEnable(m_bEnable);
+		pRenderContext->SetStencilFailOperation(m_FailOp);
+		pRenderContext->SetStencilZFailOperation(m_ZFailOp);
+		pRenderContext->SetStencilPassOperation(m_PassOp);
+		pRenderContext->SetStencilCompareFunction(m_CompareFunc);
+		pRenderContext->SetStencilReferenceValue(m_nReferenceValue);
+		pRenderContext->SetStencilTestMask(m_nTestMask);
+		pRenderContext->SetStencilWriteMask(m_nWriteMask);
 	}
 };
+#endif // !MAPBASE
 
 void CGlowObjectManager::RenderGlowEffects( const CViewSetup *pSetup, int nSplitScreenSlot )
 {

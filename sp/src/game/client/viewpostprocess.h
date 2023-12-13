@@ -27,4 +27,8 @@ void SetPostProcessParams( const PostProcessParameters_t* pPostProcessParameters
 
 void SetViewFadeParams( byte r, byte g, byte b, byte a, bool bModulate );
 
+#ifdef MAPBASE
+void DoObjectMotionBlur(const CViewSetup* pSetup);
+#endif // MAPBASE
+
 #endif // VIEWPOSTPROCESS_H
