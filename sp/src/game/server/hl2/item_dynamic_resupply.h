@@ -21,5 +21,8 @@
 
 float DynamicResupply_GetDesiredHealthPercentage( void );
 void DynamicResupply_InitFromAlternateMaster( CBaseEntity *pResupply, string_t iszMaster );
+#ifdef MAPBASE
+float DynamicResupply_GetDesiredArmorPercentage(void);
+#endif // MAPBASE
 
 #endif // ITEM_DYNAMIC_RESUPPLY_H

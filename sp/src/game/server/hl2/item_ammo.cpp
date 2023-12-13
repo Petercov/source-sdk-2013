@@ -442,7 +442,6 @@ LINK_ENTITY_TO_CLASS(item_flare_round, CItem_FlareRound);
 // ========================================================================
 //	>> BoxFlareRounds
 // ========================================================================
-#define SIZE_BOX_FLARE_ROUNDS 5
 
 class CItem_BoxFlareRounds : public CItem
 {
@@ -545,7 +544,6 @@ LINK_ENTITY_TO_CLASS(item_ammo_smg1_grenade, CItem_AR2_Grenade);
 // ========================================================================
 //	>> BoxSniperRounds
 // ========================================================================
-#define SIZE_BOX_SNIPER_ROUNDS 10
 
 class CItem_BoxSniperRounds : public CItem
 {
