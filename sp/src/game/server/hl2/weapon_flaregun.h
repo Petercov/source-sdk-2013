@@ -67,7 +67,12 @@ public:
 
 	static CFlare *activeFlares;
 
-	CBaseEntity *m_pOwner;
+#ifndef MAPBASE
+	CBaseEntity* m_pOwner;
+#else
+	EHANDLE m_pOwner;
+#endif // !MAPBASE
+
 	int			m_nBounces;			// how many times has this flare bounced?
 	CNetworkVar( float, m_flTimeBurnOut );	// when will the flare burn out?
 	CNetworkVar( float, m_flScale );

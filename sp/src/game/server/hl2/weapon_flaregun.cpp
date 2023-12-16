@@ -53,7 +53,12 @@ LINK_ENTITY_TO_CLASS( env_flare, CFlare );
 
 BEGIN_DATADESC( CFlare )
 
-	DEFINE_FIELD( m_pOwner,			FIELD_CLASSPTR ),
+#ifndef MAPBASE
+DEFINE_FIELD(m_pOwner, FIELD_CLASSPTR),
+#eles
+DEFINE_FIELD(m_pOwner, FIELD_EHANDLE),
+#endif // !MAPBASE
+
 	DEFINE_FIELD( m_nBounces,		FIELD_INTEGER ),
 	DEFINE_FIELD( m_flTimeBurnOut,	FIELD_TIME ),
 	DEFINE_KEYFIELD( m_flScale,		FIELD_FLOAT, "scale" ),
