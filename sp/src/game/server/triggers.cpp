@@ -42,6 +42,10 @@
 #include "ai_hint.h"
 #endif
 
+#if defined(SIN_WEAPONS) || defined(SIN_NPCS)
+#define GLOBAL_ENTITIES_ALWAYS_TRANSITION
+#endif // defined(SIN_WEAPONS) || defined(SIN_NPCS)
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -2132,33 +2136,82 @@ int CChangeLevel::BuildEntityTransitionList( CBaseEntity *pLandmarkEntity, const
 		g_iDebuggingTransition = 0;
 	}
 
+#ifndef GLOBAL_ENTITIES_ALWAYS_TRANSITION
 	// Follow the linked list of entities in the PVS of the transition landmark
-	CBaseEntity *pEntity = NULL; 
-	while ( (pEntity = UTIL_EntitiesInPVS( pLandmarkEntity, pEntity)) != NULL )
+	CBaseEntity* pEntity = NULL;
+	while ((pEntity = UTIL_EntitiesInPVS(pLandmarkEntity, pEntity)) != NULL)
 	{
-		int flags = ComputeEntitySaveFlags( pEntity );
-		if ( !flags )
+		int flags = ComputeEntitySaveFlags(pEntity);
+		if (!flags)
 			continue;
 
 		// Check to make sure the entity isn't screened out by a trigger_transition
-		if ( !InTransitionVolume( pEntity, pLandmarkName ) )
+		if (!InTransitionVolume(pEntity, pLandmarkName))
 		{
-			if ( g_iDebuggingTransition == DEBUG_TRANSITIONS_VERBOSE )
+			if (g_iDebuggingTransition == DEBUG_TRANSITIONS_VERBOSE)
 			{
-				Msg( "IGNORED, outside transition volume.\n" );
+				Msg("IGNORED, outside transition volume.\n");
 			}
 			continue;
 		}
 
-		if ( iEntity >= nMaxList )
+		if (iEntity >= nMaxList)
 		{
-			Warning( "Too many entities across a transition!\n" );
-			Assert( 0 );
+			Warning("Too many entities across a transition!\n");
+			Assert(0);
 			return iEntity;
 		}
 
-		iEntity = AddEntityToTransitionList( pEntity, flags, iEntity, ppEntList, pEntityFlags );
+		iEntity = AddEntityToTransitionList(pEntity, flags, iEntity, ppEntList, pEntityFlags);
 	}
+#else
+	byte		pvs[MAX_MAP_CLUSTERS / 8]{};
+
+	int clusterIndex = engine->GetClusterForOrigin(pLandmarkEntity->GetAbsOrigin());
+	Assert(clusterIndex >= 0);
+	engine->GetPVSForCluster(clusterIndex, sizeof(pvs), pvs);
+
+	for (const CEntInfo* pInfo = gEntList.FirstEntInfo(); pInfo; pInfo = gEntList.NextEntInfo(pInfo))
+	{
+		CBaseEntity* pEntity = (CBaseEntity *)pInfo->m_pEntity;
+		// Only return attached ents.
+		if (!pEntity->edict())
+			continue;
+
+		if (pEntity->m_iGlobalname == NULL_STRING)
+		{
+			CBaseEntity* pParent = pEntity->GetRootMoveParent();
+
+			Vector vecSurroundMins, vecSurroundMaxs;
+			pParent->CollisionProp()->WorldSpaceSurroundingBounds(&vecSurroundMins, &vecSurroundMaxs);
+			if (!engine->CheckBoxInPVS(vecSurroundMins, vecSurroundMaxs, pvs, sizeof(pvs)))
+				continue;
+		}
+
+		int flags = ComputeEntitySaveFlags(pEntity);
+		if (!flags)
+			continue;
+
+		// Check to make sure the entity isn't screened out by a trigger_transition
+		if ((flags & FENTTABLE_GLOBAL) == 0 && !InTransitionVolume(pEntity, pLandmarkName))
+		{
+			if (g_iDebuggingTransition == DEBUG_TRANSITIONS_VERBOSE)
+			{
+				Msg("IGNORED, outside transition volume.\n");
+			}
+			continue;
+		}
+
+		if (iEntity >= nMaxList)
+		{
+			Warning("Too many entities across a transition!\n");
+			Assert(0);
+			return iEntity;
+		}
+
+		iEntity = AddEntityToTransitionList(pEntity, flags, iEntity, ppEntList, pEntityFlags);
+	}
+#endif // !GLOBAL_ENTITIES_ALWAYS_TRANSITION
 
 	return iEntity;
 }
