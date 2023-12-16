@@ -205,8 +205,8 @@ BEGIN_DATADESC( CItem_DynamicResupply )
 	DEFINE_KEYFIELD( m_flDesiredAmmo[ITEM_AMMO_CSS_762MM], FIELD_FLOAT, "DesiredAmmo762mm" ),
 #endif
 #ifdef HL2BETA_WEAPONS
-	DEFINE_KEYFIELD(m_flDesiredAmmo[ITEM_AMMO_FLARE], FIELD_FLOAT, "DesiredAmmoFlare"),
-	DEFINE_KEYFIELD(m_flDesiredAmmo[ITEM_AMMO_SNIPER], FIELD_FLOAT, "DesiredAmmoSniper"),
+	DEFINE_KEYFIELD(m_flDesiredAmmo[ITEM_AMMO_FLARE], FIELD_FLOAT, "DesiredAmmoFlareRound"),
+	DEFINE_KEYFIELD(m_flDesiredAmmo[ITEM_AMMO_SNIPER], FIELD_FLOAT, "DesiredAmmoSniperRound"),
 #endif // HL2BETA_WEAPONS
 
 	DEFINE_FIELD( m_version, FIELD_INTEGER ),
