@@ -58,6 +58,7 @@ class CFlareGunProjectile : public CFlare
 
 #ifdef MAPBASE
 		DECLARE_DATADESC();
+		virtual unsigned int PhysicsSolidMaskForEntity(void) const;
 #endif // MAPBASE
 };
 
@@ -110,7 +111,7 @@ class CFlaregunCustom : public CFlaregun
 
 		virtual float			NPC_GetProjectileSpeed() { return flaregun_primary_velocity.GetFloat(); }
 		virtual float			NPC_GetProjectileGravity() { return 1.f; }
-		virtual unsigned int	NPC_GetProjectileSolidMask() { return MASK_NPCSOLID; }
+		virtual unsigned int	NPC_GetProjectileSolidMask() { return MASK_SOLID; }
 #endif
 };
 
@@ -211,6 +212,11 @@ DEFINE_ENTITYFUNC(FlareGunProjectileBurnTouch),
 END_DATADESC();
 
 LINK_ENTITY_TO_CLASS(env_flare_projectile, CFlareGunProjectile);
+
+unsigned int CFlareGunProjectile::PhysicsSolidMaskForEntity(void) const
+{
+	return MASK_SOLID;
+}
 #endif // MAPBASE
 
 //-----------------------------------------------------------------------------
