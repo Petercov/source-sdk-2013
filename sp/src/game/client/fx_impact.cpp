@@ -317,10 +317,10 @@ static ImpactEffect_t s_pImpactEffect[26] =
 	{ NULL,					NULL },							// CHAR_TEX_CLIP			
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
-	{ NULL,					NULL },							// CHAR_TEX_PLASTIC		
+	{ "impact_plastic",		"impact_plastic" },				// CHAR_TEX_PLASTIC		
 	{ "impact_metal",		NULL },							// CHAR_TEX_METAL			
-	{ "impact_dirt",		NULL },							// CHAR_TEX_SAND			
-	{ NULL,					NULL },							// CHAR_TEX_FOLIAGE		
+	{ "impact_sand",		"impact_sand" },				// CHAR_TEX_SAND			
+	{ "impact_leaves",		"impact_leaves" },				// CHAR_TEX_FOLIAGE		
 	{ "impact_computer",	NULL },							// CHAR_TEX_COMPUTER		
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
