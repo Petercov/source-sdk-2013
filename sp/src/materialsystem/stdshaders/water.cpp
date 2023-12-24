@@ -480,6 +480,10 @@ BEGIN_VS_SHADER( SDK_Water_DX90,
 						SetPixelShaderConstantGammaToLinear(4, REFLECTTINT);
 					}
 				}
+				else
+				{
+					SetEnvMapTintPixelShaderDynamicState(4, REFLECTTINT, -1, true);
+				}
 
 				SetVertexShaderTextureTransform(VERTEX_SHADER_SHADER_SPECIFIC_CONST_1, BUMPTRANSFORM);
 
