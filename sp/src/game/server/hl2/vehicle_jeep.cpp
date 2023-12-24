@@ -204,6 +204,11 @@ void CPropJeep::Precache( void )
 
 	PrecacheScriptSound( "Jeep.GaussCharge" );
 
+#ifdef MAPBASE
+	PrecacheScriptSound("Airboat_headlight_on");
+	PrecacheScriptSound("Airboat_headlight_off");
+#endif // MAPBASE
+
 	PrecacheModel( GAUSS_BEAM_SPRITE );
 
 	BaseClass::Precache();
@@ -1732,6 +1737,22 @@ void CPropJeep::InputEnableGun(inputdata_t& inputdata)
 	SetBodygroup(FindBodygroupByName("tau_cannon"), m_bHasGun);
 }
 #endif
+
+void CPropJeep::HeadlightTurnOn()
+{
+#ifdef MAPBASE
+	EmitSound("Airboat_headlight_on");
+#endif // MAPBASE
+	m_bHeadlightIsOn = true;
+}
+
+void CPropJeep::HeadlightTurnOn()
+{
+#ifdef MAPBASE
+	EmitSound("Airboat_headlight_off");
+#endif // MAPBASE
+	m_bHeadlightIsOn = false;
+}
 
 //========================================================================================================================================
 // JEEP FOUR WHEEL PHYSICS VEHICLE SERVER VEHICLE
