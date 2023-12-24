@@ -1384,7 +1384,13 @@ void CPropJeepEpisodic::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iBu
 			SolveBlockingProps( this, VPhysicsGetObject() );
 		}
 	}
+
+#ifndef MAPBASE
 	CPropVehicleDriveable::DriveVehicle(flFrameTime, ucmd, iButtonsDown, iButtonsReleased);
+#else
+	CPropJeep::DriveVehicle(flFrameTime, ucmd, iButtonsDown, iButtonsReleased);
+#endif // !MAPBASE
+
 }
 
 //-----------------------------------------------------------------------------
