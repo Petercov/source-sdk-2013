@@ -803,7 +803,7 @@ void SetBodygroup( CStudioHdr *pstudiohdr, int& body, int iGroup, int iValue )
 	if (! pstudiohdr)
 		return;
 
-	if (iGroup >= pstudiohdr->numbodyparts())
+	if (iGroup < 0 || iGroup >= pstudiohdr->numbodyparts())
 		return;
 
 	mstudiobodyparts_t *pbodypart = pstudiohdr->pBodypart( iGroup );
