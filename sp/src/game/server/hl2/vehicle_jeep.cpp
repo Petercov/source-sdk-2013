@@ -1746,7 +1746,7 @@ void CPropJeep::HeadlightTurnOn()
 	m_bHeadlightIsOn = true;
 }
 
-void CPropJeep::HeadlightTurnOn()
+void CPropJeep::HeadlightTurnOff()
 {
 #ifdef MAPBASE
 	EmitSound("Airboat_headlight_off");
