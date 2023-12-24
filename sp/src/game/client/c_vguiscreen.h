@@ -123,6 +123,7 @@ public:
 	void SetHeight( float flHeight ) { m_flHeight = flHeight; }
 	void SetPixelWidth( int nWidth ) { m_nPixelWidth = nWidth; }
 	void SetPixelHeight( int nHeight ) { m_nPixelHeight = nHeight; }
+	vgui::Panel* GetScreenPanel() { return m_PanelWrapper.GetPanel(); }
 #endif
 
 private:

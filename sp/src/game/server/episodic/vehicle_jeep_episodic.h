@@ -17,6 +17,7 @@
 class CParticleSystem;
 class CVehicleCargoTrigger;
 class CSprite;
+class CVGuiScreen;
 
 #define NUM_WHEEL_EFFECTS	2
 #define NUM_HAZARD_LIGHTS	4
@@ -145,7 +146,11 @@ private:
 	bool	m_bRadarEnabled;
 	bool	m_bRadarDetectsEnemies;
 	float	m_flNextRadarUpdateTime;
+#ifndef MAPBASE
 	EHANDLE	m_hRadarScreen;
+#else
+	CNetworkHandle(CVGuiScreen, m_hRadarScreen);
+#endif // !MAPBASE
 
 	EHANDLE	m_hLinkControllerFront;
 	EHANDLE m_hLinkControllerRear;

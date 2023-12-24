@@ -138,6 +138,7 @@ BEGIN_DATADESC( CPropJeep )
 #ifdef MAPBASE
 	DEFINE_INPUTFUNC( FIELD_VOID, "DisablePhysGun",				InputDisablePhysGun ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "EnablePhysGun",				InputEnablePhysGun ),
+	DEFINE_INPUTFUNC(FIELD_BOOLEAN, "EnableGun", InputEnableGun),
 #endif
 
 	DEFINE_THINKFUNC( JeepSeagullThink ),
@@ -229,7 +230,11 @@ void CPropJeep::Spawn( void )
 
 	if ( m_bHasGun )
 	{
-		SetBodygroup( 1, true );
+#ifdef MAPBASE
+		SetBodygroup(FindBodygroupByName("tau_cannon"), true);
+#else
+		SetBodygroup(1, true);
+#endif // MAPBASE
 
 		// Initialize pose parameters
 		SetPoseParameter( JEEP_GUN_YAW, 0 );
@@ -241,7 +246,11 @@ void CPropJeep::Spawn( void )
 	}
 	else
 	{
-		SetBodygroup( 1, false );
+#ifdef MAPBASE
+		SetBodygroup(FindBodygroupByName("tau_cannon"), false);
+#else
+		SetBodygroup(1, false);
+#endif // MAPBASE
 	}
 
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
@@ -1693,7 +1702,11 @@ void CPropJeep::InputStartRemoveTauCannon( inputdata_t &inputdata )
 void CPropJeep::InputFinishRemoveTauCannon( inputdata_t &inputdata )
 {
 	// Remove & hide the gun
-	SetBodygroup( 1, false );
+#ifdef MAPBASE
+	SetBodygroup(FindBodygroupByName("tau_cannon"), false);
+#else
+	SetBodygroup(1, false);
+#endif // MAPBASE
 	m_bHasGun = false;
 }
 
@@ -1711,6 +1724,12 @@ void CPropJeep::InputDisablePhysGun( inputdata_t &data )
 void CPropJeep::InputEnablePhysGun( inputdata_t &data )
 {
 	RemoveEFlags( EFL_NO_PHYSCANNON_INTERACTION );
+}
+
+void CPropJeep::InputEnableGun(inputdata_t& inputdata)
+{
+	m_bHasGun = inputdata.value.Bool();
+	SetBodygroup(FindBodygroupByName("tau_cannon"), m_bHasGun);
 }
 #endif
 

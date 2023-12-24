@@ -122,6 +122,7 @@ private:
 #ifdef MAPBASE
 	void		InputDisablePhysGun( inputdata_t &data );
 	void		InputEnablePhysGun( inputdata_t &data );
+	void		InputEnableGun(inputdata_t& inputdata);
 #endif
 
 protected:

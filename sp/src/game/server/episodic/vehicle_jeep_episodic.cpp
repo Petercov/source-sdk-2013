@@ -31,9 +31,15 @@ ConVar jalopy_blocked_exit_max_speed( "jalopy_blocked_exit_max_speed", "50" );
 #define	JEEP_AMMO_CRATE_CLOSE_DELAY	2.0f
 
 // Bodygroups
+#ifndef MAPBASE
 #define JEEP_RADAR_BODYGROUP	1
 #define JEEP_HOPPER_BODYGROUP	2
-#define JEEP_CARBAR_BODYGROUP   3
+#define JEEP_CARBAR_BODYGROUP   3 
+#else
+#define JEEP_RADAR_BODYGROUP	FindBodygroupByName("radar")
+#define JEEP_HOPPER_BODYGROUP	FindBodygroupByName("magnusson_holder")
+#define JEEP_CARBAR_BODYGROUP   FindBodygroupByName("car_bar")
+#endif // !MAPBASE
 
 #define RADAR_PANEL_MATERIAL	"vgui/screens/radar"
 #define RADAR_PANEL_WRITEZ		"engine/writez"
@@ -385,6 +391,11 @@ IMPLEMENT_SERVERCLASS_ST(CPropJeepEpisodic, DT_CPropJeepEpisodic)
 
 	//CNetworkArray( int, m_iRadarContactType, RADAR_MAX_CONTACTS );
 	SendPropArray( SendPropInt(SENDINFO_ARRAY(m_iRadarContactType), RADAR_CONTACT_TYPE_BITS ), m_iRadarContactType ),
+
+#ifdef MAPBASE
+	SendPropEHandle(SENDINFO(m_hRadarScreen)),
+#endif // MAPBASE
+
 END_SEND_TABLE()
 
 
@@ -397,7 +408,12 @@ m_bExitLocked( false ),
 m_bAddingCargo( false ),
 m_flNextAvoidBroadcastTime( 0.0f )
 {
+#ifndef MAPBASE
 	m_bHasGun = false;
+#else
+	m_bHasGun = !hl2_episodic.GetBool();
+#endif // !MAPBASE
+
 	m_bUnableToFire = true;
 	m_bRadarDetectsEnemies = false;
 }
@@ -476,7 +492,8 @@ void CPropJeepEpisodic::Spawn( void )
 	CreateCargoTrigger();
 
 	// carbar bodygroup is always on
-	SetBodygroup( JEEP_CARBAR_BODYGROUP, 1 );
+	SetBodygroup(JEEP_CARBAR_BODYGROUP, 1);
+
 
 	m_bRadarDetectsEnemies = false;
 }
@@ -728,6 +745,13 @@ void CPropJeepEpisodic::CreateCargoTrigger( void )
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
+#ifdef MAPBASE
+	if (!hl2_episodic.GetBool())
+	{
+		BaseClass::Use(pActivator, pCaller, useType, value);
+	}
+	else
+#endif // MAPBASE
 	// Fall back and get in the vehicle instead, skip giving ammo
 	BaseClass::BaseClass::Use( pActivator, pCaller, useType, value );
 }
@@ -964,9 +988,13 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 
 	//Msg("Server detected %d objects\n", m_iNumRadarContacts );
 
-	CBasePlayer *pPlayer = AI_GetSinglePlayer();
+#ifndef MAPBASE
+	CBasePlayer* pPlayer = AI_GetSinglePlayer();
 	CSingleUserRecipientFilter filter(pPlayer);
-	UserMessageBegin( filter, "UpdateJalopyRadar" );
+	UserMessageBegin(filter, "UpdateJalopyRadar");
+#else
+	EntityMessageBegin(this);
+#endif // !MAPBASE
 	WRITE_BYTE( 0 ); // end marker
 	MessageEnd();	// send message
 }

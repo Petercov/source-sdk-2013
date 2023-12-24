@@ -6361,6 +6361,9 @@ static void CreateJalopy( CBasePlayer *pPlayer )
 		pJeep->KeyValue( "solid", "6" );
 		pJeep->KeyValue( "targetname", "jeep" );
 		pJeep->KeyValue( "vehiclescript", "scripts/vehicles/jalopy.txt" );
+#ifdef MAPBASE
+		pJeep->KeyValue("EnableGun", "0");
+#endif // MAPBASE
 		DispatchSpawn( pJeep );
 		pJeep->Activate();
 		pJeep->Teleport( &vecOrigin, &vecAngles, NULL );
@@ -6388,7 +6391,7 @@ static void CreateJeep( CBasePlayer *pPlayer )
 	Vector vecForward;
 	AngleVectors( pPlayer->EyeAngles(), &vecForward );
 	//Tony; in sp sdk, we have prop_vehicle_hl2buggy; because episode 2 modified the jeep code to turn it into the jalopy instead of the regular buggy
-#if defined ( HL2_EPISODIC )
+#if defined ( HL2_EPISODIC ) && !defined(MAPBASE)
 	CBaseEntity *pJeep = (CBaseEntity *)CreateEntityByName( "prop_vehicle_hl2buggy" );
 #else
 	CBaseEntity *pJeep = (CBaseEntity *)CreateEntityByName( "prop_vehicle_jeep" );
@@ -6401,12 +6404,17 @@ static void CreateJeep( CBasePlayer *pPlayer )
 		pJeep->SetAbsAngles( vecAngles );
 		pJeep->KeyValue( "model", "models/buggy.mdl" );
 		pJeep->KeyValue( "solid", "6" );
-#if defined ( HL2_EPISODIC )
+#if defined ( HL2_EPISODIC ) && !defined(MAPBASE)
 		pJeep->KeyValue( "targetname", "hl2buggy" );
 #else
 		pJeep->KeyValue( "targetname", "jeep" );
 #endif
 		pJeep->KeyValue( "vehiclescript", "scripts/vehicles/jeep_test.txt" );
+#ifdef MAPBASE
+		pJeep->KeyValue("EnableGun", "1");
+		pJeep->KeyValue("NoHazardLights", "1");
+#endif // MAPBASE
+
 		DispatchSpawn( pJeep );
 		pJeep->Activate();
 		pJeep->Teleport( &vecOrigin, &vecAngles, NULL );
