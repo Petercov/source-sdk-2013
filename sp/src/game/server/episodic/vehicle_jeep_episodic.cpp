@@ -1380,7 +1380,10 @@ void CPropJeepEpisodic::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iBu
 
 		if ( pPlayer && VPhysicsGetObject() )
 		{
-			KillBlockingEnemyNPCs( pPlayer, this, VPhysicsGetObject() );
+#ifdef MAPBASE
+			if (hl2_episodic.GetBool())
+#endif // MAPBASE
+				KillBlockingEnemyNPCs(pPlayer, this, VPhysicsGetObject());
 			SolveBlockingProps( this, VPhysicsGetObject() );
 		}
 	}

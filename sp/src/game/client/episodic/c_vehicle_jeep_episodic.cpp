@@ -174,6 +174,8 @@ void C_PropJeepEpisodic::ReceiveMessage(int classID, bf_read& msg)
 	if (!pRadar)
 		return;
 
+	pRadar->SetVehicle(this);
+
 	// Sometimes we update more quickly when we need to track something in high resolution.
 	// Usually we do not, so default to false.
 	pRadar->m_bUseFastUpdate = false;
@@ -209,7 +211,6 @@ inline CHudRadar* C_PropJeepEpisodic::GetHudRadar()
 	if (m_hRadarScreen.Get())
 	{
 		CHudRadar* pRadar = assert_cast<CHudRadar*> (m_hRadarScreen->GetScreenPanel());
-		pRadar->SetVehicle(this);
 		return pRadar;
 	}
 
