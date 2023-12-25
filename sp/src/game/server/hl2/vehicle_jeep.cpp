@@ -1508,7 +1508,9 @@ void CPropJeep::EnterVehicle( CBaseCombatCharacter *pPassenger )
 //-----------------------------------------------------------------------------
 void CPropJeep::ExitVehicle( int nRole )
 {
+#ifndef MAPBASE
 	HeadlightTurnOff();
+#endif // !MAPBASE
 
 	BaseClass::ExitVehicle( nRole );
 
