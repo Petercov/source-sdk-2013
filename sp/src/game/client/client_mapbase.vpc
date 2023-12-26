@@ -75,6 +75,8 @@ $Project
 			$File	"mapbase\c_vgui_text_display.cpp"
 			$File	"mapbase\c_weapon_custom_hl2.cpp"
 			$File	"mapbase\mapbase_autocubemap.cpp"
+			$File	"mapbase\mapbase_rendertargets.cpp"
+			$File	"mapbase\mapbase_rendertargets.h"
 
 			$File	"materialproxy_lightedmouth.cpp"
 		}
