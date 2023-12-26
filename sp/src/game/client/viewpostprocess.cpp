@@ -3474,7 +3474,11 @@ void DoObjectMotionBlur(const CViewSetup* pSetup)
 		pRenderContext->SetToneMappingScaleLinear(Vector(1, 1, 1));
 	}
 
+#ifndef MAPBASE
 	ITexture* pFullFrameFB1 = materials->FindTexture("_rt_FullFrameFB1", TEXTURE_GROUP_RENDER_TARGET);
+#else
+	ITexture* pFullFrameFB1 = GetFullFrameFrameBufferTexture(3);
+#endif // !MAPBASE
 
 	//
 	// Render Velocities into a full-frame FB1
@@ -3577,7 +3581,12 @@ void DoObjectMotionBlur(const CViewSetup* pSetup)
 	bool bFound1 = false, bFound2 = false;
 
 	// Make sure our render target of choice has the results of the engine post-process pass
+#ifndef MAPBASE
 	ITexture* pFullFrameFB = materials->FindTexture("_rt_FullFrameFB", TEXTURE_GROUP_RENDER_TARGET);
+#else
+	ITexture* pFullFrameFB = GetFullFrameFrameBufferTexture(2);
+#endif // !MAPBASE
+
 	pRenderContext->CopyRenderTargetToTexture(pFullFrameFB);
 
 	pMotionBlurMaterial = materials->FindMaterial("effects/object_motion_blur", TEXTURE_GROUP_OTHER, true);
