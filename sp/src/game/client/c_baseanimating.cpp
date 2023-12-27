@@ -57,6 +57,9 @@
 #ifdef MAPBASE
 #include "viewrender.h"
 #include "materialsystem/imaterialvar.h"
+#include "mapbase/mapbase_rendertargets.h"
+#include "view_scene.h"
+#include "renderparm.h"
 #endif
 
 #ifdef TF_CLIENT_DLL
@@ -912,6 +915,17 @@ bool C_BaseAnimating::UsesPowerOfTwoFrameBufferTexture( void )
 {
 	return modelinfo->IsUsingFBTexture( GetModel(), GetSkin(), GetBody(), GetClientRenderable() );
 }
+
+#ifdef MAPBASE
+bool C_BaseAnimating::IsTwoPass(void)
+{
+	if (GetRenderMode() == kRenderTransAdd || GetRenderMode() == kRenderTransAlphaAdd)
+		return false;
+
+	return BaseClass::IsTwoPass();
+}
+#endif // MAPBASE
+
 
 //-----------------------------------------------------------------------------
 // VPhysics object
@@ -3638,8 +3652,110 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 			state.m_drawFlags |= STUDIORENDER_DRAW_NO_FLEXES;
 		}
 	}
-#endif // MAPBASE
 
+	if ((flags & (STUDIO_DONOTMODIFYSTENCILSTATE|STUDIO_RENDER|STUDIO_SHADOWDEPTHTEXTURE|STUDIO_SSAODEPTHTEXTURE)) == STUDIO_RENDER && bMarkAsDrawn && (GetRenderMode() == kRenderTransAdd || GetRenderMode() == kRenderTransAlphaAdd) && GetMapbaseRenderTargets()->GetHologramTexture())
+	{
+		ITexture* pHoloRT = GetMapbaseRenderTargets()->GetHologramTexture();
+		CMatRenderContextPtr pRenderContext(materials);
+
+		/*matrix3x4_t matWorldToView;
+		pRenderContext->GetMatrix(MATERIAL_VIEW, &matWorldToView);
+
+		VMatrix matProjection;
+		pRenderContext->GetMatrix(MATERIAL_PROJECTION, &matProjection);
+
+		matrix3x4_t matLocalToView;
+		ConcatTransforms(RenderableToWorldTransform(), matWorldToView, matLocalToView);
+
+		Vector vecMins, vecMaxs;
+		GetShadowRenderBounds(vecMins, vecMins, SHADOWS_RENDER_TO_TEXTURE);
+		TransformAABB(matLocalToView, vecMins, vecMaxs, vecMins, vecMaxs);
+
+		Vector vecViewMins, vecViewMaxs;
+		int nBehind = FrustumTransform(matProjection, vecMins, vecViewMins) + FrustumTransform(matProjection, vecMaxs, vecViewMaxs);*/
+
+		render->SetBlend(1.f);
+		pRenderContext->SetIntRenderingParameter(INT_RENDERPARM_WRITE_DEPTH_TO_DESTALPHA, 0);
+
+		int nVX, nVY, nVWidth, nVHeight;
+		pRenderContext->GetViewport(nVX, nVY, nVWidth, nVHeight);
+		pRenderContext->PushRenderTargetAndViewport(pHoloRT, 0, 0, nVWidth, nVHeight);
+		pRenderContext->ClearColor4ub(0, 0, 0, 0);
+		pRenderContext->ClearBuffers(true, true);
+
+		DoInternalDrawModel(pInfo, &state, pBoneToWorld);
+
+		pRenderContext->PopRenderTargetAndViewport();
+
+		pRenderContext->OverrideDepthEnable(true, false);
+		pRenderContext->OverrideAlphaWriteEnable(true, false);
+		pRenderContext->OverrideColorWriteEnable(true, false);
+		pRenderContext->ClearBuffers(false, false, true);
+
+		ShaderStencilState_t stencilState;
+		stencilState.m_bEnable = true;
+		stencilState.m_nReferenceValue = 1;
+		stencilState.m_CompareFunc = STENCILCOMPARISONFUNCTION_ALWAYS;
+		stencilState.m_PassOp = STENCILOPERATION_REPLACE;
+		stencilState.m_FailOp = STENCILOPERATION_KEEP;
+		stencilState.m_ZFailOp = STENCILOPERATION_KEEP;
+
+		stencilState.SetStencilState(pRenderContext);
+
+		state.m_decals = STUDIORENDER_DECAL_INVALID;
+		modelrender->DrawModelExecute(state, *pInfo, pBoneToWorld);
+
+		pRenderContext->OverrideDepthEnable(false, false);
+		pRenderContext->OverrideColorWriteEnable(false, false);
+		pRenderContext->OverrideAlphaWriteEnable(false, false);
+
+		stencilState.m_nWriteMask = 0; // We're not changing stencil
+		stencilState.m_nTestMask = 1;
+		stencilState.m_CompareFunc = STENCILCOMPARISONFUNCTION_EQUAL;
+		stencilState.m_PassOp = STENCILOPERATION_KEEP;
+		stencilState.m_FailOp = STENCILOPERATION_KEEP;
+		stencilState.m_ZFailOp = STENCILOPERATION_KEEP;
+		stencilState.SetStencilState(pRenderContext);
+
+		static CMaterialReference s_HoloAddMaterial;
+		if (!s_HoloAddMaterial.IsValid())
+		{
+			s_HoloAddMaterial.Init("dev/hologram_add", TEXTURE_GROUP_CLIENT_EFFECTS);
+		}
+
+		if (g_pMaterialSystemHardwareConfig->GetHDRType() == HDR_TYPE_NONE)
+		{
+			s_HoloAddMaterial->ColorModulate(1.0f, 1.0f, 1.0f);
+		}
+		else
+		{
+			// This is a stupid fix, but I don't have time to do a cleaner implementation. Since
+			// the introblur.vmt material uses unlit generic, it will tone map, so I need to undo the tone mapping
+			// using color modulate.  The proper fix would be to use a different material type that
+			// supports alpha blending but not tone mapping, which I don't think exists. Whatever. This works when
+			// the tone mapping scalar is less than 1.0, which it is in the cases it's used in game.
+			float flUnTonemap = pow(1.0f / pRenderContext->GetToneMappingScaleLinear().x, 1.0f / 2.2f);
+			s_HoloAddMaterial->ColorModulate(flUnTonemap, flUnTonemap, flUnTonemap);
+		}
+
+		// Set alpha blend value
+		float flAlpha = Clamp((float)GetFxBlend() / 255.f, 0.0f, 1.0f);
+		s_HoloAddMaterial->AlphaModulate(flAlpha);
+
+		int nRTWidth = pHoloRT->GetActualWidth(), nRTHeight = pHoloRT->GetActualHeight();
+		//if (nBehind > 0)
+		{
+			pRenderContext->DrawScreenSpaceRectangle(s_HoloAddMaterial, nVX, nVY, nVWidth, nVHeight,
+				0.f, 0.f, nVWidth - 1.f, nVHeight - 1.f, nRTWidth, nRTHeight, this);
+		}
+
+		pRenderContext->SetStencilEnable(false);
+
+		const int viewID = CurrentViewID();
+		pRenderContext->SetIntRenderingParameter(INT_RENDERPARM_WRITE_DEPTH_TO_DESTALPHA, ((viewID == VIEW_MAIN) || (viewID == VIEW_3DSKY)) ? 1 : 0);
+	}
+	else
+#endif // MAPBASE
 	DoInternalDrawModel( pInfo, ( bMarkAsDrawn && ( pInfo->flags & STUDIO_RENDER ) ) ? &state : NULL, pBoneToWorld );
 
 	OnPostInternalDrawModel( pInfo );

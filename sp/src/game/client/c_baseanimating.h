@@ -110,6 +110,9 @@ public:
 	virtual C_BaseAnimating*		GetBaseAnimating() { return this; }
 
 	bool UsesPowerOfTwoFrameBufferTexture( void );
+#ifdef MAPBASE
+	virtual bool					IsTwoPass(void);
+#endif // MAPBASE
 
 	virtual bool	Interpolate( float currentTime );
 	virtual void	Simulate();	

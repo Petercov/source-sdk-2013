@@ -22,6 +22,9 @@
 extern ConVar mat_wireframe;
 extern ConVar building_cubemaps;
 
+#ifdef MAPBASE
+int FrustumTransform(const VMatrix& worldToSurface, const Vector& point, Vector& screen);
+#endif // MAPBASE
 
 // Transform into view space (translate and rotate the camera into the origin).
 void ViewTransform( const Vector &worldSpace, Vector &viewSpace );

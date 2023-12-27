@@ -51,7 +51,7 @@ ITexture* CMapbaseRenderTargets::CreateHologramTexture(IMaterialSystem* pMateria
 {
 	return pMaterialSystem->CreateNamedRenderTargetTextureEx2(
 		"_rt_Hologram",
-		1, 1, RT_SIZE_FULL_FRAME_BUFFER,
+		1, 1, RT_SIZE_FULL_FRAME_BUFFER_ROUNDED_UP,
 		pMaterialSystem->GetBackBufferFormat(),
 		MATERIAL_RT_DEPTH_SEPARATE,
 		TEXTUREFLAGS_CLAMPS | TEXTUREFLAGS_CLAMPT,
