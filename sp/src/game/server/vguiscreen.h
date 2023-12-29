@@ -37,7 +37,7 @@ public:
 	virtual int	Save(ISave& save);
 	virtual int	Restore(IRestore& restore);
 
-	virtual void HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues);
+	virtual bool HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues);
 	virtual CBaseEntityOutput* FindNamedOutput(const char* pszOutput);
 #endif // MAPBASE
 

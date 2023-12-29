@@ -911,7 +911,9 @@ public:
 	bool		 IsAIWalkable( void );
 
 #ifdef MAPBASE
-	virtual void	HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues) {}
+	// Handle a potentially complex command from a client.
+	// Returns true if the command was handled successfully.
+	virtual bool	HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues) { return false; }
 #endif // MAPBASE
 
 private:

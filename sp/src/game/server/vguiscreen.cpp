@@ -224,15 +224,30 @@ int CVGuiScreen::Restore(IRestore& restore)
 	return status;
 }
 
-void CVGuiScreen::HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues)
+// Handle a command from the client-side vgui panel.
+bool CVGuiScreen::HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues)
 {
+#if defined(HL2MP) // Enable this in multiplayer.
+	// Restrict to commands from our owning player.
+	if ((m_fScreenFlags & VGUI_SCREEN_ONLY_USABLE_BY_OWNER) && pClient != m_hPlayerOwner.Get())
+		return false;
+#endif
+	
+	// Give the owning entity a chance to handle the command.
+	if (GetOwnerEntity() && GetOwnerEntity()->HandleEntityCommand(pClient, pKeyValues))
+		return true;
+
+	// See if we have an output for this command.
 	const int i = m_PanelOutputs.Find(pKeyValues->GetString());
 	if (m_PanelOutputs.IsValidIndex(i))
 	{
 		variant_t Val;
 		Val.Set(FIELD_VOID, NULL);
 		m_PanelOutputs[i]->FireOutput(Val, pClient, this);
+		return true;
 	}
+
+	return false;
 }
 
 CBaseEntityOutput* CVGuiScreen::FindNamedOutput(const char* pszOutput)
