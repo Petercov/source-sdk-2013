@@ -39,6 +39,8 @@ $Project
 
 		$Folder "SiN Episodes"
 		{
+			$File	"sin\item_antigen.cpp"
+
 			$File	"sin\npc_generic_actor.cpp"
 			$File	"sin\npc_jessica.cpp"
 			$File	"sin\npc_jessica.h"
