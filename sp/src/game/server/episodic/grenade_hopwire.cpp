@@ -594,6 +594,13 @@ void CGrenadeHopwire::Detonate( void )
 //-----------------------------------------------------------------------------
 CBaseGrenade *HopWire_Create( const Vector &position, const QAngle &angles, const Vector &velocity, const AngularImpulse &angVelocity, CBaseEntity *pOwner, float timer, const char * modelClosed, const char * modelOpen)
 {
+	// Fall back to a default model if none specified
+	static const char* szHopwireModel = "models/weapons/w_xengrenade.mdl";
+	if (modelClosed == NULL)
+		modelClosed = szHopwireModel;
+	if (modelOpen == NULL)
+		modelOpen = szHopwireModel;
+
 	CGrenadeHopwire *pGrenade = (CGrenadeHopwire *) CBaseEntity::CreateNoSpawn( "npc_grenade_hopwire", position, angles, pOwner ); // Don't spawn the hopwire until models are set!
 	pGrenade->SetWorldModelClosed(modelClosed);
 	pGrenade->SetWorldModelOpen(modelOpen);

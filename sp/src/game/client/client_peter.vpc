@@ -36,6 +36,7 @@ $Project
 		$Folder "EZ2"
 		{
 			$File	"ez2\c_npc_assassin.cpp"
+			$File	"ez2\c_npc_base_husk.cpp"
 		}
 
 		$Folder	"HL1 DLL"

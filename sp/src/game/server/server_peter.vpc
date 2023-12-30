@@ -10,7 +10,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS;SIN_WEAPONS;SIN_NPCS"
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS;SIN_WEAPONS;SIN_NPCS;EZ_NPCS"
 	}
 }
 
@@ -60,6 +60,14 @@ $Project
 		{
 			$File	"mapbase\npc_assassin.cpp"
 			$File	"mapbase\npc_assassin.h"
+			
+			$File	"$SRCDIR\game\shared\ez2\npc_husk_base_shared.h"
+			$File	"ez2\npc_husk_base.cpp"
+			$File	"ez2\npc_husk_base.h"
+			$File	"ez2\npc_husk_soldier.cpp"
+			$File	"ez2\npc_husk_soldier.h"
+			$File	"ez2\npc_husk_police.cpp"
+			$File	"ez2\npc_husk_police.h"
 		}
 		
 		$Folder	"HL1 DLL"

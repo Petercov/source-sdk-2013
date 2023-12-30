@@ -2949,7 +2949,7 @@ bool CNPC_Manhack::HandleInteraction(int interactionType, void* data, CBaseComba
 	if (interactionType == g_interactionZombinePullGrenade)
 	{
 
-#ifdef EZ2
+#ifdef MANHACK_EZ2
 		m_bNemesis = true;
 #endif
 
@@ -2965,32 +2965,6 @@ bool CNPC_Manhack::HandleInteraction(int interactionType, void* data, CBaseComba
 			disposition = IRelationType(pEnemy);
 
 			AddEntityRelationship(pEnemy, disposition, priority + 1);
-		}
-
-		return false;
-	}
-#endif
-
-#ifdef EZ
-	if ( interactionType == g_interactionZombinePullGrenade )
-	{
-
-#ifdef EZ2
-		m_bNemesis = true;
-#endif
-
-		int priority;
-		Disposition_t disposition;
-		CBaseEntity * pEnemy;
-
-		// If the zombine that dispatched us has an enemy, prioritize that enemy
-		if (sourceEnt && sourceEnt->GetEnemy())
-		{
-			pEnemy = sourceEnt->GetEnemy();
-			priority = IRelationPriority( pEnemy );
-			disposition = IRelationType( pEnemy );
-
-			AddEntityRelationship( pEnemy, disposition, priority + 1 );
 		}
 
 		return false;

@@ -47,6 +47,6 @@ protected:
 	CHandle<CGravityVortexController>	m_hVortexController;
 };
 
-extern CBaseGrenade *HopWire_Create( const Vector &position, const QAngle &angles, const Vector &velocity, const AngularImpulse &angVelocity, CBaseEntity *pOwner, float timer, const char * modelClosed, const char * modelOpen );
+extern CBaseGrenade *HopWire_Create( const Vector &position, const QAngle &angles, const Vector &velocity, const AngularImpulse &angVelocity, CBaseEntity *pOwner, float timer, const char * modelClosed = NULL, const char * modelOpen = NULL );
 
 #endif // GRENADE_HOPWIRE_H
