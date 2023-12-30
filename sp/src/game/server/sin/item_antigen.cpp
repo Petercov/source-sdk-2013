@@ -8,6 +8,8 @@
 
 #include "tier0/memdbgon.h"
 
+class CAntigenDispenserTrigger;
+
 #define ANTIGEN_DISPENSER_MODEL "models/items/antigen/antigen_dispenser.mdl"
 #define ANTIGEN_TANK_MODEL "models/items/antigen/antigentank.mdl"
 #define ANTIGEN_FULL_POSEPARAM "percentFull"
@@ -91,7 +93,6 @@ public:
 	bool	InsertCanister(CAntigenTank* pTank);
 
 	float m_flNextCharge;
-	int		m_iReactivate; // DeathMatch Delay until reactvated
 	int		m_iJuice;
 	int		m_iOn;			// 0 = off, 1 = startup, 2 = going
 	float   m_flSoundTime;
@@ -114,12 +115,13 @@ public:
 	void StudioFrameAdvance(void);
 
 	float m_flJuice;
+
+	CHandle< CAntigenDispenserTrigger > m_hTrigger;
 };
 
 BEGIN_DATADESC(CAntigenDispenser)
 
 DEFINE_FIELD(m_flNextCharge, FIELD_TIME),
-DEFINE_FIELD(m_iReactivate, FIELD_INTEGER),
 DEFINE_KEYFIELD(m_iJuice, FIELD_INTEGER, "antigen"),
 DEFINE_FIELD(m_iOn, FIELD_INTEGER),
 DEFINE_FIELD(m_flSoundTime, FIELD_TIME),
@@ -130,6 +132,7 @@ DEFINE_FIELD(m_flJuice, FIELD_FLOAT),
 DEFINE_INPUT(m_iIncrementValue, FIELD_INTEGER, "SetIncrementValue"),
 #endif
 DEFINE_FIELD(m_bCanister, FIELD_BOOLEAN),
+DEFINE_FIELD(m_hTrigger, FIELD_EHANDLE),
 
 // Function Pointers
 DEFINE_THINKFUNC(Off),
@@ -151,16 +154,163 @@ END_DATADESC();
 
 LINK_ENTITY_TO_CLASS(item_antigen_dispenser, CAntigenDispenser);
 
+class CAntigenDispenserTrigger : public CBaseEntity
+{
+	DECLARE_CLASS(CAntigenDispenserTrigger, CBaseEntity);
+
+public:
+
+	// 
+	// Creates a trigger with the specified bounds
+
+	static CAntigenDispenserTrigger* Create(const Vector& vecOrigin, const Vector& vecMins, const Vector& vecMaxs, CBaseEntity* pOwner)
+	{
+		CAntigenDispenserTrigger* pTrigger = (CAntigenDispenserTrigger*)CreateEntityByName("trigger_antigen_dispenser");
+		if (pTrigger == NULL)
+			return NULL;
+
+		UTIL_SetOrigin(pTrigger, vecOrigin);
+		UTIL_SetSize(pTrigger, vecMins, vecMaxs);
+		pTrigger->SetOwnerEntity(pOwner);
+		pTrigger->SetParent(pOwner);
+
+		pTrigger->Spawn();
+
+		return pTrigger;
+	}
+
+	//
+	// Handles the trigger touching its intended quarry
+
+	void CargoTouch(CBaseEntity* pOther)
+	{
+		// Cannot be ignoring touches
+		if ((m_hIgnoreEntity == pOther) || (m_flIgnoreDuration >= gpGlobals->curtime))
+			return;
+
+		// Make sure this object is being held by the player
+		if (pOther->VPhysicsGetObject() == NULL || (pOther->VPhysicsGetObject()->GetGameFlags() & FVPHYSICS_PLAYER_HELD) == false)
+			return;
+
+		AddCargo(pOther);
+	}
+
+	bool AddCargo(CBaseEntity* pOther)
+	{
+		// For now, only bother with strider busters
+		if ((FClassnameIs(pOther, "prop_antigen_canister") == false) &&
+			(FClassnameIs(pOther, "prop_antigen_explosive_barrel") == false)
+			)
+			return false;
+
+		// Must be a physics prop
+		CAntigenTank* pProp = dynamic_cast<CAntigenTank*>(pOther);
+		if (pOther == NULL)
+			return false;
+
+		CAntigenDispenser* pDisp = dynamic_cast<CAntigenDispenser*>(GetOwnerEntity());
+		if (pDisp == NULL)
+			return false;
+
+		// Make the player release the item
+		Pickup_ForcePlayerToDropThisObject(pOther);
+
+		if (pDisp->InsertCanister(pProp))
+		{
+			// Stop touching this item
+			Disable();
+
+			return true;
+		}
+		else
+			return false;
+	}
+
+	//
+	// Setup the entity
+
+	void Spawn(void)
+	{
+		BaseClass::Spawn();
+
+		SetSolid(SOLID_BBOX);
+		SetSolidFlags(FSOLID_TRIGGER | FSOLID_NOT_SOLID);
+
+		SetTouch(&CAntigenDispenserTrigger::CargoTouch);
+	}
+
+	void Activate()
+	{
+		BaseClass::Activate();
+		SetSolidFlags(FSOLID_TRIGGER | FSOLID_NOT_SOLID); // Fixes up old savegames
+	}
+
+	//
+	// When we've stopped touching this entity, we ignore it
+
+	void EndTouch(CBaseEntity* pOther)
+	{
+		if (pOther == m_hIgnoreEntity)
+		{
+			m_hIgnoreEntity = NULL;
+		}
+
+		BaseClass::EndTouch(pOther);
+	}
+
+	//
+	// Disables the trigger for a set duration
+
+	void IgnoreTouches(CBaseEntity* pIgnoreEntity)
+	{
+		m_hIgnoreEntity = pIgnoreEntity;
+		m_flIgnoreDuration = gpGlobals->curtime + 0.5f;
+	}
+
+	void Disable(void)
+	{
+		SetTouch(NULL);
+	}
+
+	void Enable(void)
+	{
+		SetTouch(&CAntigenDispenserTrigger::CargoTouch);
+	}
+
+protected:
+
+	float					m_flIgnoreDuration;
+	CHandle	<CBaseEntity>	m_hIgnoreEntity;
+
+	DECLARE_DATADESC();
+};
+
+LINK_ENTITY_TO_CLASS(trigger_antigen_dispenser, CAntigenDispenserTrigger);
+
+BEGIN_DATADESC(CAntigenDispenserTrigger)
+DEFINE_FIELD(m_flIgnoreDuration, FIELD_TIME),
+DEFINE_FIELD(m_hIgnoreEntity, FIELD_EHANDLE),
+DEFINE_ENTITYFUNC(CargoTouch),
+END_DATADESC();
+
 void CAntigenDispenser::Spawn()
 {
 	Precache();
 
 	SetMoveType(MOVETYPE_NONE);
 	SetSolid(SOLID_VPHYSICS);
-	CreateVPhysics();
 
 	SetModel(ANTIGEN_DISPENSER_MODEL);
 	AddEffects(EF_NOSHADOW);
+	CreateVPhysics();
+
+	Vector vecForward;
+	GetVectors(&vecForward, nullptr, nullptr);
+
+	// Approx size of the hold
+	Vector vecMins(-6.0, -6.0, -4.0);
+	Vector vecMaxs(6.0, 6.0, 4.0);
+	m_hTrigger = CAntigenDispenserTrigger::Create(GetAbsOrigin() + vecForward * 5, vecMins, vecMaxs, this);
 
 	ResetSequence(LookupSequence("idle"));
 
@@ -172,8 +322,6 @@ void CAntigenDispenser::Spawn()
 	UpdateJuice(m_iJuice);
 
 	m_nState = 0;
-
-	m_iReactivate = 0;
 
 	m_flJuice = m_iJuice;
 	StudioFrameAdvance();
@@ -479,6 +627,9 @@ bool CAntigenDispenser::EjectCanister(CBasePlayer* pPlayer)
 		g_EventQueue.AddEvent(pTank, "Use", value, 0.01f, pPlayer, this);
 	}
 
+	m_hTrigger->IgnoreTouches(pTank);
+	m_hTrigger->Enable();
+
 	m_OnCanisterEjected.Set(pTank, pActivator, this);
 	return true;
 }
@@ -528,6 +679,7 @@ void CAntigenDispenser::SetCanister(bool bInserted)
 	int nBody = FindBodygroupByName("withTank");
 	if (bInserted)
 	{
+		m_hTrigger->Disable();
 		SetBodygroup(nBody, 1);
 		m_iCaps = FCAP_CONTINUOUS_USE;
 	}
@@ -535,5 +687,6 @@ void CAntigenDispenser::SetCanister(bool bInserted)
 	{
 		SetBodygroup(nBody, 0);
 		m_iCaps = 0;
+		m_hTrigger->Enable();
 	}
 }
