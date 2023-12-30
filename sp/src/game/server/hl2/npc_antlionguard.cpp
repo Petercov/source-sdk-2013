@@ -52,7 +52,7 @@ ConVar	sk_antlionguard_dmg_shove( "sk_antlionguard_dmg_shove", "0" );
 ConVar	g_antlionguard_hemorrhage( "g_antlionguard_hemorrhage", "1", FCVAR_NONE, "If 1, guard will emit a bleeding particle effect when wounded." );
 #endif
 
-#ifdef EZ2
+#ifdef MAPBASE
 ConVar	g_antlionguard_dynamic_shove( "g_antlionguard_dynamic_shove", "1", FCVAR_NONE, "Allows guards to dynamically shove props." );
 ConVar	sk_antlionguard_shove_min_mass( "sk_antlionguard_shove_min_mass", "8", FCVAR_NONE, "Minimum mass for dynamic prop shoving." );
 ConVar	sk_antlionguard_shove_max_mass( "sk_antlionguard_shove_max_mass", "2000", FCVAR_NONE, "Maximum mass for dynamic prop shoving." );
@@ -76,7 +76,7 @@ ConVar	sk_antlionguard_shove_max_mass( "sk_antlionguard_shove_max_mass", "2000",
 #define ANTLIONGUARD_MAX_OBJECTS				128
 #define	ANTLIONGUARD_MIN_OBJECT_MASS			8
 #define	ANTLIONGUARD_MAX_OBJECT_MASS			750
-#ifdef EZ2 // E:Z2 is more loose about what guards can punt
+#ifdef MAPBASE // E:Z2 is more loose about what guards can punt
 #define	ANTLIONGUARD_MIN_OBJECT_PUNT_MASS		sk_antlionguard_shove_min_mass.GetFloat()
 #define	ANTLIONGUARD_MAX_OBJECT_PUNT_MASS		sk_antlionguard_shove_max_mass.GetFloat()
 #else
@@ -894,7 +894,7 @@ void CNPC_AntlionGuard::Activate( void )
 {
 	BaseClass::Activate();
 
-#ifdef EZ2
+#ifdef MAPBASE
 	// This feature was broken prior to E:Z2 changes, so use a cvar to make sure restoring it now doesn't cause problems
 	if (g_antlionguard_dynamic_shove.GetBool())
 #endif

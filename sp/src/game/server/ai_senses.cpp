@@ -144,7 +144,7 @@ void CAI_Senses::Listen( void )
 
 bool CAI_Senses::ShouldSeeEntity( CBaseEntity *pSightEnt )
 {
-#ifdef EZ2
+#ifdef MAPBASE
 	if ( pSightEnt == GetOuter() || (!(pSightEnt->GetFlags() & FL_OBJECT) && !pSightEnt->IsAlive()) )
 #else
 	if ( pSightEnt == GetOuter() || !pSightEnt->IsAlive() )
