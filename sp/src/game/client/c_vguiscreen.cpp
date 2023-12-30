@@ -478,7 +478,7 @@ void C_VGuiScreen::ClientThink( void )
 		const int nBit = i ? IN_ATTACK2 : (IN_ATTACK | IN_USE);
 		const vgui::MouseCode nButton = i ? MOUSE_RIGHT : MOUSE_LEFT;
 
-		if ((m_nButtonReleased & nBit) || m_bLoseThinkNextFrame) // for a button release on loosing focus
+		if ((m_nButtonReleased & nBit) || ((m_nButtonState & nBit) && m_bLoseThinkNextFrame)) // for a button release on loosing focus
 		{
 			g_InputInternal->SetMouseCodeState(nButton, vgui::BUTTON_RELEASED);
 			vgui::ivgui()->PostMessage(focus, new KeyValues("MouseReleased", "code", nButton), NULL);
