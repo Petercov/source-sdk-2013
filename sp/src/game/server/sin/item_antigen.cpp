@@ -333,10 +333,11 @@ void CAntigenDispenser::Precache(void)
 {
 	PrecacheModel(ANTIGEN_DISPENSER_MODEL);
 
-	PrecacheScriptSound("WallHealth.Deny");
-	PrecacheScriptSound("WallHealth.Start");
-	PrecacheScriptSound("WallHealth.LoopingContinueCharge");
-	PrecacheScriptSound("WallHealth.Recharge");
+	PrecacheScriptSound("dispenser.empty");
+	PrecacheScriptSound("dispenser.load");
+	PrecacheScriptSound("dispenser.eject");
+	PrecacheScriptSound("dispenser.use_loop");
+	PrecacheScriptSound("dispenser.stop");
 }
 
 int CAntigenDispenser::DrawDebugTextOverlays(void)
@@ -365,7 +366,10 @@ void CAntigenDispenser::Off(void)
 {
 	// Stop looping sound.
 	if (m_iOn > 1)
-		StopSound("WallHealth.LoopingContinueCharge");
+	{
+		StopSound("dispenser.use_loop");
+		EmitSound("dispenser.stop");
+	}
 
 	m_iOn = 0;
 	m_flJuice = m_iJuice;
@@ -425,7 +429,7 @@ void CAntigenDispenser::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 		if (m_flSoundTime <= gpGlobals->curtime)
 		{
 			m_flSoundTime = gpGlobals->curtime + 0.62;
-			EmitSound("WallHealth.Deny");
+			EmitSound("dispenser.empty");
 		}
 		return;
 	}
@@ -440,7 +444,7 @@ void CAntigenDispenser::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 		// Make the user re-use me to get started drawing health.
 		m_iCaps = FCAP_IMPULSE_USE;
 
-		EmitSound("WallHealth.Deny");
+		EmitSound("dispenser.empty");
 		return;
 	}
 
@@ -456,18 +460,18 @@ void CAntigenDispenser::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 	if (!m_iOn)
 	{
 		m_iOn++;
-		EmitSound("WallHealth.Start");
+		EmitSound("dispenser.use_loop");
 		m_flSoundTime = 0.56 + gpGlobals->curtime;
 
 		m_OnPlayerUse.FireOutput(pActivator, this);
 	}
-	if ((m_iOn == 1) && (m_flSoundTime <= gpGlobals->curtime))
+	/*if ((m_iOn == 1) && (m_flSoundTime <= gpGlobals->curtime))
 	{
 		m_iOn++;
 		CPASAttenuationFilter filter(this, "WallHealth.LoopingContinueCharge");
 		filter.MakeReliable();
 		EmitSound(filter, entindex(), "WallHealth.LoopingContinueCharge");
-	}
+	}*/
 
 	// charge the player
 #ifdef MAPBASE
@@ -630,6 +634,7 @@ bool CAntigenDispenser::EjectCanister(CBasePlayer* pPlayer)
 	m_hTrigger->IgnoreTouches(pTank);
 	m_hTrigger->Enable();
 
+	EmitSound("dispenser.eject");
 	m_OnCanisterEjected.Set(pTank, pActivator, this);
 	return true;
 }
@@ -644,11 +649,12 @@ bool CAntigenDispenser::InsertCanister(CAntigenTank* pTank)
 	m_flJuice = m_iJuice;
 	StudioFrameAdvance();
 
-	CBaseEntity* pActivator = pTank->HasPhysicsAttacker(0.5f);
+	/*CBaseEntity* pActivator = pTank->HasPhysicsAttacker(0.5f);
 	if (!pActivator)
-		pActivator = this;
+		pActivator = this;*/
 
-	m_OnCanisterInserted.FireOutput(pActivator, this);
+	EmitSound("dispenser.load");
+	m_OnCanisterInserted.FireOutput(this, this);
 	UTIL_Remove(pTank);
 	return true;
 }
