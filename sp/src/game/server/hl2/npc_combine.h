@@ -231,6 +231,8 @@ public:
 	void			AnnounceEnemyType( CBaseEntity *pEnemy );
 	void			AnnounceEnemyKill( CBaseEntity *pEnemy );
 
+	virtual void	BashSound() { EmitSound("NPC_Combine.WeaponBash"); }
+
 	void			NotifyDeadFriend( CBaseEntity* pFriend );
 
 	virtual float	HearingSensitivity( void ) { return 1.0; };
@@ -362,7 +364,7 @@ private:
 		NEXT_CONDITION
 	};
 
-private:
+protected:
 	// Select the combat schedule
 	virtual int SelectCombatSchedule();
 

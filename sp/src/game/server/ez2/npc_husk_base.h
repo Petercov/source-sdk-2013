@@ -130,7 +130,9 @@ public:
 	float		GetReactionDelay( CBaseEntity *pEnemy );
 
 	void		ModifyOrAppendCriteria( AI_CriteriaSet &set );
-	void		ModifyOrAppendCriteriaForPlayer( CBasePlayer *pPlayer, AI_CriteriaSet &set );
+#ifdef EZ2
+	void		ModifyOrAppendCriteriaForPlayer(CBasePlayer* pPlayer, AI_CriteriaSet& set);
+#endif // EZ2
 
 	bool		FCanCheckAttacks( void );
 	Vector		GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy = true );
@@ -720,16 +722,18 @@ void CAI_BaseHusk<BASE_NPC>::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 	set.AppendCriteria( "husk_aggression", UTIL_VarArgs("%i", (int)this->m_nHuskAggressionLevel) );
 }
 
+#ifdef EZ2
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 template <class BASE_NPC>
-void CAI_BaseHusk<BASE_NPC>::ModifyOrAppendCriteriaForPlayer( CBasePlayer *pPlayer, AI_CriteriaSet &set )
+void CAI_BaseHusk<BASE_NPC>::ModifyOrAppendCriteriaForPlayer(CBasePlayer* pPlayer, AI_CriteriaSet& set)
 {
-	BaseClass::ModifyOrAppendCriteriaForPlayer( pPlayer, set );
-	
-	set.AppendCriteria( "husk_cognizance", UTIL_VarArgs("%i", (int)this->m_nHuskCognitionFlags) );
-	set.AppendCriteria( "husk_aggression", UTIL_VarArgs("%i", (int)this->m_nHuskAggressionLevel) );
+	BaseClass::ModifyOrAppendCriteriaForPlayer(pPlayer, set);
+
+	set.AppendCriteria("husk_cognizance", UTIL_VarArgs("%i", (int)this->m_nHuskCognitionFlags));
+	set.AppendCriteria("husk_aggression", UTIL_VarArgs("%i", (int)this->m_nHuskAggressionLevel));
 }
+#endif // EZ2
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

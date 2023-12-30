@@ -2018,7 +2018,7 @@ int CNPC_Combine::SelectCombatSchedule()
 	// --------------------------------------------------------------
 	if ( HasCondition( COND_SEE_ENEMY ) && !HasCondition( COND_CAN_RANGE_ATTACK1 ) )
 	{
-#ifdef EZ
+#ifdef EZ_NPCS
 		// If I have a melee weapon and I'm the primary attacker, just chase head-on
 		if (GetActiveWeapon() && GetActiveWeapon()->IsMeleeWeapon() && OccupyStrategySlot( SQUAD_SLOT_ATTACK1 ))
 		{
@@ -3065,7 +3065,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 						CalculateMeleeDamageForce( &info, forward, pBCC->GetAbsOrigin() );
 						pBCC->TakeDamage( info );
 
-						EmitSound( "NPC_Combine.WeaponBash" );
+						BashSound();
 					}
 				}	
 #ifdef SOLDIER_OBSTRUCTION
@@ -3082,7 +3082,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 						CalculateMeleeDamageForce( &info, forward, pHurt->GetAbsOrigin() );
 						pHurt->TakeDamage( info );
 
-						EmitSound( "NPC_Combine.WeaponBash" );
+						BashSound();
 					}
 				}
 #endif

@@ -239,7 +239,7 @@ public:
 	bool HasBaton( void );
 
 	// Normal schedule selection 
-#ifdef EZ2
+#ifdef EZ_NPCS
 protected:
 	// Virtual and protected for husks to override
 	virtual int SelectCombatSchedule();
@@ -375,7 +375,7 @@ private:
 	virtual void StartWaitingForRappel() { m_RappelBehavior.StartWaitingForRappel(); }
 #endif
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 	// So that husks can access
 protected:
 #else

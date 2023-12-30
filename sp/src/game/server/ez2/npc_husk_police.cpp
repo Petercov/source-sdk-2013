@@ -80,16 +80,22 @@ void CNPC_HuskPolice::Precache()
 {
 	if ( GetModelName() == NULL_STRING )
 	{
+#ifdef EZ
 		switch (m_tEzVariant)
 		{
-			case EZ_VARIANT_ATHENAEUM:
-				SetModelName( MAKE_STRING( "models/husks/athenaeum/husk_police.mdl" ) );
-				break;
+		case EZ_VARIANT_ATHENAEUM:
+			SetModelName(MAKE_STRING("models/husks/athenaeum/husk_police.mdl"));
+			break;
 
-			default:
+		default:
+#endif // EZ
+
 				SetModelName( MAKE_STRING( "models/husks/husk_police.mdl" ) );
+#ifdef EZ
 				break;
 		}
+#endif // EZ
+
 	}
 
 	BaseClass::Precache();
@@ -99,11 +105,14 @@ void CNPC_HuskPolice::Precache()
 //-----------------------------------------------------------------------------
 bool CNPC_HuskPolice::GetGameTextSpeechParams( hudtextparms_t &params )
 {
+#ifdef EZ
 	if (GetEZVariant() == EZ_VARIANT_ATHENAEUM)
 	{
 		params.r1 = 72; params.g1 = 64; params.b1 = 128;
 	}
 	else
+#endif // EZ
+
 	{
 		params.r1 = 128; params.g1 = 96; params.b1 = 64;
 	}

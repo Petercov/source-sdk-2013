@@ -196,11 +196,16 @@ END_SEND_TABLE()
 CNPC_HuskSoldier::CNPC_HuskSoldier()
 {
 	// Undo CNPC_Combine's npc_create flags
-	RemoveSpawnFlags( /*SF_COMBINE_COMMANDABLE |*/ SF_COMBINE_REGENERATE );
+#ifdef COMBINE_COMPANION
+	RemoveSpawnFlags( /*SF_COMBINE_COMMANDABLE |*/ SF_COMBINE_REGENERATE);
+#endif // COMBINE_COMPANION
+
 
 	m_iNumGrenades = -1;
+#ifdef COMBINE_COMPANION
 	m_bDontPickupWeapons = false;
 	m_bLookForItems = true;
+#endif // COMBINE_COMPANION
 
 	m_tHuskSoldierType = HUSK_DEFAULT;
 }
@@ -326,11 +331,13 @@ bool CNPC_HuskSoldier::GetGameTextSpeechParams( hudtextparms_t &params )
 		default:
 		case HUSK_SOLDIER:
 		case HUSK_ELITE:
+#ifdef EZ
 			if (GetEZVariant() == EZ_VARIANT_ATHENAEUM)
 			{
 				params.r1 = 72; params.g1 = 64; params.b1 = 128;
 			}
 			else
+#endif // EZ
 			{
 				params.r1 = 128; params.g1 = 96; params.b1 = 64;
 			}
@@ -360,18 +367,22 @@ bool CNPC_HuskSoldier::GetGameTextSpeechParams( hudtextparms_t &params )
 //-----------------------------------------------------------------------------
 inline const char *CNPC_HuskSoldier::GetEZVariantString()
 {
-	switch ( GetEZVariant() )
+#ifdef EZ
+	switch (GetEZVariant())
 	{
-		default:
-		case EZ_VARIANT_DEFAULT:	return NULL;
-		case EZ_VARIANT_XEN:		return "xen";
-		case EZ_VARIANT_RAD:		return "rad";
-		case EZ_VARIANT_TEMPORAL:	return "temporal";
-		case EZ_VARIANT_ARBEIT:		return "arbeit";
-		case EZ_VARIANT_BLOODLION:	return "blood";
-		case EZ_VARIANT_ATHENAEUM:	return "athenaeum";
-		case EZ_VARIANT_ASH:		return "ash";
+	default:
+	case EZ_VARIANT_DEFAULT:	return NULL;
+	case EZ_VARIANT_XEN:		return "xen";
+	case EZ_VARIANT_RAD:		return "rad";
+	case EZ_VARIANT_TEMPORAL:	return "temporal";
+	case EZ_VARIANT_ARBEIT:		return "arbeit";
+	case EZ_VARIANT_BLOODLION:	return "blood";
+	case EZ_VARIANT_ATHENAEUM:	return "athenaeum";
+	case EZ_VARIANT_ASH:		return "ash";
 	}
+#else
+	return NULL;
+#endif // EZ
 }
 
 //-----------------------------------------------------------------------------
@@ -415,13 +426,15 @@ void CNPC_HuskSoldier::BashSound()
 //-----------------------------------------------------------------------------
 float CNPC_HuskSoldier::GetHostileRadius()
 {
+#ifdef COMBINE_COMPANION
 	if (HasCondition(COND_TALKER_PLAYER_STARING) && GetEnemy() && GetEnemy()->IsPlayer())
 	{
 		// Pause if the player is trying to give me something
-		CBaseEntity *pHeld = GetPlayerHeldEntity( ToBasePlayer( GetEnemy() ) );
+		CBaseEntity* pHeld = GetPlayerHeldEntity(ToBasePlayer(GetEnemy()));
 		if (pHeld && pHeld->IsBaseCombatWeapon() && pHeld->IsCombatItem())
 			return 0.0f;
 	}
+#endif // COMBINE_COMPANION
 
 	return BaseClass::GetHostileRadius();
 }
@@ -446,13 +459,15 @@ bool CNPC_HuskSoldier::IsCommandable()
 //-----------------------------------------------------------------------------
 float CNPC_HuskSoldier::ShouldDelayEscalation()
 {
+#ifdef COMBINE_COMPANION
 	if (HasCondition(COND_TALKER_PLAYER_STARING) && GetEnemy() && GetEnemy()->IsPlayer())
 	{
 		// Pause if the player is trying to give me something
-		CBaseEntity *pHeld = GetPlayerHeldEntity( ToBasePlayer( GetEnemy() ) );
+		CBaseEntity* pHeld = GetPlayerHeldEntity(ToBasePlayer(GetEnemy()));
 		if (pHeld && pHeld->IsBaseCombatWeapon() && pHeld->IsCombatItem())
 			return 10.0f;
 	}
+#endif // COMBINE_COMPANION
 
 	return 0.0f;
 }
@@ -498,7 +513,8 @@ bool CNPC_HuskSoldier::IsGiveableWeapon( CBaseCombatWeapon *pWeapon )
 //-----------------------------------------------------------------------------
 bool CNPC_HuskSoldier::IsGiveableItem( CBaseEntity *pItem )
 {
-	if (!BaseClass::IsGiveableItem( pItem ))
+#ifdef COMBINE_COMPANION
+	if (!BaseClass::IsGiveableItem(pItem))
 	{
 		if (pItem->IsCombatItem())
 		{
@@ -506,15 +522,15 @@ bool CNPC_HuskSoldier::IsGiveableItem( CBaseEntity *pItem )
 			// However, husks should always accept health kits. Even if they're not technically hurt,
 			// their decrepit state should give off the impression that they are.
 			// TODO: Is giving health kits to any husk OP?
-			if (pItem->ClassMatches( "item_health*" ) || pItem->ClassMatches( "item_battery" ))
+			if (pItem->ClassMatches("item_health*") || pItem->ClassMatches("item_battery"))
 				return true;
 
 			// Allow players to give us ammo corresponding to the weapon we're holding
-			if (pItem->ClassMatches( "item_ammo*" ) && GetActiveWeapon() && GetActiveWeapon()->GetPrimaryAmmoType() != -1)
+			if (pItem->ClassMatches("item_ammo*") && GetActiveWeapon() && GetActiveWeapon()->GetPrimaryAmmoType() != -1)
 			{
 				// Since ammo items have no header nor any way of qualifying their ammo type by default,
 				// we have to guess
-				const char *pszAmmoName = GetAmmoDef()->Name( GetActiveWeapon()->GetPrimaryAmmoType() );
+				const char* pszAmmoName = GetAmmoDef()->Name(GetActiveWeapon()->GetPrimaryAmmoType());
 				if (!pszAmmoName)
 					return false;
 
@@ -523,17 +539,17 @@ bool CNPC_HuskSoldier::IsGiveableItem( CBaseEntity *pItem )
 					pszAmmoName = "crossbow";
 				else if (FStrEq(pszAmmoName, "RPG_Round"))
 					pszAmmoName = "rpg";
-				else if (FStrEq( pszAmmoName, "Buckshot" ))
+				else if (FStrEq(pszAmmoName, "Buckshot"))
 				{
 					// This uses the old classname nomenclature
 					// (If the other item_box_ classes are ever restored, expand this)
-					return pItem->ClassMatches( "item_box_buckshot" );
+					return pItem->ClassMatches("item_box_buckshot");
 				}
 
 				char szItemClassname[128];
-				Q_snprintf( szItemClassname, sizeof( szItemClassname ), "item_ammo_%s*", pszAmmoName );
+				Q_snprintf(szItemClassname, sizeof(szItemClassname), "item_ammo_%s*", pszAmmoName);
 
-				return pItem->ClassMatches( szItemClassname );
+				return pItem->ClassMatches(szItemClassname);
 			}
 		}
 
@@ -541,6 +557,9 @@ bool CNPC_HuskSoldier::IsGiveableItem( CBaseEntity *pItem )
 	}
 
 	return true;
+#else
+	return false;
+#endif // COMBINE_COMPANION
 }
 
 //-----------------------------------------------------------------------------
@@ -591,10 +610,12 @@ bool CNPC_HuskSoldier::RemovePassiveTarget( CBaseEntity *pTarget )
 	if (!BaseClass::RemovePassiveTarget( pTarget ))
 		return false;
 
-	if ( pTarget->IsPlayer() && IsInPlayerSquad() && IRelationType( pTarget ) <= D_FR )
+#ifdef COMBINE_COMPANION
+	if (pTarget->IsPlayer() && IsInPlayerSquad() && IRelationType(pTarget) <= D_FR)
 	{
 		RemoveFromPlayerSquad();
 	}
+#endif // COMBINE_COMPANION
 
 	return true;
 }

@@ -708,7 +708,7 @@ bool CAI_ActBusyBehavior::IsCurScheduleOverridable( void )
 		// the only exception is SCRIPT (sjb)
 		return (GetOuter()->GetState() != NPC_STATE_SCRIPT);
 	}
-#ifdef EZ2
+#ifdef EZ_NPCS
 	else if ( IsBeastActBusy() || IsHuskActBusy() )
 	{
 		// Beast and husk actbusies can run in any idle schedule
@@ -1089,7 +1089,7 @@ void CAI_ActBusyBehavior::BuildScheduleTestBits( void )
 		{
 			GetOuter()->SetCustomInterruptCondition( GetClassScheduleIdSpace()->ConditionLocalToGlobal(COND_ACTBUSY_ENEMY_TOO_CLOSE) );
 		}
-#ifdef EZ2
+#ifdef EZ_NPCS
 		else if ( IsBeastActBusy() || IsHuskActBusy() )
 		{
 			GetOuter()->SetCustomInterruptCondition( COND_NEW_ENEMY );
@@ -1139,7 +1139,7 @@ void CAI_ActBusyBehavior::BuildScheduleTestBits( void )
 				GetOuter()->SetCustomInterruptCondition( COND_PLAYER_ADDED_TO_SQUAD );
 				GetOuter()->SetCustomInterruptCondition( COND_RECEIVED_ORDERS );
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 				if ( IsHuskActBusy() )
 				{
 					// Husks can be interrupted by player sounds
@@ -1251,7 +1251,7 @@ int CAI_ActBusyBehavior::SelectScheduleWhileNotBusy( int iBase )
 	if ( m_bForceActBusy || m_flNextBusySearchTime < gpGlobals->curtime )
 	{
 		// If we're being forced, think again quickly
-#ifdef EZ2
+#ifdef EZ_NPCS
 		if ( m_bForceActBusy || IsCombatActBusy() || IsBeastActBusy() || IsHuskActBusy() )
 #else
 		if ( m_bForceActBusy || IsCombatActBusy() )
@@ -1485,7 +1485,7 @@ int CAI_ActBusyBehavior::SelectSchedule()
 		if ( m_bBusy )
 			return SelectScheduleWhileBusy();
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 		// TODO: Spread this to other actbusy types? I'm pretty sure I've seen this problem with the beast zombies in E:Z2
 		if ( IsHuskActBusy() && m_bMovingToBusy )
 		{
@@ -1731,7 +1731,7 @@ bool CAI_ActBusyBehavior::IsInSafeZone( CBaseEntity *pEntity )
 	return false;
 }
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 bool CAI_ActBusyBehavior::IsBeastActBusy()

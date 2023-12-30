@@ -5113,7 +5113,7 @@ int CNPC_MetroPolice::SelectSchedule( void )
 				if ( nSched != SCHED_NONE )
 					return nSched;
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 				nSched = SelectAlertSchedule();
 				if ( nSched != SCHED_NONE )
 					return nSched;

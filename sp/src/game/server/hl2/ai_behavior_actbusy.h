@@ -19,7 +19,7 @@ enum
 	ACTBUSY_TYPE_DEFAULT = 0,
 	ACTBUSY_TYPE_COMBAT,
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 	// For slumped zombies in Chapter 3, this is higher up to avoid
 	// conflicts with any future Mapbase actbusy types
 	ACTBUSY_TYPE_BEAST = 10,
@@ -162,7 +162,7 @@ public:
 	bool	IsInSafeZone( CBaseEntity *pEntity );
 	int		CountEnemiesInSafeZone();
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 	bool	IsBeastActBusy();
 	bool	IsHuskActBusy();
 #endif

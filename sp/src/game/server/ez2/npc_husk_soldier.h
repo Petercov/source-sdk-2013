@@ -67,7 +67,9 @@ public:
 	bool		IsCommandable();
 	float		ShouldDelayEscalation();
 	void		PickupItem( CBaseEntity *pItem );
+#ifdef COMBINE_COMPANION
 	bool		ShouldAllowPlayerGive() { return !IsAngry() && m_iCanPlayerGive != TRS_FALSE; }
+#endif // COMBINE_COMPANION
 	bool		IsGiveableWeapon( CBaseCombatWeapon *pWeapon );
 	bool		IsGiveableItem( CBaseEntity *pItem );
 	void		StartPlayerGive( CBasePlayer *pPlayer );

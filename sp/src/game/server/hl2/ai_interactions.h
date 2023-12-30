@@ -77,11 +77,11 @@ extern int	g_interactionPlayerPuntedHeavyObject;
 // Melee attack will land in one second or so.
 extern int	g_interactionZombieMeleeWarning;
 
-#ifdef EZ
+#if defined(EZ_NPCS) || defined(METROZOMBIES)
 extern int  g_interactionZombinePullGrenade;
 #endif
 
-#ifdef EZ2
+#ifdef EZ_NPCS
 // Headcrab
 extern int	g_interactionHeadcrabJump;
 
