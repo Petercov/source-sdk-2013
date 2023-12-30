@@ -218,6 +218,7 @@ public:
 
 #ifdef MAPBASE
 	AIConcept_t GetLastSpokeConcept( AIConcept_t excludeConcept = NULL );
+	float GetTimeLastSpoke(AIConcept_t excludeConcept = NULL);
 #endif
 	
 	// --------------------------------

@@ -1579,6 +1579,28 @@ AIConcept_t CAI_Expresser::GetLastSpokeConcept( AIConcept_t excludeConcept /* = 
 
 	return iLastSpokenIndex != m_ConceptHistories.InvalidIndex() ? m_ConceptHistories.GetElementName( iLastSpokenIndex ) : NULL;
 }
+
+float CAI_Expresser::GetTimeLastSpoke(AIConcept_t excludeConcept)
+{
+	int iLastSpokenIndex = m_ConceptHistories.InvalidIndex();
+	float flLast = 0.0f;
+	for (int i = m_ConceptHistories.First(); i != m_ConceptHistories.InvalidIndex(); i = m_ConceptHistories.Next(i))
+	{
+		ConceptHistory_t* h = &m_ConceptHistories[i];
+
+		// If an 'exclude concept' was provided, skip over this entry in the history if it matches the exclude concept
+		if (excludeConcept != NULL && FStrEq(m_ConceptHistories.GetElementName(i), excludeConcept))
+			continue;
+
+		if (h->timeSpoken >= flLast)
+		{
+			iLastSpokenIndex = i;
+			flLast = h->timeSpoken;
+		}
+	}
+
+	return iLastSpokenIndex != m_ConceptHistories.InvalidIndex() ? flLast : -1;
+}
 #endif
 
 //-------------------------------------
@@ -1665,7 +1687,7 @@ void CAI_ExpresserHost_NPC_DoModifyOrAppendCriteria( CAI_BaseNPC *pSpeaker, AI_C
   		set.AppendCriteria( "activity", pActivityName );
 	}
 
-	static const char *pStateNames[] = { "None", "Idle", "Alert", "Combat", "Scripted", "PlayDead", "Dead" };
+	static const char *pStateNames[] = { "None", "Idle", "Alert", "Combat", "Scripted", "PlayDead", "Prone", "Dead" };
 	if ( (int)pSpeaker->m_NPCState < ARRAYSIZE(pStateNames) )
 	{
 		set.AppendCriteria( "npcstate", UTIL_VarArgs( "[NPCState::%s]", pStateNames[pSpeaker->m_NPCState] ) );

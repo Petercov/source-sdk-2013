@@ -1982,20 +1982,6 @@ void CNPC_PlayerCompanion::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 		set.AppendCriteria( "hurt_by_fire", "1" );
 	}
 
-#ifdef MAPBASE
-	// Ported from Alyx.
-	AIEnemiesIter_t iter;
-	int iNumEnemies = 0;
-	for ( AI_EnemyInfo_t *pEMemory = GetEnemies()->GetFirst(&iter); pEMemory != NULL; pEMemory = GetEnemies()->GetNext(&iter) )
-	{
-		if ( pEMemory->hEnemy->IsAlive() && ( pEMemory->hEnemy->Classify() != CLASS_BULLSEYE ) )
-		{
-			iNumEnemies++;
-		}
-	}
-	set.AppendCriteria( "num_enemies", UTIL_VarArgs( "%d", iNumEnemies ) );
-#endif
-
 	if ( m_bReadinessCapable )
 	{
 		switch( GetReadinessLevel() )

@@ -16650,6 +16650,18 @@ void CAI_BaseNPC::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 
 #ifdef MAPBASE
 	ModifyOrAppendEnemyCriteria(set, GetEnemy());
+
+	// Ported from Alyx.
+	AIEnemiesIter_t iter;
+	int iNumEnemies = 0;
+	for (AI_EnemyInfo_t* pEMemory = GetEnemies()->GetFirst(&iter); pEMemory != NULL; pEMemory = GetEnemies()->GetNext(&iter))
+	{
+		if (pEMemory->hEnemy->IsAlive() && (pEMemory->hEnemy->Classify() != CLASS_BULLSEYE))
+		{
+			iNumEnemies++;
+		}
+}
+	set.AppendCriteria("num_enemies", UTIL_VarArgs("%d", iNumEnemies));
 #else
 	// Append distance to my enemy
 	if ( GetEnemy() )
@@ -16681,6 +16693,15 @@ void CAI_BaseNPC::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 	{
 		set.AppendCriteria( "insquad", "0" );
 	}
+
+#ifdef NEW_RESPONSE_SYSTEM
+	if (GetExpresser())
+	{
+		// Find the last spoken concept.
+		float lastSpokeTime = GetExpresser()->GetTimeLastSpoke("TLK_WOUND");
+		set.AppendCriteria("last_spoke", UTIL_VarArgs("%f", gpGlobals->curtime - lastSpokeTime));
+	}
+#endif // NEW_RESPONSE_SYSTEM
 #endif
 
 #ifdef EZ
@@ -16707,6 +16728,11 @@ static inline bool WasUnremarkableConcept(AIConcept_t concept)
 		CompareConcepts(concept, TLK_SHOT);
 }
 
+static inline const char* GetAITimeVar(const float& var)
+{
+	return var <= 0.0f ? "-1" : UTIL_VarArgs("%f", gpGlobals->curtime - var);
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Appends enemy criteria so some classes could re-define it for, say, killing something
 //-----------------------------------------------------------------------------
@@ -16717,16 +16743,46 @@ void CAI_BaseNPC::ModifyOrAppendEnemyCriteria( AI_CriteriaSet& set, CBaseEntity 
 		set.AppendCriteria( "enemy", pEnemy->GetClassname() );
 		set.AppendCriteria( "enemyclass", g_pGameRules->AIClassText( pEnemy->Classify() ) ); // UTIL_VarArgs("%i", pEnemy->Classify())
 		set.AppendCriteria( "distancetoenemy", UTIL_VarArgs( "%f", EnemyDistance(pEnemy) ) );
+		set.AppendCriteria("enemy_visible", (FInViewCone(pEnemy) && FVisible(pEnemy)) ? "1" : "0");
+		set.AppendCriteria("relationship", UTIL_VarArgs("%d", IRelationType(pEnemy)));
 
 		if (pEnemy->IsCombatCharacter())
 		{
 			CBaseCombatCharacter* pBCC = pEnemy->MyCombatCharacterPointer();
 			set.AppendCriteria("enemy_on_fire", pBCC->IsOnFire() ? "1" : "0");
 			set.AppendCriteria("enemy_weapon", pBCC->GetActiveWeapon() ? pBCC->GetActiveWeapon()->GetClassname() : "0");
+			set.AppendCriteria("enemy_relationship", UTIL_VarArgs("%d", pBCC->IRelationType(this)));
 
 			CAI_BaseNPC* pNPC = pBCC->MyNPCPointer();
 			if (pNPC)
 			{
+				set.AppendCriteria("enemy_is_npc", "1");
+
+				// Bypass split-second reactions
+				if (pNPC->GetEnemy() == this && (gpGlobals->curtime - pNPC->GetLastEnemyTime()) > 0.1f)
+				{
+					set.AppendCriteria("enemy_attacking_me", "1");
+					set.AppendCriteria("enemy_sees_me", pNPC->HasCondition(COND_SEE_ENEMY) ? "1" : "0");
+				}
+				else
+				{
+					// Some NPCs have tunnel vision and lose sight of their enemies often.
+					// If they remember us and last saw us less than 4 seconds ago,
+					// they probably know we're there.
+					// Sure, this means the response system thinks a NPC "sees me" when they technically do not,
+					// but it curbs false sneak attack cases.
+					AI_EnemyInfo_t* EnemyInfo = pNPC->GetEnemies()->Find(this);
+					if (EnemyInfo && (gpGlobals->curtime - EnemyInfo->timeLastSeen) < 4.0f)
+					{
+						set.AppendCriteria("enemy_sees_me", "1");
+					}
+					else
+					{
+						// Do a simple visibility check
+						set.AppendCriteria("enemy_sees_me", pNPC->FInViewCone(this) && pNPC->FVisible(this) ? "1" : "0");
+					}
+				}
+
 				if (pNPC->GetExpresser())
 				{
 					// That's enough outta you.
@@ -16742,6 +16798,40 @@ void CAI_BaseNPC::ModifyOrAppendEnemyCriteria( AI_CriteriaSet& set, CBaseEntity 
 				}
 
 				set.AppendCriteria("enemy_activity", CAI_BaseNPC::GetActivityName(pNPC->GetActivity()));
+			}
+			else
+			{
+				set.AppendCriteria("enemy_is_npc", "0");
+			}
+
+			AI_EnemyInfo_t* EnemyInfo = GetEnemies()->Find(pNPC);
+			if (EnemyInfo)
+			{
+				// Record memory info
+				// NOTE: timeAtFirstHand is normally equal to timeLastSeen and only differs if the dummy was notified before seeing the enemy (i.e. by player squad)
+				set.AppendCriteria("enemy_time_last_seen", GetAITimeVar(EnemyInfo->timeLastSeen));
+				set.AppendCriteria("enemy_time_first_seen", GetAITimeVar(EnemyInfo->timeFirstSeen));
+				set.AppendCriteria( "enemy_time_last_reacquired", GetAITimeVar( EnemyInfo->timeLastReacquired ) );
+				set.AppendCriteria( "enemy_time_valid_enemy", GetAITimeVar( EnemyInfo->timeValidEnemy ) );
+				set.AppendCriteria("enemy_time_last_received_damage_from", GetAITimeVar(EnemyInfo->timeLastReceivedDamageFrom));
+				set.AppendCriteria("enemy_time_at_firsthand", GetAITimeVar(EnemyInfo->timeAtFirstHand));
+				//set.AppendCriteria( "enemy_danger_memory", EnemyInfo->bDangerMemory ? "1" : "0" );
+				set.AppendCriteria( "enemy_eluded_me", EnemyInfo->bEludedMe ? "1" : "0" );
+				set.AppendCriteria( "enemy_unforgettable", EnemyInfo->bUnforgettable ? "1" : "0" );
+				set.AppendCriteria("enemy_mobbed_me", EnemyInfo->bMobbedMe ? "1" : "0");
+			}
+			else
+			{
+				set.AppendCriteria("enemy_time_last_seen", "-1");
+				set.AppendCriteria("enemy_time_first_seen", "-1");
+				set.AppendCriteria( "enemy_time_last_reacquired", "-1" );
+				set.AppendCriteria( "enemy_time_valid_enemy", "-1" );
+				set.AppendCriteria("enemy_time_last_received_damage_from", "-1");
+				set.AppendCriteria("enemy_time_at_firsthand", "-1");
+				//set.AppendCriteria( "enemy_danger_memory", EnemyInfo->bDangerMemory ? "1" : "0" );
+				set.AppendCriteria( "enemy_eluded_me", "0" );
+				set.AppendCriteria( "enemy_unforgettable", "0" );
+				set.AppendCriteria("enemy_mobbed_me", "0");
 			}
 		}
 
@@ -16798,9 +16888,9 @@ void CAI_BaseNPC::ModifyOrAppendDamageCriteria( AI_CriteriaSet& set, const CTake
 	}
 
 	set.AppendCriteria("damage", info.GetDamage());
-	set.AppendCriteria("damagetype", UTIL_VarArgs("%i", info.GetDamageType()));
-	set.AppendCriteria("damageammo", info.GetAmmoName());
-	set.AppendCriteria("damagecustom", UTIL_VarArgs("%i", info.GetDamageCustom()));
+	set.AppendCriteria("damage_type", UTIL_VarArgs("%i", info.GetDamageType()));
+	set.AppendCriteria("damage_ammo", info.GetAmmoName());
+	set.AppendCriteria("damage_custom", UTIL_VarArgs("%i", info.GetDamageCustom()));
 }
 
 /*
