@@ -275,6 +275,9 @@ public:
 #if HL2_EPISODIC
 	virtual bool FInViewCone( CBaseEntity *pEntity );
 #endif
+#ifdef MAPBASE
+	virtual int	RangeAttack2Conditions(float flDot, float flDist);
+#endif // MAPBASE
 
 	//
 	// CBaseEntity implementation.

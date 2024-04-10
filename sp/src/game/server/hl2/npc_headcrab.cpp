@@ -34,6 +34,8 @@
 #include "decals.h"
 #ifdef MAPBASE
 #include "ai_behavior_follow.h"
+#include "grenade_spit.h"
+#include "particle_parse.h"
 #endif // MAPBASE
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -99,7 +101,9 @@ int AE_HEADCRAB_BURROW_IN;
 int AE_HEADCRAB_BURROW_IN_FINISH;
 int AE_HEADCRAB_BURROW_OUT;
 int AE_HEADCRAB_CEILING_DETACH;
-
+#ifdef MAPBASE
+int AE_POISONHEADCRAB_SPIT;
+#endif // MAPBASE
 
 //-----------------------------------------------------------------------------
 // Custom schedules.
@@ -3156,6 +3160,10 @@ void CBlackHeadcrab::Spawn( void )
 	m_bPanicState = false;
 	m_iHealth = sk_headcrab_poison_health.GetFloat();
 
+#ifdef MAPBASE
+	CapabilitiesAdd(bits_CAP_INNATE_RANGE_ATTACK2);
+#endif // MAPBASE
+
 	NPCInit();
 	HeadcrabInit();
 }
@@ -3183,6 +3191,15 @@ void CBlackHeadcrab::Precache( void )
 
 	PrecacheScriptSound( "NPC_BlackHeadcrab.FootstepWalk" );
 	PrecacheScriptSound( "NPC_BlackHeadcrab.Footstep" );
+
+#ifdef MAPBASE
+	UTIL_PrecacheOther("grenade_spit");
+
+	PrecacheParticleSystem("blood_impact_yellow_01");
+
+	PrecacheScriptSound("NPC_Antlion.PoisonShoot");
+	PrecacheScriptSound("NPC_Antlion.PoisonBall");
+#endif // MAPBASE
 
 	BaseClass::Precache();
 }
@@ -3572,8 +3589,111 @@ void CBlackHeadcrab::HandleAnimEvent( animevent_t *pEvent )
 		return;
 	}
 
+#ifdef MAPBASE
+	if (pEvent->event == AE_POISONHEADCRAB_SPIT)
+	{
+		if (GetEnemy())
+		{
+			Vector vSpitPos, vForward;
+			//GetAttachment( "Mouth", vSpitPos );
+
+			GetVectors(&vForward, nullptr, nullptr);
+			vSpitPos = GetAbsOrigin() + Vector(0, 0, 8) + vForward * 8.f; // The Bullsquid model does not have an origin!
+
+			Vector	vTarget;
+
+			// If our enemy is looking at us and far enough away, lead him
+			if (HasCondition(COND_ENEMY_FACING_ME) && UTIL_DistApprox(GetAbsOrigin(), GetEnemy()->GetAbsOrigin()) > (40 * 12))
+			{
+				UTIL_PredictedPosition(GetEnemy(), 0.5f, &vTarget);
+				vTarget.z = GetEnemy()->GetAbsOrigin().z;
+			}
+			else
+			{
+				// Otherwise he can't see us and he won't be able to dodge
+				vTarget = GetEnemy()->BodyTarget(vSpitPos, true);
+			}
+
+			//vTarget[2] += random->RandomFloat(0.0f, 32.0f);
+
+			// Try and spit at our target
+			Vector	vecToss = VecThrow(vSpitPos, vTarget, 1000.f);
+
+			// Find what our vertical theta is to estimate the time we'll impact the ground
+			Vector vecToTarget = (vTarget - vSpitPos);
+			VectorNormalize(vecToTarget);
+			float flVelocity = VectorNormalize(vecToss);
+			float flCosTheta = DotProduct(vecToTarget, vecToss);
+			float flTime = (vSpitPos - vTarget).Length2D() / (flVelocity * flCosTheta);
+
+			// Emit a sound where this is going to hit so that targets get a chance to act correctly
+			CSoundEnt::InsertSound(SOUND_DANGER, vTarget, (15 * 12), flTime, this);
+
+			// Don't fire again until this volley would have hit the ground (with some lag behind it)
+			SetNextAttack(gpGlobals->curtime + flTime + random->RandomFloat(0.5f, 2.0f));
+
+			for (int i = 0; i < 3; i++)
+			{
+				CGrenadeSpit* pGrenade = (CGrenadeSpit*)CreateEntityByName("grenade_spit");
+				pGrenade->SetAbsOrigin(vSpitPos);
+				pGrenade->SetAbsAngles(vec3_angle);
+				DispatchSpawn(pGrenade);
+				pGrenade->SetThrower(this);
+				pGrenade->SetOwnerEntity(this);
+
+				if (i == 0)
+				{
+					pGrenade->SetSpitSize(SPIT_MEDIUM);
+					pGrenade->SetAbsVelocity(vecToss * flVelocity);
+				}
+				else
+				{
+					pGrenade->SetAbsVelocity((vecToss + RandomVector(-0.035f, 0.035f)) * flVelocity);
+					pGrenade->SetSpitSize(SPIT_SMALL);
+				}
+
+				// Tumble through the air
+				pGrenade->SetLocalAngularVelocity(
+					QAngle(random->RandomFloat(-250, -500),
+						random->RandomFloat(-250, -500),
+						random->RandomFloat(-250, -500)));
+			}
+
+			for (int i = 0; i < 4; i++)
+			{
+				DispatchParticleEffect("blood_impact_yellow_01", vSpitPos + RandomVector(-6.0f, 6.0f), RandomAngle(0, 360));
+			}
+			EmitSound("NPC_Antlion.PoisonShoot");
+		}
+		return;
+	}
+#endif // MAPBASE
+
 	BaseClass::HandleAnimEvent( pEvent );
 }
+
+#ifdef MAPBASE
+int CBlackHeadcrab::RangeAttack2Conditions(float flDot, float flDist)
+{
+	if (gpGlobals->curtime < m_flNextAttack)
+		return 0;
+
+	if (flDist < HEADCRAB_MAX_JUMP_DIST)
+	{
+		return COND_TOO_CLOSE_TO_ATTACK;
+	}
+	else if (flDist > 512)
+	{
+		return COND_TOO_FAR_TO_ATTACK;
+	}
+	else if (flDot < 0.5)
+	{
+		return COND_NOT_FACING_ATTACK;
+	}
+
+	return COND_CAN_RANGE_ATTACK2;
+}
+#endif // MAPBASE
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -4068,6 +4188,9 @@ AI_BEGIN_CUSTOM_NPC( npc_headcrab_poison, CBlackHeadcrab )
 	DECLARE_ANIMEVENT( AE_POISONHEADCRAB_FLINCH_HOP )
 	DECLARE_ANIMEVENT( AE_POISONHEADCRAB_FOOTSTEP )
 	DECLARE_ANIMEVENT( AE_POISONHEADCRAB_THREAT_SOUND )
+#ifdef MAPBASE
+	DECLARE_ANIMEVENT(AE_POISONHEADCRAB_SPIT)
+#endif // MAPBASE
 
 AI_END_CUSTOM_NPC()
 
