@@ -1688,7 +1688,7 @@ int CBaseHeadcrab::RangeAttack1Conditions( float flDot, float flDist )
 bool CBaseHeadcrab::ShouldGib(const CTakeDamageInfo& info)
 {
 #ifdef MAPBASE
-	if (m_nGibCount == 0 || info.GetDamageType() & DMG_NEVERGIB)
+	if (m_nGibCount == 0 || (info.GetDamageType() & DMG_NEVERGIB))
 		return false;
 
 	if ((g_pGameRules->Damage_ShouldGibCorpse(info.GetDamageType()) && m_iHealth < GIB_HEALTH_VALUE) || (info.GetDamageType() & DMG_ALWAYSGIB))
@@ -1708,10 +1708,13 @@ bool CBaseHeadcrab::CorpseGib( const CTakeDamageInfo &info )
 	EmitSound( "NPC_HeadCrab.Gib" );	
 #ifdef MAPBASE
 	AngularImpulse angVelocity;
+	Vector vForce = CalcDamageForceVector(info);
 	QAngleToAngularImpulse(GetLocalAngularVelocity(), angVelocity);
-	breakablepropparams_t params(GetAbsOrigin(), GetAbsAngles(), GetAbsVelocity(), angVelocity);
+	if (VPhysicsGetObject())
+		vForce *= VPhysicsGetObject()->GetInvMass();
+	breakablepropparams_t params(GetAbsOrigin(), GetAbsAngles(), GetAbsVelocity() + vForce, angVelocity);
 	params.impactEnergyScale = 1.0f;
-	params.defBurstScale = 50.0f;
+	params.defBurstScale = 100.0f;
 	params.defCollisionGroup = COLLISION_GROUP_DEBRIS;
 	PropBreakableCreateAll(GetModelIndex(), nullptr, params, this, m_nGibCount, false);
 	return m_nGibCount > 0;
