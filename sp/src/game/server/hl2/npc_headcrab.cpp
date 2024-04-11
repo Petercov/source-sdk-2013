@@ -3197,7 +3197,7 @@ void CBlackHeadcrab::Precache( void )
 
 	PrecacheParticleSystem("blood_impact_yellow_01");
 
-	PrecacheScriptSound("NPC_Antlion.PoisonShoot");
+	PrecacheScriptSound("NPC_BlackHeadcrab.Hiss");
 	PrecacheScriptSound("NPC_Antlion.PoisonBall");
 #endif // MAPBASE
 
@@ -3600,18 +3600,14 @@ void CBlackHeadcrab::HandleAnimEvent( animevent_t *pEvent )
 			GetVectors(&vForward, nullptr, nullptr);
 			vSpitPos = GetAbsOrigin() + Vector(0, 0, 8) + vForward * 8.f; // The Bullsquid model does not have an origin!
 
-			Vector	vTarget;
+			Vector	vTarget = GetEnemy()->BodyTarget(vSpitPos, false);
 
 			// If our enemy is looking at us and far enough away, lead him
 			if (HasCondition(COND_ENEMY_FACING_ME) && UTIL_DistApprox(GetAbsOrigin(), GetEnemy()->GetAbsOrigin()) > (40 * 12))
 			{
-				UTIL_PredictedPosition(GetEnemy(), 0.5f, &vTarget);
-				vTarget.z = GetEnemy()->GetAbsOrigin().z;
-			}
-			else
-			{
-				// Otherwise he can't see us and he won't be able to dodge
-				vTarget = GetEnemy()->BodyTarget(vSpitPos, true);
+				Vector vBody = vTarget;
+				UTIL_PredictedPosition(GetEnemy(), vBody, 0.5f, &vTarget);
+				vTarget.z = vBody.z;
 			}
 
 			//vTarget[2] += random->RandomFloat(0.0f, 32.0f);
@@ -3630,7 +3626,7 @@ void CBlackHeadcrab::HandleAnimEvent( animevent_t *pEvent )
 			CSoundEnt::InsertSound(SOUND_DANGER, vTarget, (15 * 12), flTime, this);
 
 			// Don't fire again until this volley would have hit the ground (with some lag behind it)
-			SetNextAttack(gpGlobals->curtime + flTime + random->RandomFloat(0.5f, 2.0f));
+			SetNextAttack(gpGlobals->curtime + flTime + random->RandomFloat(0.5f, 1.0f));
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -3663,7 +3659,7 @@ void CBlackHeadcrab::HandleAnimEvent( animevent_t *pEvent )
 			{
 				DispatchParticleEffect("blood_impact_yellow_01", vSpitPos + RandomVector(-6.0f, 6.0f), RandomAngle(0, 360));
 			}
-			EmitSound("NPC_Antlion.PoisonShoot");
+			EmitSound("NPC_BlackHeadcrab.Hiss");
 		}
 		return;
 	}
