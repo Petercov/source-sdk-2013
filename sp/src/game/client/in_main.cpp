@@ -1275,8 +1275,14 @@ void CInput::CreateMove ( int sequence_number, float input_sample_frametime, boo
 
 #if defined( HL2_CLIENT_DLL )
 	// copy backchannel data
+#ifndef MAPBASE
 	int i;
 	for (i = 0; i < m_EntityGroundContact.Count(); i++)
+#else
+	int nContactCount = m_EntityGroundContact.Count();
+	cmd->entitygroundcontact.EnsureCapacity(nContactCount);
+	for (int i = 0; i < nContactCount; i++)
+#endif // !MAPBASE
 	{
 		cmd->entitygroundcontact.AddToTail( m_EntityGroundContact[i] );
 	}
