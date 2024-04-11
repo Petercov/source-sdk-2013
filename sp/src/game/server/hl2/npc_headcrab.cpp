@@ -2558,15 +2558,27 @@ void CHeadcrab::BiteSound( void )
 }
 
 #ifdef MAPBASE
-class CHeadcrabLamarr : public CAI_BehaviorHost< CHeadcrab >
+class CHeadcrabLamarr : public CAI_BehaviorHost< CBaseHeadcrab >
 {
-	DECLARE_CLASS(CHeadcrabLamarr, CAI_BehaviorHost< CHeadcrab >);
+	DECLARE_CLASS(CHeadcrabLamarr, CAI_BehaviorHost< CBaseHeadcrab >);
 public:
 	DECLARE_DATADESC();
 
-	void Precache();
-	void Spawn();
-	Class_T Classify(void);
+	void Precache(void);
+	void Spawn(void);
+
+	float	MaxYawSpeed(void);
+	Activity NPC_TranslateActivity(Activity eNewActivity);
+
+	void	BiteSound(void);
+	void	PainSound(const CTakeDamageInfo& info);
+	void	DeathSound(const CTakeDamageInfo& info);
+	void	IdleSound(void);
+	void	AlertSound(void);
+	void	AttackSound(void);
+	void	TelegraphSound(void);
+
+	virtual Class_T	Classify();
 	virtual bool 	CreateBehaviors();
 
 private:
@@ -2581,19 +2593,118 @@ LINK_ENTITY_TO_CLASS(npc_headcrab_lamarr, CHeadcrabLamarr);
 
 void CHeadcrabLamarr::Precache()
 {
-	if (GetModelName() == NULL_STRING)
-	{
-		SetModelName(AllocPooledString_StaticConstantStringPointer("models/lamarr.mdl"));
-	}
+	PrecacheModel(DefaultOrCustomModel("models/lamarr.mdl"));
+
+	//PrecacheScriptSound("NPC_HeadCrab.Gib");
+	PrecacheScriptSound("NPC_HeadCrab.Idle");
+	PrecacheScriptSound("NPC_HeadCrab.Alert");
+	PrecacheScriptSound("NPC_HeadCrab.Pain");
+	PrecacheScriptSound("NPC_HeadCrab.Die");
+	PrecacheScriptSound("NPC_HeadCrab.Attack");
+	PrecacheScriptSound("NPC_HeadCrab.Bite");
+	PrecacheScriptSound("NPC_Headcrab.BurrowIn");
+	PrecacheScriptSound("NPC_Headcrab.BurrowOut");
 
 	BaseClass::Precache();
 }
 
 void CHeadcrabLamarr::Spawn()
 {
-	BaseClass::Spawn();
+	Precache();
+	SetModel(DefaultOrCustomModel("models/lamarr.mdl"));
 
+	BaseClass::Spawn();
 	CapabilitiesAdd(bits_CAP_FRIENDLY_DMG_IMMUNE);
+
+	m_iHealth = sk_headcrab_poison_health.GetFloat();
+	m_flBurrowTime = 0.0f;
+	m_bCrawlFromCanister = false;
+	m_bMidJump = false;
+
+	NPCInit();
+	HeadcrabInit();
+
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+Activity CHeadcrabLamarr::NPC_TranslateActivity(Activity eNewActivity)
+{
+	if (eNewActivity == ACT_WALK)
+		return ACT_RUN;
+
+	return BaseClass::NPC_TranslateActivity(eNewActivity);
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::IdleSound(void)
+{
+	EmitSound("NPC_HeadCrab.Idle");
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::AlertSound(void)
+{
+	EmitSound("NPC_HeadCrab.Alert");
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::PainSound(const CTakeDamageInfo& info)
+{
+	if (IsOnFire() && random->RandomInt(0, HEADCRAB_BURN_SOUND_FREQUENCY) > 0)
+	{
+		// Don't squeak every think when burning.
+		return;
+	}
+
+	EmitSound("NPC_HeadCrab.Pain");
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::DeathSound(const CTakeDamageInfo& info)
+{
+	EmitSound("NPC_HeadCrab.Die");
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::TelegraphSound(void)
+{
+	//FIXME: Need a real one
+	EmitSound("NPC_HeadCrab.Alert");
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::AttackSound(void)
+{
+	EmitSound("NPC_Headcrab.Attack");
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CHeadcrabLamarr::BiteSound(void)
+{
+	EmitSound("NPC_HeadCrab.Bite");
 }
 
 Class_T CHeadcrabLamarr::Classify(void)
@@ -2608,6 +2719,7 @@ Class_T CHeadcrabLamarr::Classify(void)
 		return CLASS_PLAYER_ALLY_VITAL;
 	}
 }
+
 bool CHeadcrabLamarr::CreateBehaviors()
 {
 	AddBehavior(&m_FollowBehavior);
