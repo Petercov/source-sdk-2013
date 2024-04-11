@@ -80,6 +80,8 @@ $Project "Server (Episodic)"
 				$File	"episodic\weapon_hopwire.cpp"
 				$File	"hl2\npc_bullsquid.h"
 				$File	"hl2\npc_bullsquid.cpp"
+				$File	"hl2\npc_stalker_new.h"
+				$File	"hl2\npc_stalker_new.cpp"
 			}
 			
 			$File	"$SRCDIR\game\shared\episodic\achievements_ep1.cpp"
