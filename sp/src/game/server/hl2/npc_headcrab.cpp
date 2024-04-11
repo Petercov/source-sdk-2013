@@ -2676,6 +2676,40 @@ Activity CHeadcrabLamarr::NPC_TranslateActivity(Activity eNewActivity)
 	return BaseClass::NPC_TranslateActivity(eNewActivity);
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  :
+// Output : 
+//-----------------------------------------------------------------------------
+float CHeadcrabLamarr::MaxYawSpeed(void)
+{
+	switch (GetActivity())
+	{
+	case ACT_IDLE:
+		return 30;
+
+	case ACT_RUN:
+	case ACT_WALK:
+		return 20;
+
+	case ACT_TURN_LEFT:
+	case ACT_TURN_RIGHT:
+		return 15;
+
+	case ACT_RANGE_ATTACK1:
+	{
+		const Task_t* pCurTask = GetTask();
+		if (pCurTask && pCurTask->iTask == TASK_HEADCRAB_JUMP_FROM_CANISTER)
+			return 15;
+	}
+	return 30;
+
+	default:
+		return 30;
+	}
+
+	return BaseClass::MaxYawSpeed();
+}
 
 //-----------------------------------------------------------------------------
 // Purpose: 
