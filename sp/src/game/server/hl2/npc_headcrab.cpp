@@ -36,6 +36,7 @@
 #include "ai_behavior_follow.h"
 #include "grenade_spit.h"
 #include "particle_parse.h"
+#include "props.h"
 #endif // MAPBASE
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -231,6 +232,8 @@ BEGIN_DATADESC( CBaseHeadcrab )
 
 #ifdef MAPBASE
 	DEFINE_OUTPUT( m_OnLeap, "OnLeap" ),
+
+	DEFINE_FIELD(m_nGibCount, FIELD_INTEGER),
 #endif
 
 	// Function Pointers
@@ -268,7 +271,9 @@ void CBaseHeadcrab::Spawn( void )
 	SetBloodColor( BLOOD_COLOR_GREEN );
 	m_flFieldOfView		= 0.5;
 	m_NPCState			= NPC_STATE_NONE;
-	m_nGibCount			= HEADCRAB_ALL_GIB_COUNT;
+#ifndef MAPBASE
+	m_nGibCount = HEADCRAB_ALL_GIB_COUNT;
+#endif // !MAPBASE
 
 	// Are we starting hidden?
 	if ( m_spawnflags & SF_HEADCRAB_START_HIDDEN )
@@ -320,6 +325,13 @@ void CBaseHeadcrab::HeadcrabInit()
 //-----------------------------------------------------------------------------
 void CBaseHeadcrab::Precache( void )
 {
+#ifdef MAPBASE
+	if (m_nGibCount > 0)
+	{
+		PrecacheScriptSound("NPC_HeadCrab.Gib");
+	}
+#endif // MAPBASE
+
 	BaseClass::Precache();
 }	
 
@@ -1673,6 +1685,19 @@ int CBaseHeadcrab::RangeAttack1Conditions( float flDot, float flDist )
 	return COND_CAN_RANGE_ATTACK1;
 }
 
+bool CBaseHeadcrab::ShouldGib(const CTakeDamageInfo& info)
+{
+#ifdef MAPBASE
+	if (m_nGibCount == 0 || info.GetDamageType() & DMG_NEVERGIB)
+		return false;
+
+	if ((g_pGameRules->Damage_ShouldGibCorpse(info.GetDamageType()) && m_iHealth < GIB_HEALTH_VALUE) || (info.GetDamageType() & DMG_ALWAYSGIB))
+		return true;
+#endif // MAPBASE
+
+	return false;
+
+}
 
 //------------------------------------------------------------------------------
 // Purpose: Override to do headcrab specific gibs
@@ -1681,8 +1706,18 @@ int CBaseHeadcrab::RangeAttack1Conditions( float flDot, float flDist )
 bool CBaseHeadcrab::CorpseGib( const CTakeDamageInfo &info )
 {
 	EmitSound( "NPC_HeadCrab.Gib" );	
-
-	return BaseClass::CorpseGib( info );
+#ifdef MAPBASE
+	AngularImpulse angVelocity;
+	QAngleToAngularImpulse(GetLocalAngularVelocity(), angVelocity);
+	breakablepropparams_t params(GetAbsOrigin(), GetAbsAngles(), GetAbsVelocity(), angVelocity);
+	params.impactEnergyScale = 1.0f;
+	params.defBurstScale = 50.0f;
+	params.defCollisionGroup = COLLISION_GROUP_DEBRIS;
+	PropBreakableCreateAll(GetModelIndex(), nullptr, params, this, m_nGibCount, false);
+	return m_nGibCount > 0;
+#else
+	return BaseClass::CorpseGib(info);
+#endif // MAPBASE
 }
 
 //------------------------------------------------------------------------------
@@ -2138,7 +2173,9 @@ bool CBaseHeadcrab::HandleInteraction(int interactionType, void *data, CBaseComb
 	else if (interactionType ==	g_interactionVortigauntStompHit)
 	{
 		// Gib the existing guy, but only with legs and guts
+#ifndef MAPBASE
 		m_nGibCount = HEADCRAB_LEGS_GIB_COUNT;
+#endif // !MAPBASE
 		OnTakeDamage ( CTakeDamageInfo( sourceEnt, sourceEnt, m_iHealth, DMG_CRUSH|DMG_ALWAYSGIB ) );
 		
 		// Create dead headcrab in its place
@@ -2441,8 +2478,11 @@ void CBaseHeadcrab::CreateDust( bool placeDecal )
 void CHeadcrab::Precache( void )
 {
 	PrecacheModel( DefaultOrCustomModel( "models/headcrabclassic.mdl" ) );
-
-	PrecacheScriptSound( "NPC_HeadCrab.Gib" );
+#ifdef MAPBASE
+	m_nGibCount = PropBreakablePrecacheAll(GetModelName() != NULL_STRING ? GetModelName() : AllocPooledString_StaticConstantStringPointer("models/headcrabclassic.mdl"));
+#else
+	PrecacheScriptSound("NPC_HeadCrab.Gib");
+#endif // MAPBASE
 	PrecacheScriptSound( "NPC_HeadCrab.Idle" );
 	PrecacheScriptSound( "NPC_HeadCrab.Alert" );
 	PrecacheScriptSound( "NPC_HeadCrab.Pain" );
@@ -2474,7 +2514,6 @@ void CHeadcrab::Spawn( void )
 	NPCInit();
 	HeadcrabInit();
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: 

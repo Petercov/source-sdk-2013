@@ -16,7 +16,7 @@
 
 
 
-abstract_class CBaseHeadcrab : public CAI_BaseNPC
+class CBaseHeadcrab : public CAI_BaseNPC
 {
 	DECLARE_CLASS( CBaseHeadcrab, CAI_BaseNPC );
 
@@ -38,6 +38,7 @@ public:
 	bool	HasHeadroom();
 	void	LeapTouch ( CBaseEntity *pOther );
 	virtual void TouchDamage( CBaseEntity *pOther );
+	bool	ShouldGib(const CTakeDamageInfo& info);
 	bool	CorpseGib( const CTakeDamageInfo &info );
 	void	Touch( CBaseEntity *pOther );
 	Vector	BodyTarget( const Vector &posSrc, bool bNoisy = true );
