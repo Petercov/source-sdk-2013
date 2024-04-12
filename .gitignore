@@ -80,7 +80,11 @@ sp/src/game/client/Release_mod_hl2/
 sp/src/game/server/Debug_mod_episodic/
 sp/src/game/server/Debug_mod_hl2/
 sp/src/game/server/Release_mod_episodic/
-sp/src/game/server/Release_mod_hl2/
+sp/src/game/server/Release_mod_hl2
+sp/src/game/gamepadui/Debug_mod_episodic/
+sp/src/game/gamepadui/Debug_mod_hl2/
+sp/src/game/gamepadui/Release_mod_episodic/
+sp/src/game/gamepadui/Release_mod_hl2/
 sp/src/*/Debug/
 sp/src/*/Release/
 sp/game/*.dll
@@ -118,4 +122,3 @@ sp/src/devtools/gcc9+support.o
 /sp/src/game/gamepadui/*/*.dll
 /sp/src/game/gamepadui/*/*.pdb
 /sp/src/vgui2/vgui_controls/Release/vgui_controls.vcxproj.FileListAbsolute.txt
-/sp/src/game/gamepadui/Release_mod_episodic/gamepadui_episodic.vcxproj.FileListAbsolute.txt
