@@ -10,7 +10,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS;SIN_WEAPONS;SIN_NPCS;EZ_NPCS"
+		$PreprocessorDefinitions		"$BASE;HL2BETA_WEAPONS;GOREAGULATION_WEAPONS;SIN_WEAPONS;SIN_NPCS;EZ_NPCS;HL2BETA_NPCS"
 	}
 }
 
@@ -27,6 +27,18 @@ $Project
 			$File	"hl2\weapon_smg2.cpp"
 			$File	"hl2\weapon_sniperrifle.cpp"
 			$File	"physgun.cpp"
+
+			$File	"hl2\npc_sscanner.h"
+			$File	"hl2\npc_sscanner.cpp"
+			$File	"hl2\npc_sscanner_beam.h"
+			$File	"hl2\npc_sscanner_beam.cpp"
+			$File	"hl2\npc_wscanner.h"
+			$File	"hl2\npc_wscanner.cpp"
+
+			$File	"hl2\grenade_scanner.h"
+			$File	"hl2\grenade_scanner.cpp"
+			$File	"hl2\scanner_shield.h"
+			$File	"hl2\scanner_shield.cpp"
 		}
 
 		$Folder "HL2 DLL"

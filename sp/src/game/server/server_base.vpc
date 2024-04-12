@@ -1028,4 +1028,6 @@ $Project
 		$Lib	tier3
 		$ImpLibexternal steam_api
 	}
+
+	$File	"cpp.hint" [$WIN32]
 }

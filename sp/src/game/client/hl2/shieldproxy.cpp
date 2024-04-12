@@ -96,7 +96,16 @@ void CShieldProxy::OnBind( C_BaseEntity *pEnt )
 	sOffset = sOffset - ( int )sOffset;
 	tOffset = tOffset - ( int )tOffset;
 	
-	m_pTextureScrollVar->SetVecValue( sOffset, tOffset, 0.0f );
+	if (m_pTextureScrollVar->GetType() == MATERIAL_VAR_TYPE_MATRIX) // VXP
+	{
+		VMatrix mat;
+		MatrixBuildTranslation(mat, sOffset, tOffset, 0.0f);
+		m_pTextureScrollVar->SetMatrixValue(mat);
+	}
+	else
+	{
+		m_pTextureScrollVar->SetVecValue(sOffset, tOffset, 0.0f);
+	}
 }
 
 IMaterial *CShieldProxy::GetMaterial()

@@ -171,6 +171,10 @@ enum Class_T
 	CLASS_MUTANT,
 #endif // SIN_NPCS
 
+#ifdef HL2BETA_NPCS
+	CLASS_WASTE_SCANNER,
+#endif // HL2BETA_NPCS
+
 	NUM_AI_CLASSES
 };
 
