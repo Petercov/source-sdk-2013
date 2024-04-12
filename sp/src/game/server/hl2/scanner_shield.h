@@ -25,9 +25,11 @@ public:
 
 	void				Spawn( void );
 	void				Precache( void );
+	void				UpdateOnRemove();
 	void				SetTarget( CBaseEntity *pTarget );
 	bool				IsShieldOn( void );
 	void				TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator);
+	virtual bool		CreateVPhysics();
 
 private:
 	CBeam*				m_pCageBeam[NUM_CAGE_BEAMS];

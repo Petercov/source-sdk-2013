@@ -46,12 +46,37 @@ void CScannerShield::Spawn( void )
 {
 	Precache();
 	SetModel( "models/Scanner_Shield.mdl" );
+	UTIL_SetSize(this, Vector(-30, -30, 0), Vector(30, 30, 72));
+	SetRenderMode(kRenderTransTexture);
 
-	SetSolid( SOLID_BBOX );
 	SetMoveType( MOVETYPE_NONE );
-	UTIL_SetSize(this, Vector(-30,-30,0), Vector(30,30,72));
+	if (!CreateVPhysics())
+		SetSolid(SOLID_BBOX);
 }
 
+bool CScannerShield::CreateVPhysics()
+{
+	SetSolid(SOLID_VPHYSICS);
+	IPhysicsObject* pObject = VPhysicsInitShadow(false, false);
+	return pObject;
+}
+
+void CScannerShield::UpdateOnRemove()
+{
+	// -----------------------------
+	//	Stop the shield cage beams
+	// -----------------------------
+	for (int i = 0; i < NUM_CAGE_BEAMS; i++)
+	{
+		if (m_pCageBeam[i])
+		{
+			UTIL_RemoveImmediate(m_pCageBeam[i]);
+			m_pCageBeam[i] = NULL;
+		}
+	}
+
+	BaseClass::UpdateOnRemove();
+}
 
 //-----------------------------------------------------------------------------
 // Purpose:
@@ -120,15 +145,15 @@ void CScannerShield::SetTarget( CBaseEntity *pTarget )
 //------------------------------------------------------------------------------
 void CScannerShield::FadeIn(void)
 {
-	SetRenderColorA( m_clrRender->a + 0.02 );
-	if (m_clrRender->a >= 1.0)
+	SetRenderColorA( Clamp(m_clrRender->a + 5, 0, 255) );
+	if (m_clrRender->a >= 255)
 	{
-		SetRenderColorA( 1 );
+		SetRenderColorA( 255 );
 		SetThink(&CScannerShield::Spark);
 	}
 
 	// Go collidable 1/3 of the way into the fade
-	else if (m_clrRender->a >= 0.3)
+	else if (m_clrRender->a >= 76)
 	{
 		if (IsSolidFlagSet(FSOLID_NOT_SOLID))
 		{
@@ -139,7 +164,7 @@ void CScannerShield::FadeIn(void)
 	Spark();
 	for (int i=0;i<NUM_CAGE_BEAMS;i++)
 	{ 
-		m_pCageBeam[i]->SetBrightness(255*m_clrRender->a);
+		m_pCageBeam[i]->SetBrightness(/*255**/m_clrRender->a);
 	}
 	SetNextThink( gpGlobals->curtime );
 }
@@ -152,13 +177,13 @@ void CScannerShield::FadeIn(void)
 //------------------------------------------------------------------------------
 void CScannerShield::FadeOut(void)
 {
-	SetRenderColorA( m_clrRender->a - 0.05 );
+	SetRenderColorA( Clamp(m_clrRender->a - 12, 0, 255) );
 
-	if (m_clrRender->a <= 0.0)
+	if (m_clrRender->a <= 0)
 	{
 		SetOwnerEntity( NULL );
-		AddSolidFlags( FSOLID_NOT_SOLID );
 		StopFollowingEntity();
+		AddSolidFlags(FSOLID_NOT_SOLID);
 		SetMoveType( MOVETYPE_NONE );
 		AddEffects(EF_NODRAW);
 		SetRenderColorA( 0 );
@@ -166,7 +191,7 @@ void CScannerShield::FadeOut(void)
 		// -----------------------------
 		//	Stop the shield cage beams
 		// -----------------------------
-		for (int i=0;i<3;i++)
+		for (int i=0;i<NUM_CAGE_BEAMS;i++)
 		{
 			UTIL_RemoveImmediate(m_pCageBeam[i]);
 			m_pCageBeam[i] = NULL;
@@ -175,7 +200,7 @@ void CScannerShield::FadeOut(void)
 		return;
 	}
 	// Go non-collidable 1/3 of the way out of the fade
-	else if (m_clrRender->a <= 0.3)
+	else if (m_clrRender->a <= 76)
 	{
 		if (!IsSolidFlagSet(FSOLID_NOT_SOLID))
 		{
@@ -186,7 +211,7 @@ void CScannerShield::FadeOut(void)
 	Spark();
 	for (int i=0;i<NUM_CAGE_BEAMS;i++)
 	{ 
-		m_pCageBeam[i]->SetBrightness(255*m_clrRender->a);
+		m_pCageBeam[i]->SetBrightness(/*255**/m_clrRender->a);
 	}
 
 	SetNextThink( gpGlobals->curtime );
@@ -207,7 +232,7 @@ void CScannerShield::Spark(void)
 			m_pCageBeam[i] = CBeam::BeamCreate( "sprites/physbeam.vmt", 1 );//<<TEMP2>>temp art
 			m_pCageBeam[i]->SetColor( 255, 255, 255 );
 			m_pCageBeam[i]->SetBrightness( 0 );
-			m_pCageBeam[i]->SetNoise( 100 );
+			m_pCageBeam[i]->SetNoise( 10 );
 			m_pCageBeam[i]->SetWidth(4.0);
 			m_pCageBeam[i]->SetEndWidth(1.0);
 		}
@@ -218,8 +243,8 @@ void CScannerShield::Spark(void)
 		entArray[0] = this;
 		entArray[1] = this;
 		entArray[2] = this;
-		attArray[0] = 2;
-		attArray[2] = random->RandomInt(3,9);
+		attArray[0] = 1;
+		attArray[2] = random->RandomInt(2,8);
 		attArray[1] = attArray[2]+7;
 
 		m_pCageBeam[i]->SplineInit(3, entArray, attArray);

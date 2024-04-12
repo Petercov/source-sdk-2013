@@ -146,7 +146,8 @@ bool CShieldBeam::UpdateShieldNode( CShieldBeamNode* pNode, Vector &vTargetPos, 
 {
 	if (m_bReachedTail && !pNode->m_pNextNode)
 	{
-		pNode->SetLocalOrigin( m_hTail->GetLocalOrigin() + m_vTailOffset );
+		if (m_hTail)
+			pNode->SetLocalOrigin( m_hTail->GetLocalOrigin() + m_vTailOffset );
 		return true;
 	}
 	
@@ -156,7 +157,8 @@ bool CShieldBeam::UpdateShieldNode( CShieldBeamNode* pNode, Vector &vTargetPos, 
 
 	if (fDistance < 5)
 	{
-		pNode->SetLocalOrigin( m_hTail->GetLocalOrigin() + m_vTailOffset );
+		if (m_hTail)
+			pNode->SetLocalOrigin( m_hTail->GetLocalOrigin() + m_vTailOffset );
 		return true;
 	}
 	fTargetDir				= fTargetDir * (1/fDistance);
@@ -322,6 +324,7 @@ void CShieldBeam::ShieldBeamThink( void )
 		Msg("%i[%i] (%i)\n",nodecount,CountNodes(),beamcount);
 #endif
 
+		UTIL_Remove(this);
 		return;
 	}
 
@@ -460,11 +463,11 @@ void CShieldBeam::SetNoise( float fNoise )
 {
 	if (fNoise > 50)
 	{
-		m_fNoise = 50;
+		m_fNoise = 5;
 	}
 	else
 	{
-		m_fNoise = fNoise;
+		m_fNoise = fNoise / 10.f;
 	}
 }
 

@@ -74,8 +74,8 @@ BEGIN_DATADESC( CNPC_SScanner )
 	DEFINE_FIELD( m_nState,					FIELD_INTEGER),
 	DEFINE_FIELD( m_bShieldsDisabled,			FIELD_BOOLEAN),
 	DEFINE_FIELD( m_pShield,					FIELD_EHANDLE ),
-	DEFINE_FIELD( m_pShieldBeamL,				FIELD_CLASSPTR ),
-	DEFINE_FIELD( m_pShieldBeamR,				FIELD_CLASSPTR ),
+	DEFINE_FIELD( m_pShieldBeamL, FIELD_EHANDLE),
+	DEFINE_FIELD( m_pShieldBeamR, FIELD_EHANDLE),
 	DEFINE_FIELD( m_fNextShieldCheckTime,		FIELD_TIME),
 
 	DEFINE_FIELD( m_vCoverPosition,			FIELD_POSITION_VECTOR),
@@ -580,10 +580,12 @@ void CNPC_SScanner::StopShield(void)
 	if (m_pShieldBeamL)
 	{
 		m_pShieldBeamL->ShieldBeamStop();
+		m_pShieldBeamL = NULL;
 	}
 	if (m_pShieldBeamR)
 	{
 		m_pShieldBeamR->ShieldBeamStop();
+		m_pShieldBeamR = NULL;
 	}
 
 	// -----------------------------
@@ -1032,15 +1034,22 @@ int CNPC_SScanner::SelectSchedule(void)
 		// -------------------------------------------------
 		case NPC_STATE_IDLE:
 		{
-			// --------------------------------------------------
-			//  If I'm blocked find a path to my goal entity
-			// --------------------------------------------------
-			if (HasCondition( COND_SCANNER_FLY_BLOCKED ) && (GetTarget() != NULL))
-			{  
-				return SCHED_SCANNER_CHASE_TARGET;
-			}
+			if (m_nState == SSCANNER_OPEN)
+				return SCHED_SSCANNER_CLOSE;
 
-			return SCHED_SSCANNER_HOVER;
+			if (GetTarget())
+			{
+				// --------------------------------------------------
+				//  If I'm blocked find a path to my goal entity
+				// --------------------------------------------------
+				if (HasCondition(COND_SCANNER_FLY_BLOCKED))
+				{
+					return SCHED_SCANNER_CHASE_TARGET;
+				}
+
+				return SCHED_SSCANNER_HOVER;
+			}
+			return SCHED_SCANNER_PATROL;
 			break;
 		}
 		default:
@@ -1110,7 +1119,7 @@ int CNPC_SScanner::SelectSchedule(void)
 			// --------------------------------------------------
 			//  I have no enemy so patrol
 			// --------------------------------------------------
-			else if (GetEnemy() == NULL)
+			else if (GetTarget() == NULL)
 			{
 				return SCHED_SCANNER_PATROL;
 			}

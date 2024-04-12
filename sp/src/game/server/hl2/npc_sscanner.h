@@ -101,8 +101,8 @@ protected:
 	SScannerState_t m_nState;
 	bool			m_bShieldsDisabled;
 	CHandle<CScannerShield>	m_pShield;
-	CShieldBeam*	m_pShieldBeamL;		
-	CShieldBeam*	m_pShieldBeamR;		
+	CHandle<CShieldBeam>	m_pShieldBeamL;
+	CHandle<CShieldBeam>	m_pShieldBeamR;
 	float			m_fNextShieldCheckTime;
 	CBaseEntity*	PickShieldEntity(void);
 	void			PowerShield(void);
