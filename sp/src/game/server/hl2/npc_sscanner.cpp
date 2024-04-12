@@ -31,6 +31,7 @@
 #include "vstdlib/random.h"
 #include "engine/IEngineSound.h"
 #include "movevars_shared.h"
+#include "items.h"
 
 #include "tier0/memdbgon.h"
 
@@ -63,39 +64,7 @@ int	ACT_SSCANNER_FLINCH_LEFT;
 int	ACT_SSCANNER_FLINCH_RIGHT;
 int	ACT_SSCANNER_LOOK;
 int	ACT_SSCANNER_OPEN;
-int	ACT_SSCANNER_CLOSE;
-
-//-----------------------------------------------------------------------------
-// SScanner schedules.
-//-----------------------------------------------------------------------------
-enum SScannerSchedules
-{
-	SCHED_SSCANNER_HOVER = LAST_SHARED_SCHEDULE,
-	SCHED_SSCANNER_PATROL,
-	SCHED_SSCANNER_CHASE_ENEMY,
-	SCHED_SSCANNER_CHASE_TARGET,
-	SCHED_SSCANNER_OPEN,
-	SCHED_SSCANNER_CLOSE,
-};
-
-//-----------------------------------------------------------------------------
-// Custom tasks.
-//-----------------------------------------------------------------------------
-enum SScannerTasks
-{
-	TASK_SSCANNER_OPEN = LAST_SHARED_TASK,
-	TASK_SSCANNER_CLOSE,
-};
-
-//-----------------------------------------------------------------------------
-// Custom Conditions
-//-----------------------------------------------------------------------------
-enum SScanner_Conds
-{
-	COND_SSCANNER_FLY_BLOCKED	= LAST_SHARED_CONDITION,
-	COND_SSCANNER_FLY_CLEAR,
-	COND_SSCANNER_PISSED_OFF,
-};
+//int	ACT_SSCANNER_CLOSE;
 
 
 BEGIN_DATADESC( CNPC_SScanner )
@@ -104,12 +73,10 @@ BEGIN_DATADESC( CNPC_SScanner )
 
 	DEFINE_FIELD( m_nState,					FIELD_INTEGER),
 	DEFINE_FIELD( m_bShieldsDisabled,			FIELD_BOOLEAN),
-	DEFINE_FIELD( m_pShield,					FIELD_CLASSPTR ),
+	DEFINE_FIELD( m_pShield,					FIELD_EHANDLE ),
 	DEFINE_FIELD( m_pShieldBeamL,				FIELD_CLASSPTR ),
 	DEFINE_FIELD( m_pShieldBeamR,				FIELD_CLASSPTR ),
 	DEFINE_FIELD( m_fNextShieldCheckTime,		FIELD_TIME),
-
-	DEFINE_FIELD( m_fNextFlySoundTime,		FIELD_TIME),
 
 	DEFINE_FIELD( m_vCoverPosition,			FIELD_POSITION_VECTOR),
 
@@ -137,14 +104,14 @@ void CNPC_SScanner::InitCustomSchedules(void)
 	INIT_CUSTOM_AI(CNPC_SScanner);
 
 	ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_HOVER);
-	ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_PATROL);
-	ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_ENEMY);
-	ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_TARGET);
+	//ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_PATROL);
+	//ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_ENEMY);
+	//ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_TARGET);
 	ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_OPEN);
 	ADD_CUSTOM_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CLOSE);
 
-	ADD_CUSTOM_CONDITION(CNPC_SScanner,	COND_SSCANNER_FLY_BLOCKED);
-	ADD_CUSTOM_CONDITION(CNPC_SScanner,	COND_SSCANNER_FLY_CLEAR);
+	//ADD_CUSTOM_CONDITION(CNPC_SScanner,	COND_SSCANNER_FLY_BLOCKED);
+	//ADD_CUSTOM_CONDITION(CNPC_SScanner,	COND_SSCANNER_FLY_CLEAR);
 	ADD_CUSTOM_CONDITION(CNPC_SScanner,	COND_SSCANNER_PISSED_OFF);
 
 	ADD_CUSTOM_TASK(CNPC_SScanner,		TASK_SSCANNER_OPEN);
@@ -155,32 +122,14 @@ void CNPC_SScanner::InitCustomSchedules(void)
 	ADD_CUSTOM_ACTIVITY(CNPC_SScanner,	ACT_SSCANNER_FLINCH_LEFT);
 	ADD_CUSTOM_ACTIVITY(CNPC_SScanner,	ACT_SSCANNER_FLINCH_RIGHT);
 	ADD_CUSTOM_ACTIVITY(CNPC_SScanner,	ACT_SSCANNER_OPEN);
-	ADD_CUSTOM_ACTIVITY(CNPC_SScanner,	ACT_SSCANNER_CLOSE);
+	//ADD_CUSTOM_ACTIVITY(CNPC_SScanner,	ACT_SSCANNER_CLOSE);
 
 	AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_HOVER);
-	AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_PATROL);
-	AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_ENEMY);
-	AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_TARGET);
+	//AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_PATROL);
+	//AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_ENEMY);
+	//AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CHASE_TARGET);
 	AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_OPEN);
 	AI_LOAD_SCHEDULE(CNPC_SScanner,	SCHED_SSCANNER_CLOSE);
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Indicates this NPC's place in the relationship table.
-//-----------------------------------------------------------------------------
-Class_T	CNPC_SScanner::Classify(void)
-{
-	return(CLASS_SCANNER);
-}
-
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CNPC_SScanner::StopLoopingSounds(void)
-{
-	StopSound( "NPC_SScanner.FlySound" );
-	BaseClass::StopLoopingSounds();
 }
 
 
@@ -194,7 +143,7 @@ int CNPC_SScanner::TranslateSchedule( int scheduleType )
 	switch( scheduleType )
 	{
 	case SCHED_FAIL_TAKE_COVER:
-		return SCHED_SSCANNER_PATROL;
+		return SCHED_SCANNER_PATROL;
 		break;
 	}
 	return BaseClass::TranslateSchedule(scheduleType);
@@ -205,25 +154,29 @@ int CNPC_SScanner::TranslateSchedule( int scheduleType )
 //-----------------------------------------------------------------------------
 void CNPC_SScanner::Event_Killed( const CTakeDamageInfo &info )
 {
-	BaseClass::Event_Killed( info );
+	// Copy off the takedamage info that killed me, since we're not going to call
+	// up into the base class's Event_Killed() until we gib. (gibbing is ultimate death)
+	m_KilledInfo = info;
+
 	StopShield();
 
-	Gib(); // VXP
-}
+	// Interrupt whatever schedule I'm on
+	SetCondition(COND_SCHEDULE_DONE);
 
-//-----------------------------------------------------------------------------
-// Purpose:
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-void CNPC_SScanner::TraceAttack(const CTakeDamageInfo& info, const Vector& vecDir, trace_t* ptr, CDmgAccumulator* pAccumulator)
-{
-	if ( info.GetDamageType() & DMG_BULLET)
+	// If I have an enemy and I'm up high, do a dive bomb (unless dissolved)
+	if (GetEnemy() != NULL && (info.GetDamageType() & DMG_DISSOLVE) == false)
 	{
-		g_pEffects->Ricochet(ptr->endpos,ptr->plane.normal);
+		Vector vecDelta = GetLocalOrigin() - GetEnemy()->GetLocalOrigin();
+		if ((vecDelta.z > 120) && (vecDelta.Length() > 360))
+		{
+			// If I'm divebombing, don't take any more damage. It will make Event_Killed() be called again.
+			// This is especially bad if someone machineguns the divebombing scanner. 
+			AttackDivebomb();
+			return;
+		}
 	}
 
-	BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
+	Gib();
 }
 
 
@@ -355,126 +308,93 @@ bool CNPC_SScanner::SetShieldCoverPosition( void )
 	}
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Handles movement towards the last move target.
-// Input  : flInterval - 
-//-----------------------------------------------------------------------------
-bool CNPC_SScanner::OverridePathMove( float flInterval )
-{
-	CBaseEntity *pMoveTarget = (GetTarget()) ? GetTarget() : GetEnemy();
-	Vector waypointDir = GetNavigator()->GetCurWaypointPos() - GetLocalOrigin();
-	VectorNormalize(waypointDir);
-
-	// -----------------------------------------------------------------
-	// Check route is blocked
-	// ------------------------------------------------------------------
-	Vector checkPos = GetLocalOrigin() + (waypointDir * (m_flSpeed * flInterval));
-
-	AIMoveTrace_t moveTrace;
-	GetMoveProbe()->MoveLimit( NAV_FLY, GetLocalOrigin(), checkPos, MASK_NPCSOLID|CONTENTS_WATER,
-		pMoveTarget,&moveTrace);
-
-	if (IsMoveBlocked( moveTrace ))
-	{
-		TaskFail(FAIL_NO_ROUTE);
-		GetNavigator()->ClearGoal();
-		return true;
-	}
-	
-	// --------------------------------------------------
-	//  Check if I've reached my goal
-	// --------------------------------------------------
-	
-	Vector lastPatrolDir = GetNavigator()->GetCurWaypointPos() - GetLocalOrigin();
-	
-	
-	if ( ProgressFlyPath( flInterval, pMoveTarget, MASK_NPCSOLID,
-						  !IsCurSchedule( SCHED_SSCANNER_PATROL ) ) == AINPP_COMPLETE )
-	{
-		if (IsCurSchedule( SCHED_SSCANNER_PATROL ))
-		{
-			m_vLastPatrolDir = lastPatrolDir;
-			VectorNormalize(m_vLastPatrolDir);
-		}
-		return true;
-	}
-	return false;
-}
-
 bool CNPC_SScanner::OverrideMove(float flInterval)
 {
 	// ----------------------------------------------
-	//	Select move target 
+	//	If dive bombing
 	// ----------------------------------------------
-	CBaseEntity*	pMoveTarget = NULL;
-	float			fNearDist	= 0;
-	float			fFarDist	= 0;
-	if (GetTarget() != NULL )
+	if (m_nFlyMode == SCANNER_FLY_DIVE)
 	{
-		pMoveTarget = GetTarget();
-		fNearDist	= SSCANNER_COVER_NEAR_DIST;
-		fFarDist	= SSCANNER_COVER_FAR_DIST;
+		MoveToDivebomb(flInterval);
 	}
-	else if (GetEnemy() != NULL )
+	else
 	{
-		pMoveTarget = GetEnemy();		
-		fNearDist	= SSCANNER_ATTACK_NEAR_DIST;
-		fFarDist	= SSCANNER_ATTACK_FAR_DIST;
-	}
-
-	// -----------------------------------------
-	//  See if we can fly there directly
-	// -----------------------------------------
-	if (pMoveTarget)
-	{
-		trace_t tr;
-		Vector endPos = GetAbsOrigin() + GetCurrentVelocity()*flInterval;
-		AI_TraceHull(GetAbsOrigin(), pMoveTarget->GetAbsOrigin() + Vector(0,0,150),
-			GetHullMins(), GetHullMaxs(), MASK_NPCSOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
-		if (tr.fraction != 1.0)
+		// ----------------------------------------------
+		//	Select move target 
+		// ----------------------------------------------
+		CBaseEntity* pMoveTarget = NULL;
+		float			fNearDist = 0;
+		float			fFarDist = 0;
+		if (GetTarget() != NULL)
 		{
-			/*
-			NDebugOverlay::Cross3D(GetLocalOrigin()+Vector(0,0,-60),Vector(-15,-15,-15),Vector(5,5,5),0,255,255,true,0.1);
-			*/
-			SetCondition( COND_SSCANNER_FLY_BLOCKED );
+			pMoveTarget = GetTarget();
+			fNearDist = SSCANNER_COVER_NEAR_DIST;
+			fFarDist = SSCANNER_COVER_FAR_DIST;
 		}
+		else if (GetEnemy() != NULL)
+		{
+			pMoveTarget = GetEnemy();
+			fNearDist = SSCANNER_ATTACK_NEAR_DIST;
+			fFarDist = SSCANNER_ATTACK_FAR_DIST;
+		}
+
+		// -----------------------------------------
+		//  See if we can fly there directly
+		// -----------------------------------------
+		if (pMoveTarget)
+		{
+			trace_t tr;
+			Vector endPos = GetAbsOrigin() + GetCurrentVelocity() * flInterval;
+			AI_TraceHull(GetAbsOrigin(), pMoveTarget->GetAbsOrigin() + Vector(0, 0, 150),
+				GetHullMins(), GetHullMaxs(), MASK_NPCSOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
+			if (tr.fraction != 1.0)
+			{
+				/*
+				NDebugOverlay::Cross3D(GetLocalOrigin()+Vector(0,0,-60),Vector(-15,-15,-15),Vector(5,5,5),0,255,255,true,0.1);
+				*/
+				SetCondition(COND_SCANNER_FLY_BLOCKED);
+			}
+			else
+			{
+				SetCondition(COND_SCANNER_FLY_CLEAR);
+			}
+		}
+
+		// -----------------------------------------------------------------
+		// If I have a route, keep it updated and move toward target
+		// ------------------------------------------------------------------
+		if (GetNavigator()->IsGoalActive())
+		{
+			if (OverridePathMove(pMoveTarget, flInterval))
+			{
+				BlendPhyscannonLaunchSpeed();
+				return true;
+			}
+		}
+		// ----------------------------------------------
+		//	Move to target directly if path is clear
+		// ----------------------------------------------
+		else if (pMoveTarget && HasCondition(COND_SCANNER_FLY_CLEAR))
+		{
+			MoveToEntity(flInterval, pMoveTarget, fNearDist, fFarDist);
+		}
+		// -----------------------------------------------------------------
+		// Otherwise just decelerate
+		// -----------------------------------------------------------------
 		else
 		{
-			SetCondition( COND_SSCANNER_FLY_CLEAR );
+			float	myDecay = 9.5;
+			Decelerate(flInterval, myDecay);
+			// -------------------------------------
+			// If I have an enemy turn to face him
+			// -------------------------------------
+			if (GetEnemy())
+			{
+				TurnHeadToTarget(flInterval, GetEnemy()->GetLocalOrigin());
+			}
 		}
 	}
 
-	// -----------------------------------------------------------------
-	// If I have a route, keep it updated and move toward target
-	// ------------------------------------------------------------------
-	if (GetNavigator()->IsGoalActive())
-	{
-		if ( OverridePathMove( flInterval ) )
-			return true;
-	}
-
-	// ----------------------------------------------
-	//	Move to target directly if path is clear
-	// ----------------------------------------------
-	else if ( pMoveTarget && HasCondition( COND_SSCANNER_FLY_CLEAR ) )
-	{
-		MoveToEntity(flInterval, pMoveTarget, fNearDist, fFarDist);
-	}
-	// -----------------------------------------------------------------
-	// Otherwise just decelerate
-	// -----------------------------------------------------------------
-	else 
-	{
-		float	myDecay	 = 9.5;
-		Decelerate( flInterval, myDecay );
-		// -------------------------------------
-		// If I have an enemy turn to face him
-		// -------------------------------------
-		if (GetEnemy())
-		{
-			TurnHeadToTarget(flInterval, GetEnemy()->GetLocalOrigin() );
-		}
-	}
 	MoveExecute_Alive(flInterval);
 
 	UpdateShields();
@@ -618,8 +538,8 @@ void CNPC_SScanner::PowerShield(void)
 	// -----------------------------
 	if (!m_pShieldBeamL)
 	{
-		m_pShieldBeamL = CShieldBeam::ShieldBeamCreate( this, 2 );
-		m_pShieldBeamR = CShieldBeam::ShieldBeamCreate( this, 3 );
+		m_pShieldBeamL = CShieldBeam::ShieldBeamCreate( this, LookupAttachment("1"));
+		m_pShieldBeamR = CShieldBeam::ShieldBeamCreate( this, LookupAttachment("0"));
 	}
 
 	if (!m_pShieldBeamL->IsShieldBeamOn())
@@ -705,6 +625,7 @@ void CNPC_SScanner::UpdateShields(void)
 	{
 		SetTarget( NULL );
 		StopShield();
+		return;
 	}
 
 	// -------------------------------------------------------------------------
@@ -748,7 +669,7 @@ void CNPC_SScanner::UpdateShields(void)
 	// -------------------------------------------------------------------------
 	SetTarget( pShielded );
 
-		// -------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 	// If I'm closed, stop the shields
 	// -------------------------------------------------------------------------
 	if ( m_nState == SSCANNER_CLOSED )
@@ -789,13 +710,76 @@ void CNPC_SScanner::UpdateShields(void)
 // Input  :
 // Output :
 //-----------------------------------------------------------------------------
-void CNPC_SScanner::MoveToTarget(float flInterval, const Vector &MoveTarget)
+void CNPC_SScanner::MoveToTarget(float flInterval, const Vector &vecMoveTarget)
 {
-	const float	myAccel	 = 300.0;
-	const float	myDecay	 = 9.0;
+	//const float	myAccel	 = 300.0;
+	//const float	myDecay	 = 9.0;
 	
-	TurnHeadToTarget( flInterval, MoveTarget );
-	MoveToLocation( flInterval, MoveTarget, myAccel, (2 * myAccel), myDecay );
+	TurnHeadToTarget( flInterval, vecMoveTarget );
+
+	// -------------------------------------
+	// Move towards our target
+	// -------------------------------------
+	float myAccel;
+	float myZAccel = 400.0f;
+	float myDecay = 0.15f;
+
+	Vector vecCurrentDir;
+
+	// Get the relationship between my current velocity and the way I want to be going.
+	vecCurrentDir = GetCurrentVelocity();
+	VectorNormalize(vecCurrentDir);
+
+	Vector targetDir = vecMoveTarget - GetAbsOrigin();
+	float flDist = VectorNormalize(targetDir);
+
+	float flDot;
+	flDot = DotProduct(targetDir, vecCurrentDir);
+
+	if (flDot > 0.25)
+	{
+		// If my target is in front of me, my flight model is a bit more accurate.
+		myAccel = 250;
+	}
+	else
+	{
+		// Have a harder time correcting my course if I'm currently flying away from my target.
+		myAccel = 128;
+	}
+
+	if (myAccel > flDist / flInterval)
+	{
+		myAccel = flDist / flInterval;
+	}
+
+	if (myZAccel > flDist / flInterval)
+	{
+		myZAccel = flDist / flInterval;
+	}
+
+#ifdef MAPBASE
+	if (m_flSpeedModifier != 1.0f)
+	{
+		myAccel *= m_flSpeedModifier;
+		//myZAccel *= m_flSpeedModifier;
+	}
+#endif
+
+	MoveInDirection(flInterval, targetDir, myAccel, myZAccel, myDecay);
+
+	// calc relative banking targets
+	Vector forward, right, up;
+	GetVectors(&forward, &right, &up);
+
+	m_vCurrentBanking.x = targetDir.x;
+	m_vCurrentBanking.z = 120.0f * DotProduct(right, targetDir);
+	m_vCurrentBanking.y = 0;
+
+	float speedPerc = SimpleSplineRemapVal(GetCurrentVelocity().Length(), 0.0f, GetMaxSpeed(), 0.0f, 1.0f);
+
+	speedPerc = clamp(speedPerc, 0.0f, 1.0f);
+
+	m_vCurrentBanking *= speedPerc;
 }
 
 
@@ -846,20 +830,6 @@ void CNPC_SScanner::MoveToEntity(float flInterval, CBaseEntity* pMoveTarget, flo
 	MoveInDirection(flInterval, vFlyDirection, myAccel, (2 * myAccel), myDecay);
 }
 
-//-----------------------------------------------------------------------------
-// Purpose:
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-void CNPC_SScanner::PlayFlySound(void)
-{
-	if (gpGlobals->curtime > m_fNextFlySoundTime)
-	{
-		EmitSound( "NPC_SScanner.FlySound" );
-		m_fNextFlySoundTime	= gpGlobals->curtime + 1.0;
-	}
-}
-
 //------------------------------------------------------------------------------
 // Purpose :
 // Input   :
@@ -868,45 +838,6 @@ void CNPC_SScanner::PlayFlySound(void)
 float CNPC_SScanner::MinGroundDist(void)
 {
 	return SSCANNER_MIN_GROUND_DIST;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-void CNPC_SScanner::MoveExecute_Alive(float flInterval)
-{
-	// ----------------------------------------------------------------------------------------
-	// Add time-coherent noise to the current velocity so that it never looks bolted in place.
-	// ----------------------------------------------------------------------------------------
-	AddNoiseToVelocity( 2.0 );
-
-	// -------------------------------------------
-	//  Avoid obstacles
-	// -------------------------------------------
-	SetCurrentVelocity( GetCurrentVelocity() + VelocityToAvoidObstacles(flInterval) );
-
-	// ---------------------
-	//  Limit overall speed
-	// ---------------------
-	LimitSpeed( 200 );
-
-	// If I'm right over the ground limit my banking so my blades
-	// don't sink into the floor
-	float floorZ = GetFloorZ(GetLocalOrigin());
-	if (abs(GetLocalOrigin().z - floorZ) < 36)
-	{
-		QAngle angles = GetLocalAngles();
-		if (angles.x < -20) angles.x = -20;
-		if (angles.x >  20) angles.x =  20;
-		if (angles.z < -20) angles.z = -20;
-		if (angles.z >  20) angles.z =  20;
-		SetLocalAngles( angles );
-	}
-
-	PlayFlySound();
-	WalkMove( GetCurrentVelocity() * flInterval, MASK_NPCSOLID );
 }
 
 
@@ -918,13 +849,30 @@ void CNPC_SScanner::Precache(void)
 	//
 	// Model.
 	//
-	engine->PrecacheModel("models/shield_scanner.mdl");
-	engine->PrecacheModel("models/scanner_shield.mdl");
-//	engine->PrecacheModel("models/gibs/mortarsynth_gibs.mdl");
-	engine->PrecacheModel("models/computergibs.mdl");
-	
-	enginesound->PrecacheSound( "npc/waste_scanner/grenade_fire.wav");
-	enginesound->PrecacheSound( "npc/waste_scanner/hover.wav");
+	PrecacheModel(DefaultOrCustomModel("models/shield_scanner.mdl"));
+
+	PrecacheModel("models/gibs/Shield_Scanner_Gib1.mdl");
+	PrecacheModel("models/gibs/Shield_Scanner_Gib2.mdl");
+	PrecacheModel("models/gibs/Shield_Scanner_Gib3.mdl");
+	PrecacheModel("models/gibs/Shield_Scanner_Gib4.mdl");
+	PrecacheModel("models/gibs/Shield_Scanner_Gib5.mdl");
+	PrecacheModel("models/gibs/Shield_Scanner_Gib6.mdl");
+
+	PrecacheScriptSound("NPC_SScanner.Shoot");
+	PrecacheScriptSound("NPC_SScanner.Alert");
+	PrecacheScriptSound("NPC_SScanner.Die");
+	PrecacheScriptSound("NPC_SScanner.Combat");
+	PrecacheScriptSound("NPC_SScanner.Idle");
+	PrecacheScriptSound("NPC_SScanner.Pain");
+	PrecacheScriptSound("NPC_SScanner.TakePhoto");
+	PrecacheScriptSound("NPC_SScanner.AttackFlash");
+	PrecacheScriptSound("NPC_SScanner.DiveBombFlyby");
+	PrecacheScriptSound("NPC_SScanner.DiveBomb");
+	PrecacheScriptSound("NPC_SScanner.DeployMine");
+
+	PrecacheScriptSound("NPC_SScanner.FlyLoop");
+
+	UTIL_PrecacheOther("scanner_shield");
 
 	engine->PrecacheModel("sprites/physbeam.vmt");	
 	engine->PrecacheModel("sprites/glow01.vmt");
@@ -939,30 +887,34 @@ void CNPC_SScanner::Precache(void)
 //------------------------------------------------------------------------------
 void CNPC_SScanner::Gib(void)
 {
-	// Sparks
-	for (int i = 0; i < 4; i++)
+	if (IsMarkedForDeletion())
+		return;
+
+	// Spawn all gibs
 	{
-		Vector sparkPos = GetAbsOrigin();
-		sparkPos.x += random->RandomFloat(-12,12);
-		sparkPos.y += random->RandomFloat(-12,12);
-		sparkPos.z += random->RandomFloat(-12,12);
-		g_pEffects->Sparks(sparkPos);
+		CGib::SpawnSpecificGibs(this, 1, 500, 250, "models/gibs/Shield_Scanner_Gib1.mdl");
+		CGib::SpawnSpecificGibs(this, 1, 500, 250, "models/gibs/Shield_Scanner_Gib2.mdl");
+		CGib::SpawnSpecificGibs(this, 1, 500, 250, "models/gibs/Shield_Scanner_Gib3.mdl");
+		CGib::SpawnSpecificGibs(this, 1, 500, 250, "models/gibs/Shield_Scanner_Gib4.mdl");
+		CGib::SpawnSpecificGibs(this, 1, 500, 250, "models/gibs/Shield_Scanner_Gib5.mdl");
+		CGib::SpawnSpecificGibs(this, 1, 500, 250, "models/gibs/Shield_Scanner_Gib6.mdl");
 	}
-	// Smoke
-	UTIL_Smoke(GetAbsOrigin(), random->RandomInt(10, 15), 10);
 
-	// Light
-	CBroadcastRecipientFilter filter;
-	te->DynamicLight( filter, 0.0,
-			&GetAbsOrigin(), 255, 180, 100, 0, 100, 0.1, 0 );
+	// Add a random chance of spawning a battery...
+	if (!HasSpawnFlags(SF_NPC_NO_WEAPON_DROP) && random->RandomFloat(0.0f, 1.0f) < 0.3f)
+	{
+		CItem* pBattery = (CItem*)CreateEntityByName("item_battery");
+		if (pBattery)
+		{
+			pBattery->SetAbsOrigin(GetAbsOrigin());
+			pBattery->SetAbsVelocity(GetAbsVelocity());
+			pBattery->SetLocalAngularVelocity(GetLocalAngularVelocity());
+			pBattery->ActivateWhenAtRest();
+			pBattery->Spawn();
+		}
+	}
 
-	// Throw scanner gibs
-//	CGib::SpawnSpecificGibs( this, SSCANNER_GIB_COUNT, 800, 1000, "models/gibs/mortarsynth_gibs.mdl");
-	CGib::SpawnSpecificGibs( this, SSCANNER_GIB_COUNT, 800, 1000, "models/computergibs.mdl"); // VXP
-
-	ExplosionCreate(GetAbsOrigin(), GetAbsAngles(), NULL, random->RandomInt(30, 40), 0, true);
-
-	UTIL_Remove(this);
+	BaseClass::Gib();
 }
 
 //-----------------------------------------------------------------------------
@@ -977,7 +929,7 @@ void CNPC_SScanner::RunTask( const Task_t *pTask )
 		case TASK_WAIT_FOR_MOVEMENT:
 		{
 			CBaseEntity *pEnemy = GetEnemy();
-			if (pEnemy && IsCurSchedule(SCHED_SSCANNER_CHASE_ENEMY) && GetNavigator()->IsGoalActive())
+			if (pEnemy && IsCurSchedule(SCHED_SCANNER_CHASE_ENEMY) && GetNavigator()->IsGoalActive())
 			{
 				Vector flEnemyLKP = GetEnemyLKP();
 				if ((GetNavigator()->GetGoalPos() - pEnemy->EyePosition()).Length() > 40 )
@@ -1020,57 +972,29 @@ void CNPC_SScanner::Spawn(void)
 {
 	Precache();
 
-	SetModel( "models/shield_scanner.mdl");
-
-	SetHullType(HULL_SMALL_CENTERED); 
-	SetHullSizeNormal();
-
-	SetSolid( SOLID_BBOX );
-	AddSolidFlags( FSOLID_NOT_STANDABLE );
-
-	// Make bounce so I bounce off the surfaces I hit, but turn gravity off
-	SetMoveType( MOVETYPE_STEP );
-	SetGravity(0.001);
+	SetModel(DefaultOrCustomModel("models/shield_scanner.mdl"));
 
 	m_iHealth			= sk_sscanner_health.GetFloat();
-	SetViewOffset( Vector(0, 0, 10) );		// Position of the eyes relative to NPC's origin.
-	m_flFieldOfView		= VIEW_FIELD_FULL;
-	m_NPCState			= NPC_STATE_NONE;
-	SetNavType( NAV_FLY );
-	m_bloodColor		= DONT_BLEED;
-	SetCurrentVelocity( Vector(0, 0, 0) );
-	m_vCurrentBanking	= Vector(0, 0, 0);
-
-	AddFlag( FL_FLY );
-
-	CapabilitiesAdd( bits_CAP_MOVE_FLY );
-	CapabilitiesAdd( bits_CAP_SQUAD);
 
 	m_nState					= SSCANNER_CLOSED;
 	m_bShieldsDisabled			= false;
 
 	m_vLastPatrolDir			= vec3_origin;
-	m_fNextFlySoundTime			= 0;
 
 	m_fNextShieldCheckTime		= 0;
 
-	SetNoiseMod( 2, 2, 2 );
+	BaseClass::Spawn();
 
-	m_fHeadYaw			= 0;
-
-	NPCInit();
+	m_flFieldOfView = VIEW_FIELD_FULL;
 
 	// Let this guy look far
 	m_flDistTooFar	= 99999999.0;
 	SetDistLook( 4000.0 );
-	m_flSpeed = SSCANNER_MAX_SPEED;
 }
 
 
 void CNPC_SScanner::OnScheduleChange()
 {
-	m_flSpeed = SSCANNER_MAX_SPEED;
-
 	BaseClass::OnScheduleChange();
 }
 
@@ -1081,6 +1005,25 @@ void CNPC_SScanner::OnScheduleChange()
 //-----------------------------------------------------------------------------
 int CNPC_SScanner::SelectSchedule(void)
 {
+	// ----------------------------------------------------
+	//  If I'm dead, go into a dive bomb
+	// ----------------------------------------------------
+	if (m_iHealth <= 0)
+	{
+		m_flSpeed = SCANNER_MAX_DIVE_BOMB_SPEED;
+		return SCHED_SCANNER_ATTACK_DIVEBOMB;
+	}
+
+	// -------------------------------
+	// If I'm in a script sequence
+	// -------------------------------
+	if (m_NPCState == NPC_STATE_SCRIPT)
+		return(BaseClass::SelectSchedule());
+
+	// I'm being held by the physcannon... struggle!
+	if (IsHeldByPhyscannon())
+		return SCHED_SCANNER_HELD_BY_PHYSCANNON;
+
 	switch ( m_NPCState )
 	{
 		// -------------------------------------------------
@@ -1092,18 +1035,12 @@ int CNPC_SScanner::SelectSchedule(void)
 			// --------------------------------------------------
 			//  If I'm blocked find a path to my goal entity
 			// --------------------------------------------------
-			if (HasCondition( COND_SSCANNER_FLY_BLOCKED ) && (GetTarget() != NULL))
+			if (HasCondition( COND_SCANNER_FLY_BLOCKED ) && (GetTarget() != NULL))
 			{  
-				return SCHED_SSCANNER_CHASE_TARGET;
+				return SCHED_SCANNER_CHASE_TARGET;
 			}
 
 			return SCHED_SSCANNER_HOVER;
-			break;
-		}
-		case NPC_STATE_DEAD:
-		case NPC_STATE_SCRIPT:
-		{
-			return BaseClass::SelectSchedule();
 			break;
 		}
 		default:
@@ -1112,11 +1049,11 @@ int CNPC_SScanner::SelectSchedule(void)
 			// --------------------------------------------------
 			//  If I'm blocked find a path to my goal entity
 			// --------------------------------------------------
-			if (HasCondition( COND_SSCANNER_FLY_BLOCKED ))
+			if (HasCondition( COND_SCANNER_FLY_BLOCKED ))
 			{  
 				if ((GetTarget() != NULL) && !HasCondition( COND_SSCANNER_PISSED_OFF))
 				{
-					return SCHED_SSCANNER_CHASE_TARGET;
+					return SCHED_SCANNER_CHASE_TARGET;
 				}
 			}
 			// --------------------------------------------------
@@ -1129,7 +1066,7 @@ int CNPC_SScanner::SelectSchedule(void)
 				// --------------------------------------------------
 				if (m_nState == SSCANNER_OPEN)
 				{	
-					if (GetTarget()	== NULL				)
+					if (GetTarget()	== NULL)
 					{
 						return SCHED_SSCANNER_CLOSE;
 					}
@@ -1144,7 +1081,7 @@ int CNPC_SScanner::SelectSchedule(void)
 				}
 				else if (m_nState == SSCANNER_CLOSED)
 				{
-					if (GetTarget()	!= NULL				)
+					if (GetTarget()	!= NULL)
 					{
 						float fDist = (GetAbsOrigin() - GetTarget()->GetAbsOrigin()).Length();
 						if (fDist <= SSCANNER_MAX_SHEILD_DIST)
@@ -1175,7 +1112,7 @@ int CNPC_SScanner::SelectSchedule(void)
 			// --------------------------------------------------
 			else if (GetEnemy() == NULL)
 			{
-				return SCHED_SSCANNER_PATROL;
+				return SCHED_SCANNER_PATROL;
 			}
 			// --------------------------------------------------
 			//  I have no enemy so patrol
@@ -1271,6 +1208,25 @@ bool CNPC_SScanner::IsValidShieldTarget(CBaseEntity *pEntity)
 	return true;
 }
 
+void CNPC_SScanner::UpdateOnRemove(void)
+{
+	if (m_pShieldBeamL)
+	{
+		UTIL_Remove(m_pShieldBeamL);
+	}
+	if (m_pShieldBeamR)
+	{
+		UTIL_Remove(m_pShieldBeamR);
+	}
+
+	if (m_pShield)
+	{
+		UTIL_Remove(m_pShield);
+	}
+
+	// Chain at end to mimic destructor unwind order
+	BaseClass::UpdateOnRemove();
+}
 
 //------------------------------------------------------------------------------
 //
@@ -1291,7 +1247,7 @@ AI_DEFINE_SCHEDULE
 	"	"
 	"	Interrupts"
 	"		COND_NEW_ENEMY"
-	"		COND_SSCANNER_FLY_BLOCKED"
+	"		COND_SCANNER_FLY_BLOCKED"
 	"		COND_LIGHT_DAMAGE"
 );
 
@@ -1318,11 +1274,12 @@ AI_DEFINE_SCHEDULE
 
 	"	Tasks"
 	"		TASK_SSCANNER_CLOSE		0"
-	"		TASK_PLAY_SEQUENCE		ACTIVITY:ACT_SSCANNER_CLOSE"
+	"		TASK_PLAY_SEQUENCE		ACTIVITY:ACT_DISARM"
 	"	"
 	"	Interrupts"
 );
 
+#if 0
 //=========================================================
 // > SCHED_SSCANNER_PATROL
 //=========================================================
@@ -1388,3 +1345,5 @@ AI_DEFINE_SCHEDULE
 	"		COND_SSCANNER_FLY_CLEAR"
 	"		COND_SSCANNER_PISSED_OFF"
 );
+#endif // 0
+

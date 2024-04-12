@@ -163,6 +163,7 @@ private:
 	// Take damage from physics impacts
 	void TakeDamageFromPhysicsImpact( int index, gamevcollisionevent_t *pEvent );
 
+public:
 	// Do we have a physics attacker?
 	CBasePlayer *HasPhysicsAttacker( float dt );
 
