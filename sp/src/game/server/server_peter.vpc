@@ -28,6 +28,7 @@ $Project
 			$File	"hl2\weapon_sniperrifle.cpp"
 			$File	"physgun.cpp"
 
+			$File	"hl2\npc_odell.cpp"
 			$File	"hl2\npc_sscanner.h"
 			$File	"hl2\npc_sscanner.cpp"
 			$File	"hl2\npc_sscanner_beam.h"
