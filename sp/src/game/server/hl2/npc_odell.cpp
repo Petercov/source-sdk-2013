@@ -9,36 +9,38 @@
 //-----------------------------------------------------------------------------
 // Generic NPC - purely for scripted sequence work.
 //-----------------------------------------------------------------------------
-#include	"cbase.h"
-#include	"npcevent.h"
-#include	"ai_basenpc.h"
-#include	"ai_hull.h"
-#include "ai_baseactor.h"
+#include "cbase.h"
+#include "npcevent.h"
+#include "ai_basenpc.h"
+#include "ai_hull.h"
+#include "npc_playercompanion.h"
 #include "props.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-int AE_ODELL_WELDER_ATTACHMENT;
+ConVar sk_odell_health("sk_odell_health", "40");
 
 //-----------------------------------------------------------------------------
 // NPC's Anim Events Go Here
 //-----------------------------------------------------------------------------
 
+int AE_ODELL_WELDER_ATTACHMENT;
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class CNPC_Odell : public CAI_BaseActor
+class CNPC_Odell : public CNPC_PlayerCompanion
 {
 public:
-	DECLARE_CLASS(CNPC_Odell, CAI_BaseActor);
+	DECLARE_CLASS(CNPC_Odell, CNPC_PlayerCompanion);
 	DECLARE_DATADESC();
 
 	void	Spawn(void);
 	void	Precache(void);
 	Class_T Classify(void);
 	void	HandleAnimEvent(animevent_t *pEvent);
-	int		GetSoundInterests(void);
+	virtual void	SelectModel();
 
 	DEFINE_CUSTOM_AI;
 
@@ -98,7 +100,7 @@ void CNPC_Odell::CreateWelder(void)
 //-----------------------------------------------------------------------------
 void CNPC_Odell::HandleAnimEvent(animevent_t *pEvent)
 {
-	if (pEvent->event == AE_ODELL_WELDER_ATTACHMENT)
+	if ((pEvent->type & AE_TYPE_NEWEVENTSYSTEM) && pEvent->event == AE_ODELL_WELDER_ATTACHMENT)
 	{
 		if (!m_hWelder)
 		{
@@ -126,21 +128,18 @@ void CNPC_Odell::HandleAnimEvent(animevent_t *pEvent)
 		return;
 	}
 
-	switch (pEvent->event)
-	{
-	case 1:
-	default:
-		BaseClass::HandleAnimEvent(pEvent);
-		break;
-	}
+	BaseClass::HandleAnimEvent(pEvent);
 }
 
-//-----------------------------------------------------------------------------
-// GetSoundInterests - generic NPC can't hear.
-//-----------------------------------------------------------------------------
-int CNPC_Odell::GetSoundInterests(void)
+void CNPC_Odell::SelectModel()
 {
-	return	NULL;
+	// Allow custom model usage (mostly for monitors)
+	char* szModel = (char*)STRING(GetModelName());
+	if (!szModel || !*szModel)
+	{
+		szModel = "models/odell.mdl";
+		SetModelName(AllocPooledString(szModel));
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -148,32 +147,9 @@ int CNPC_Odell::GetSoundInterests(void)
 //-----------------------------------------------------------------------------
 void CNPC_Odell::Spawn()
 {
-	// Allow custom model usage (mostly for monitors)
-	char *szModel = (char *)STRING(GetModelName());
-	if (!szModel || !*szModel)
-	{
-		szModel = "models/odell.mdl";
-		SetModelName(AllocPooledString(szModel));
-	}
-
-	Precache();
-	SetModel(szModel);
-
 	BaseClass::Spawn();
 
-	SetHullType(HULL_HUMAN);
-	SetHullSizeNormal();
-
-	SetSolid(SOLID_BBOX);
-	AddSolidFlags(FSOLID_NOT_STANDABLE);
-	SetMoveType(MOVETYPE_STEP);
-	SetBloodColor(BLOOD_COLOR_RED);
-	m_iHealth = 20;
-	m_flFieldOfView = 0.5;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
-	m_NPCState = NPC_STATE_NONE;
-
-	CapabilitiesAdd(bits_CAP_MOVE_GROUND | bits_CAP_OPEN_DOORS | bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD);
-	CapabilitiesAdd(bits_CAP_FRIENDLY_DMG_IMMUNE);
+	m_iHealth = sk_odell_health.GetInt();
 
 	AddEFlags(EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION);
 
@@ -187,7 +163,6 @@ void CNPC_Odell::Spawn()
 //-----------------------------------------------------------------------------
 void CNPC_Odell::Precache()
 {
-	PrecacheModel(STRING(GetModelName()));
 	PrecacheModel("models/props_scart/welding_torch.mdl");
 
 	BaseClass::Precache();
