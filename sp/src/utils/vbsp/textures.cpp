@@ -247,6 +247,15 @@ int	FindMiptex (const char *name)
 		{
 			textureref[i].contents &= ~(CONTENTS_SOLID|CONTENTS_DETAIL);
 			textureref[i].contents |= CONTENTS_WATER;
+#ifdef MAPBASE
+			if ( (propVal = GetMaterialVar(matID, "$lightmapwaterfog")) &&
+				StringIsTrue(propVal) )
+			{
+				bKeepLighting = true;
+				textureref[i].flags |= SURF_WARP | SURF_NODECALS;
+			}
+			else
+#endif // MAPBASE
 			textureref[i].flags |= SURF_WARP | SURF_NOSHADOWS | SURF_NODECALS;
 
 			if ( g_DisableWaterLighting && !bKeepLighting )
