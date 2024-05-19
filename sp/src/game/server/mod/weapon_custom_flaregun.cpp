@@ -364,7 +364,7 @@ void CFlareGunProjectile::FlareGunProjectileTouch(CBaseEntity *pOther)
 		m_nBounces++;
 
 		//After the first bounce, smacking into whoever fired the flare is fair game
-		SetOwnerEntity(this);
+		SetOwnerEntity(NULL);
 
 		// Slow down
 		Vector vecNewVelocity = GetAbsVelocity();
