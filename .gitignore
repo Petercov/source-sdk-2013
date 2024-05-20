@@ -122,3 +122,7 @@ sp/src/devtools/gcc9+support.o
 /sp/src/game/gamepadui/*/*.dll
 /sp/src/game/gamepadui/*/*.pdb
 /sp/src/vgui2/vgui_controls/Release/vgui_controls.vcxproj.FileListAbsolute.txt
+/sp/game/bin
+/sp/src/responserules/runtime/Release/responserules.vcxproj.FileListAbsolute.txt
+/sp/src/utils/vbsp/Release
+/sp/src/lib/public/fgdlib.lib
