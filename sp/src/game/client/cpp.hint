@@ -1,0 +1,5 @@
+// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
+// such as names of functions and macros.
+// For more information see https://go.microsoft.com/fwlink/?linkid=865984
+#define IMPLEMENT_CLIENTCLASS_DT(clientClassName, dataTable, serverClassName) IMPLEMENT_CLIENTCLASS(clientClassName, dataTable, serverClassName) BEGIN_RECV_TABLE(clientClassName, dataTable)
+#define END_RECV_TABLE() }; RecvTable.Construct(RecvProps+1, sizeof(RecvProps) / sizeof(RecvProp) - 1, pRecvTableName); return 1; }

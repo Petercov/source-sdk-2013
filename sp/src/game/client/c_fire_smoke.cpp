@@ -126,14 +126,19 @@ C_FireSmoke::C_FireSmoke()
 	//m_pEmitter = NULL;
 
 	//Clear all child flames
-	for (int i = 0; i < NUM_CHILD_FLAMES; i++)
+	/*for (int i = 0; i < NUM_CHILD_FLAMES; i++)
 	{
 		m_entFlames[i].Clear();
 		m_entFlamesFromAbove[i].Clear();
-	}
+	}*/
+
+	m_entFlames = NULL;
+	m_entFlamesFromAbove = NULL;
 
 	//m_pEmberEmitter = NULL;
 	m_pSmokeEmitter = NULL;
+
+	m_nLastParticleSize = -1;
 
 	m_bOldEffects = cl_fire_old_effect.GetBool();
 }
@@ -146,8 +151,20 @@ C_FireSmoke::~C_FireSmoke()
 		m_pFireOverlay = NULL;
 	}
 
+	if (m_entFlames != NULL)
+	{
+		delete[] m_entFlames;
+		m_entFlames = NULL;
+	}
+
+	if (m_entFlamesFromAbove != NULL)
+	{
+		delete[] m_entFlamesFromAbove;
+		m_entFlamesFromAbove = NULL;
+	}
+
 	// Shut down our effect if we have it
-	if ( m_hEffect )
+	if ( m_hEffect.IsValid() )
 	{
 		m_hEffect->StopEmission(false, false , true);
 		m_hEffect = NULL;
@@ -161,7 +178,13 @@ C_FireSmoke::~C_FireSmoke()
 void C_FireSmoke::Simulate( void )
 {
 	if (!m_bOldEffects)
+	{
+		UpdateScale();
+
+		int nSize = (int)floor(m_flScaleRegister / 36.0f);
+		UpdateNewParticle(nSize);
 		return;
+	}
 
 	if (ShouldDraw() == false)
 	{
@@ -283,15 +306,18 @@ bool C_FireSmoke::ShouldDraw()
 	return true;
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void C_FireSmoke::Start( void )
+void C_FireSmoke::UpdateNewParticle(int nSize)
 {
-	if (!m_bOldEffects)
+	nSize = Clamp(nSize, 0, 3);
+
+	if (!m_hEffect.IsValid() || nSize != m_nLastParticleSize)
 	{
+		if (m_hEffect.IsValid())
+		{
+			m_hEffect->StopEmission();
+		}
+
 		const char* lpszEffectName;
-		int nSize = (int)floor(m_flStartScale / 36.0f);
 		switch (nSize)
 		{
 		case 0:
@@ -314,10 +340,26 @@ void C_FireSmoke::Start( void )
 
 		// Create the effect of the correct size
 		m_hEffect = ParticleProp()->Create(lpszEffectName, PATTACH_ABSORIGIN_FOLLOW);
+		m_nLastParticleSize = nSize;
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void C_FireSmoke::Start( void )
+{
+	if (!m_bOldEffects)
+	{
+		int nSize = (int)floor(m_flStartScale / 36.0f);
+		UpdateNewParticle(nSize);
 	}
 	else
 	{
 		bool bTools = CommandLine()->CheckParm("-tools") != NULL;
+
+		m_entFlames = new C_FireSprite[NUM_CHILD_FLAMES];
+		m_entFlamesFromAbove = new C_FireFromAboveSprite[NUM_CHILD_FLAMES];
 
 		// Setup the render handles for stuff we want in the client leaf list.
 		int i;

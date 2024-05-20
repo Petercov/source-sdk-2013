@@ -172,12 +172,13 @@ public:
 protected:
 
 	void	UpdateEffects( void );
+	void	UpdateNewParticle(int nSize);
 
 	//CSmartPtr<CEmberEffect> m_pEmberEmitter;
 	CSmartPtr<CLitSmokeEmitter> m_pSmokeEmitter;
 
-	C_FireSprite			m_entFlames[NUM_CHILD_FLAMES];
-	C_FireFromAboveSprite	m_entFlamesFromAbove[NUM_CHILD_FLAMES];
+	C_FireSprite*			m_entFlames;
+	C_FireFromAboveSprite*	m_entFlamesFromAbove;
 	float					m_entFlameScales[NUM_CHILD_FLAMES];
 
 	TimedEvent			m_tParticleSpawn;
@@ -185,7 +186,8 @@ protected:
 	CFireOverlay		*m_pFireOverlay;
 
 	// New Particle Fire Effect
-	CNewParticleEffect *m_hEffect;
+	CSmartPtr<CNewParticleEffect> m_hEffect;
+	int	m_nLastParticleSize;
 private:
 	C_FireSmoke( const C_FireSmoke & );
 };
