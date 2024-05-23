@@ -34,6 +34,9 @@ CLIENTEFFECT_REGISTER_BEGIN( SmokeStackMaterials )
 	CLIENTEFFECT_MATERIAL("sprites/fire1")
 CLIENTEFFECT_REGISTER_END()
 
+#define	FIRE_HEIGHT 256.0f
+#define FIRE_SCALE_FROM_SIZE(firesize)		(firesize * (1/FIRE_HEIGHT))
+#define FIRE_SIZE_FROM_SCALE(firescale)		(firescale * FIRE_HEIGHT)
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -179,10 +182,6 @@ void C_FireSmoke::Simulate( void )
 {
 	if (!m_bOldEffects)
 	{
-		UpdateScale();
-
-		int nSize = (int)floor(m_flScaleRegister / 36.0f);
-		UpdateNewParticle(nSize);
 		return;
 	}
 
@@ -268,6 +267,16 @@ void C_FireSmoke::OnDataChanged( DataUpdateType_t updateType )
 	if ( updateType == DATA_UPDATE_CREATED )
 	{
 		Start();
+	}
+	else if (updateType == DATA_UPDATE_DATATABLE_CHANGED)
+	{
+		if (!m_bOldEffects)
+		{
+			//int nSize = (int)floor(FIRE_SIZE_FROM_SCALE(m_flScale) / 36.0f);
+			const float flFireSizeScale = FIRE_HEIGHT / 36.0f;
+			int nSize = (int)floor(m_flScale * flFireSizeScale);
+			UpdateNewParticle(nSize);
+		}
 	}
 }
 
