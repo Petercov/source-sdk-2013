@@ -12,6 +12,12 @@
 #include "materialsystem/imaterialproxy.h"
 #include "materialsystem/imaterialvar.h"
 
+#ifdef MAPBASE_MATPROXYFACTORY
+#include "imaterialproxydict.h"
+#else
+#define EXPOSE_MATERIAL_PROXY( className, proxyName ) EXPOSE_INTERFACE(className, IMaterialProxy, proxyName IMATERIAL_PROXY_INTERFACE_VERSION)
+#endif // MAPBASE
+
 class IMaterialVar;
 class C_BaseEntity;
 

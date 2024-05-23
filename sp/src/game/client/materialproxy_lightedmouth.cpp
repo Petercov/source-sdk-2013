@@ -31,4 +31,4 @@ void CLightedMouthProxy::OnBind(void *pArg)
 	}
 }
 
-EXPOSE_INTERFACE(CLightedMouthProxy, IMaterialProxy, "LightedMouth" IMATERIAL_PROXY_INTERFACE_VERSION);
+EXPOSE_MATERIAL_PROXY(CLightedMouthProxy, "LightedMouth");

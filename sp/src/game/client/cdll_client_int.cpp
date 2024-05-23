@@ -155,6 +155,12 @@
 #include "scenefilecache/INewSceneCache.h"
 #endif // MAPBASE_SCENECACHE
 
+#ifdef MAPBASE_MATPROXYFACTORY
+#include "toolframework/itoolframework.h"
+#include "materialsystem/imaterialproxyfactory.h"
+#include "imaterialproxydict.h"
+#endif
+
 extern vgui::IInputInternal *g_InputInternal;
 
 //=============================================================================
@@ -234,6 +240,10 @@ IReplaySystem *g_pReplay = NULL;
 
 #ifdef MAPBASE
 IVEngineServer	*serverengine = NULL;
+#endif
+
+#ifdef MAPBASE_MATPROXYFACTORY
+IToolFrameworkInternal* toolframework = NULL;
 #endif
 
 #if defined(GAMEPADUI)
@@ -396,6 +406,61 @@ const bool IsSteamDeck()
 	return false;
 }
 #endif
+
+#ifdef MAPBASE_MATPROXYFACTORY
+class CClientMaterialProxyFactory : public IMaterialProxyDict, public IMaterialProxyFactory
+{
+public:
+	// Inherited via IMaterialProxyDict
+	IMaterialProxy* CreateProxy(const char* proxyName) override;
+
+	void Add(const char* pMaterialProxyName, MaterialProxyFactory_t* pMaterialProxyFactory) override
+	{
+		Assert(pMaterialProxyName);
+		m_StringToProxyFactoryMap[pMaterialProxyName] = pMaterialProxyFactory;
+	}
+
+	// Inherited via IMaterialProxyFactory
+	void DeleteProxy(IMaterialProxy* pProxy) override
+	{
+		if (pProxy)
+		{
+			pProxy->Release();
+		}
+	}
+
+private:
+	CUtlStringMap<MaterialProxyFactory_t*> m_StringToProxyFactoryMap;
+};
+
+IMaterialProxy* CClientMaterialProxyFactory::CreateProxy(const char* proxyName)
+{
+	UtlSymId_t sym = m_StringToProxyFactoryMap.Find(proxyName);
+	if (sym == m_StringToProxyFactoryMap.InvalidIndex())
+	{
+		if (toolframework && toolframework->InToolMode())
+		{
+			return toolframework->LookupProxy(proxyName);
+		}
+
+		return NULL;
+	}
+	MaterialProxyFactory_t* pMaterialProxyFactory = m_StringToProxyFactoryMap[sym];
+	Assert(pMaterialProxyFactory);
+	return (*pMaterialProxyFactory)();
+}
+
+CClientMaterialProxyFactory& GetMaterialProxyFactory()
+{
+	static CClientMaterialProxyFactory factory;
+	return factory;
+}
+
+IMaterialProxyDict& GetMaterialProxyDict()
+{
+	return GetMaterialProxyFactory();
+}
+#endif // MAPBASE
 
 //-----------------------------------------------------------------------------
 // Purpose: interface for gameui to modify voice bans
@@ -1012,6 +1077,12 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	if ( (serverengine = (IVEngineServer*)appSystemFactory(INTERFACEVERSION_VENGINESERVER, NULL )) == NULL )
 		return false;
 #endif
+
+#ifdef MAPBASE_MATPROXYFACTORY
+	toolframework = (IToolFrameworkInternal*)appSystemFactory(VTOOLFRAMEWORK_INTERFACE_VERSION, NULL);
+
+	materials->SetMaterialProxyFactory(&GetMaterialProxyFactory());
+#endif // MAPBASE_MATPROXYFACTORY
 
 	if (!g_pMatSystemSurface)
 		return false;
