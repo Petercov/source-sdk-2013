@@ -448,6 +448,7 @@ private:
 	// At the moment, we network the render angles since almost none of the player anim stuff is done on the client in SP.
 	// If any of this is ever adapted for MP, this method should be replaced with replicating/moving the anim state to the client.
 	CNetworkVar( float, m_flAnimRenderYaw );
+	CNetworkVar( float, m_flAnimRenderZ );
 #endif
 };
 
