@@ -1056,29 +1056,12 @@ void CAI_PlayerAlly::AnswerQuestion( CAI_PlayerAlly *pQuestioner, int iQARandomN
 				if (m_ScriptedInteractions[i].iTriggerMethod != SNPCINT_RESPOND_TO_HELLO || !InteractionIsAllowed(pQuestioner, &m_ScriptedInteractions[i]))
 					continue;
 
-				if ((m_ScriptedInteractions[i].iFlags & SCNPC_FLAG_USE_RECV_ANIMS) != 0)
-				{
-					if (pQuestioner->LookupSequence(STRING(m_ScriptedInteractions[i].iszRecvPhases[SNPCINT_SEQUENCE])) == -1)
-						continue;
-				}
-				else
-					// Use sequence? or activity?
-					if (m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity != ACT_INVALID)
-					{
-						if (!pQuestioner->HaveSequenceForActivity((Activity)m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity))
-						{
-							// Other NPC may have all the matching sequences, but just without the activity specified.
-							// Lets find a single sequence for us, and ensure they have a matching one.
-							int iMySeq = SelectWeightedSequence((Activity)m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iActivity);
-							if (pQuestioner->LookupSequence(GetSequenceName(iMySeq)) == -1)
-								continue;
-						}
-					}
-					else
-					{
-						if (pQuestioner->LookupSequence(STRING(m_ScriptedInteractions[i].sPhases[SNPCINT_SEQUENCE].iszSequence)) == -1)
-							continue;
-					}
+				// Resolve the activity or sequence, and make sure our enemy has it
+				const char* pszSequence = GetScriptedNPCInteractionSequence(&m_ScriptedInteractions[i], SNPCINT_SEQUENCE, true);
+				if (!pszSequence)
+					continue;
+				if (pQuestioner->LookupSequence(pszSequence) == -1)
+					continue;
 
 				iInteraction = i;
 				break;
