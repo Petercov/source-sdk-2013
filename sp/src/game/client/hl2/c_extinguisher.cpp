@@ -34,6 +34,13 @@ public:
 	void	Start( void );
 	int		DrawModel( int flags );
 	bool	ShouldDraw( void ) { return m_bEmit; }
+	// Returns the bounds relative to the origin (render bounds)
+	virtual void	GetRenderBounds( Vector& mins, Vector& maxs )
+	{
+		BaseClass::GetRenderBounds( mins, maxs );
+		Vector vecPoint = Vector(m_nLength, 0, 0);
+		AddPointToBounds(vecPoint, mins, maxs );
+	}
 
 protected:
 
@@ -56,8 +63,8 @@ private:
 
 //Datatable
 IMPLEMENT_CLIENTCLASS_DT( C_ExtinguisherJet, DT_ExtinguisherJet, CExtinguisherJet )
-	RecvPropInt(RECVINFO(m_bEmit), 0),
-	RecvPropInt(RECVINFO(m_bUseMuzzlePoint), 0),
+	RecvPropBool(RECVINFO(m_bEmit)),
+	RecvPropBool(RECVINFO(m_bUseMuzzlePoint)),
 	RecvPropInt(RECVINFO(m_nLength), 0),
 	RecvPropInt(RECVINFO(m_nSize), 0),
 END_RECV_TABLE()
@@ -359,9 +366,10 @@ void C_ExtinguisherJet::Update( float fTimeDelta )
 	// Inner beam
 
 	CBeamSegDraw	beamDraw;
-	CBeamSeg		seg;
+	BeamSeg_t		seg;
 	const int		numPoints = 4;
 	Vector			beamPoints[numPoints];
+	CMatRenderContextPtr pRenderContext(materials);
 
 	beamPoints[0] = GetAbsOrigin();
 
@@ -378,7 +386,7 @@ void C_ExtinguisherJet::Update( float fTimeDelta )
 
 	IMaterial *pMat = materials->FindMaterial( "particle/particle_smokegrenade", TEXTURE_GROUP_PARTICLE );
 
-	beamDraw.Start( numPoints, pMat );
+	beamDraw.Start(pRenderContext, numPoints, pMat );
 
 	//Setup and draw those points	
 	for( i = 0; i < numPoints; i++ )

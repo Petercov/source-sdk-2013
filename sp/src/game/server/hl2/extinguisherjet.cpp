@@ -18,8 +18,8 @@ extern ConVar fire_extinguisher_debug;
 
 //Networking
 IMPLEMENT_SERVERCLASS_ST( CExtinguisherJet, DT_ExtinguisherJet )
-	SendPropInt(SENDINFO(m_bEmit), 1, SPROP_UNSIGNED),
-	SendPropInt(SENDINFO(m_bUseMuzzlePoint), 1, SPROP_UNSIGNED),
+	SendPropBool(SENDINFO(m_bEmit)),
+	SendPropBool(SENDINFO(m_bUseMuzzlePoint)),
 	SendPropInt(SENDINFO(m_nLength), 32, SPROP_UNSIGNED),
 	SendPropInt(SENDINFO(m_nSize), 32, SPROP_UNSIGNED),
 END_SEND_TABLE()
@@ -43,7 +43,7 @@ BEGIN_DATADESC( CExtinguisherJet )
 	DEFINE_INPUTFUNC( FIELD_VOID, "Disable",	InputDisable ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "Toggle",	InputToggle ),
 
-	DEFINE_FUNCTION( ExtinguishThink ),
+	DEFINE_THINKFUNC( ExtinguishThink ),
 
 END_DATADESC()
 
@@ -63,9 +63,6 @@ CExtinguisherJet::CExtinguisherJet( void )
 	m_nSize				= 8;
 	m_flStrength		= 0.97f;	//FIXME: Stub numbers
 	m_nRadius			= 32;
-
-	// Send to the client even though we don't have a model
-	AddEFlags( EFL_FORCE_CHECK_TRANSMIT );
 }
 
 //-----------------------------------------------------------------------------
@@ -74,6 +71,11 @@ CExtinguisherJet::CExtinguisherJet( void )
 void CExtinguisherJet::Spawn( void )
 {
 	Precache();
+
+	UTIL_SetSize(this, -Vector(2), Vector(2));
+
+	// Send to the client even though we don't have a model
+	AddEFlags(EFL_FORCE_CHECK_TRANSMIT);
 
 	if ( m_bEnabled )
 	{
@@ -101,7 +103,7 @@ void CExtinguisherJet::TurnOn( void )
 		m_bEnabled = m_bEmit = true;
 	}
 	
-	SetThink( ExtinguishThink );
+	SetThink( &CExtinguisherJet::ExtinguishThink );
 	SetNextThink( gpGlobals->curtime + 0.1f );
 }
 

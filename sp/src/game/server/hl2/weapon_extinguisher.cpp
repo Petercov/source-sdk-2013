@@ -141,7 +141,7 @@ void CWeaponExtinguisher::Event_Killed( const CTakeDamageInfo &info )
 	//Put out fire in a radius
 	FireSystem_ExtinguishInRadius( GetAbsOrigin(), fire_extinguisher_explode_radius.GetInt(), fire_extinguisher_explode_strength.GetFloat() );
 
-	SetThink( SUB_Remove );
+	SetThink( &CWeaponExtinguisher::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + 0.1f );
 }
 
@@ -201,7 +201,7 @@ void CWeaponExtinguisher::ItemPostFrame( void )
 		return;
 
 	//Only shoot if we have ammo
-	if ( pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0 )
+	if ( m_iPrimaryAmmoType >= 0 && pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0 )
 	{
 		StopJet();
 		return;
@@ -210,18 +210,21 @@ void CWeaponExtinguisher::ItemPostFrame( void )
 	//See if we should try and extinguish fires
 	if ( pOwner->m_nButtons & IN_ATTACK )
 	{
-		//Drain ammo
-		if ( m_flNextPrimaryAttack < gpGlobals->curtime  )
+		if (m_iPrimaryAmmoType >= 0)
 		{
-			pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
-			m_flNextPrimaryAttack = gpGlobals->curtime + EXTINGUISHER_AMMO_RATE;
-		}
+			//Drain ammo
+			if (m_flNextPrimaryAttack < gpGlobals->curtime)
+			{
+				pOwner->RemoveAmmo(1, m_iPrimaryAmmoType);
+				m_flNextPrimaryAttack = gpGlobals->curtime + EXTINGUISHER_AMMO_RATE;
+			}
 
-		//If we're just run out...
-		if ( pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0 )
-		{
-			StopJet();
-			return;
+			//If we're just run out...
+			if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
+			{
+				StopJet();
+				return;
+			}
 		}
 
 		//Turn the jet on
@@ -299,7 +302,7 @@ BEGIN_DATADESC( CExtinguisherCharger )
 	DEFINE_FIELD( m_flNextCharge, FIELD_TIME),
 	DEFINE_FIELD( m_bSoundOn, FIELD_BOOLEAN ),
 
-	DEFINE_FUNCTION( TurnOff ),
+	DEFINE_THINKFUNC( TurnOff ),
 
 END_DATADESC()
 
@@ -355,14 +358,14 @@ void CExtinguisherCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, U
 
 	SetNextThink( gpGlobals->curtime + 0.25 );
 	
-	SetThink( TurnOff );
+	SetThink( &CExtinguisherCharger::TurnOff );
 
 	CBasePlayer	*pPlayer = ToBasePlayer( pActivator );
 
 	if ( pPlayer )
 	{
 		//FIXME: Need a way to do this silently
-		pPlayer->GiveAmmo( 1, "extinguisher" );
+		pPlayer->GiveAmmo( 1, "extinguisher", true );
 	}
 }
 

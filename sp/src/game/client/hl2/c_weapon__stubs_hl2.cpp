@@ -66,6 +66,7 @@ STUB_WEAPON_CLASS(weapon_sniperrifle, WeaponSniperRifle, C_BaseHLCombatWeapon);
 STUB_WEAPON_CLASS(weapon_sniperrifle, WeaponSniperRifle, C_BaseHLZoomableWeapon);
 #endif // !MAPBASE
 STUB_WEAPON_CLASS(weapon_irifle, WeaponIRifle, C_BaseHLCombatWeapon);
+STUB_WEAPON_CLASS(weapon_extinguisher, WeaponExtinguisher, C_HLSelectFireMachineGun);
 #endif // HL2BETA_WEAPONS
 
 #ifdef EZ2_WEAPONS
