@@ -1,0 +1,28 @@
+
+#define CONVERT_TO_SRGB 0
+#define HDRTYPE HDR_TYPE_NONE
+#include "common_ps_fxc.h"
+
+sampler LeftSampler : register(s0);
+sampler RightSampler : register(s1);
+
+struct PS_INPUT
+{
+    float2 baseTexCoord : TEXCOORD0;
+};
+
+inline float3 dubois(float4 l, float4 r)
+{ // By kazuya2k8 at https://forum.doom9.org/showthread.php?t=170475
+    float red = l.r * 0.456 + l.g * 0.500 + l.b * 0.176 + r.r * -0.043 + r.g * -0.088 + r.b * -0.002;
+    float green = l.r * -0.040 + l.g * -0.038 + l.b * -0.016 + r.r * 0.378 + r.g * 0.734 + r.b * -0.018;
+    float blue = l.r * -0.015 + l.g * -0.021 + l.b * -0.005 + r.r * -0.072 + r.g * -0.113 + r.b * 1.226;
+    return float3(red, green, blue);
+}
+
+float4 main(PS_INPUT i) : COLOR
+{
+    float4 l = tex2D(LeftSampler, i.baseTexCoord);
+    float4 r = tex2D(RightSampler, i.baseTexCoord);
+    float3 result = dubois(l, r);
+    return float4(result, 1);
+}
