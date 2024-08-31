@@ -59,7 +59,10 @@
 #include "c_prop_portal.h" //portal surface rendering functions
 #endif
 
-	
+#ifdef MAPBASE
+#include "view_scene.h"
+#endif // MAPBASE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 		  
@@ -171,7 +174,18 @@ static void CalcDemoViewOverride( Vector &origin, QAngle &angles )
 	angles = s_DemoAngle;
 }
 
+#ifdef MAPBASE
+ConVar cl_stereo_view("cl_stereo_3d_mode", "0", FCVAR_ARCHIVE, "", true, 0.f, true, (float)STEREO_LAST);
+ConVar cl_stereo_distance("cl_stereo_3d_eye_dist", ".9", FCVAR_ARCHIVE, "Half-distance between the eyes.", true, 0.f, true, 5.f);
 
+view_stereo_t GetStereoViewMode()
+{
+	if (UseVR())
+		return STEREO_VRMODE;
+	else
+		return Clamp((view_stereo_t)cl_stereo_view.GetInt(), STEREO_NONE, STEREO_LAST);
+}
+#endif // MAPBASE
 
 // Selects the relevant member variable to update. You could do it manually, but...
 // We always set up the MONO eye, even when doing stereo, and it's set up to be mid-way between the left and right,
@@ -327,6 +341,10 @@ void CViewRender::Init( void )
 	m_flLastFOV = default_fov.GetFloat();
 #endif
 
+#ifdef MAPBASE
+	m_StereoAnaglyphCombine.Init("engine/anaglyph_combine", TEXTURE_GROUP_PIXEL_SHADERS);
+#endif // MAPBASE
+
 }
 
 //-----------------------------------------------------------------------------
@@ -372,6 +390,10 @@ void CViewRender::Shutdown( void )
 	m_UnderWaterOverlayMaterial.Shutdown();
 	beams->ShutdownBeams();
 	tempents->Shutdown();
+
+#ifdef MAPBASE
+	m_StereoAnaglyphCombine.Shutdown();
+#endif // MAPBASE
 }
 
 
@@ -494,7 +516,11 @@ void CViewRender::DriftPitch (void)
 
 StereoEye_t		CViewRender::GetFirstEye() const
 {
-	if( UseVR() )
+#ifndef MAPBASE
+	if (UseVR())
+#else
+	if (GetStereoViewMode() != STEREO_NONE)
+#endif // !MAPBASE
 		return STEREO_EYE_LEFT;
 	else
 		return STEREO_EYE_MONO;
@@ -502,7 +528,11 @@ StereoEye_t		CViewRender::GetFirstEye() const
 
 StereoEye_t		CViewRender::GetLastEye() const
 {
-	if( UseVR() )
+#ifndef MAPBASE
+	if (UseVR())
+#else
+	if (GetStereoViewMode() != STEREO_NONE)
+#endif // !MAPBASE
 		return STEREO_EYE_RIGHT;
 	else
 		return STEREO_EYE_MONO;
@@ -801,6 +831,19 @@ void CViewRender::SetUpViews()
 		m_ViewRight = m_View;
 		m_ViewLeft.m_eStereoEye = STEREO_EYE_LEFT;
 		m_ViewRight.m_eStereoEye = STEREO_EYE_RIGHT;
+
+#ifdef MAPBASE
+		if (GetStereoViewMode() > STEREO_NONE)
+		{
+			const float flEyeDist = cl_stereo_distance.GetFloat();
+
+			Vector vRight;
+			AngleVectors(m_View.angles, nullptr, &vRight, nullptr);
+
+			m_ViewLeft.origin += vRight * -flEyeDist;
+			m_ViewRight.origin += vRight * flEyeDist;
+		}
+#endif // MAPBASE
 	}
 
 	if ( bCalcViewModelView )
@@ -1205,11 +1248,45 @@ void CViewRender::Render( vrect_t *rect )
 			case STEREO_EYE_RIGHT:
 			case STEREO_EYE_LEFT:
 			{
-				g_pSourceVR->GetViewportBounds( (ISourceVirtualReality::VREye)(eEye - 1 ), &view.x, &view.y, &view.width, &view.height );
-				view.m_nUnscaledWidth = view.width;
-				view.m_nUnscaledHeight = view.height;
-				view.m_nUnscaledX = view.x;
-				view.m_nUnscaledY = view.y;
+#ifdef MAPBASE
+				switch (GetStereoViewMode())
+				{
+				case STEREO_VRMODE:
+#endif // MAPBASE
+					g_pSourceVR->GetViewportBounds((ISourceVirtualReality::VREye)(eEye - 1), &view.x, &view.y, &view.width, &view.height);
+					view.m_nUnscaledWidth = view.width;
+					view.m_nUnscaledHeight = view.height;
+					view.m_nUnscaledX = view.x;
+					view.m_nUnscaledY = view.y;
+#ifdef MAPBASE
+					break;
+				case STEREO_SIDEBYSIDE:
+				{
+					view.x = vr.x * flViewportScale;
+					view.y = vr.y * flViewportScale;
+					view.width = vr.width * flViewportScale * .5;
+					view.height = vr.height * flViewportScale;
+					if (eEye == STEREO_EYE_RIGHT)
+						view.x += view.width;
+
+					float engineAspectRatio = engine->GetScreenAspectRatio();
+					view.m_flAspectRatio = (engineAspectRatio > 0.0f) ? engineAspectRatio : ((float)vr.width / (float)vr.height);
+					break;
+				}
+				default:
+				{
+					view.x = vr.x * flViewportScale;
+					view.y = vr.y * flViewportScale;
+					view.width = vr.width * flViewportScale;
+					view.height = vr.height * flViewportScale;
+
+					float engineAspectRatio = engine->GetScreenAspectRatio();
+					view.m_flAspectRatio = (engineAspectRatio > 0.0f) ? engineAspectRatio : ((float)view.width / (float)view.height);
+					break;
+				}
+				}
+#endif // MAPBASE
+
 			}
 			break;
 
@@ -1271,7 +1348,11 @@ void CViewRender::Render( vrect_t *rect )
 	    }
 
 	    int flags = 0;
-		if( eEye == STEREO_EYE_MONO || eEye == STEREO_EYE_LEFT || ( g_ClientVirtualReality.ShouldRenderHUDInWorld() ) )
+		if( eEye == STEREO_EYE_MONO || eEye == STEREO_EYE_LEFT || ( g_ClientVirtualReality.ShouldRenderHUDInWorld() )
+#ifdef MAPBASE
+			|| GetStereoViewMode() > STEREO_NONE
+#endif // MAPBASE
+			)
 		{
 			flags = RENDERVIEW_DRAWHUD;
 		}
@@ -1309,8 +1390,26 @@ void CViewRender::Render( vrect_t *rect )
 				g_ClientVirtualReality.OverlayHUDQuadWithUndistort( view, bDoUndistort, g_pClientMode->ShouldBlackoutAroundHUD(), bTranslucent );
 			}
 		}
+#ifdef MAPBASE
+		else if (GetStereoViewMode() == STEREO_ANAGLYPH)
+		{
+			UpdateScreenEffectTexture((int)eEye + 1, view.x, view.y, view.width, view.height);
+		}
+#endif // MAPBASE
     }
 
+#ifdef MAPBASE
+	if (GetStereoViewMode() == STEREO_ANAGLYPH)
+	{
+		const int nWidth = m_StereoAnaglyphCombine->GetMappingWidth();
+		const int nHeight = m_StereoAnaglyphCombine->GetMappingHeight();
+
+		CMatRenderContextPtr pRenderContext(materials);
+		pRenderContext->DrawScreenSpaceRectangle(m_StereoAnaglyphCombine, rect->x, rect->y, rect->width, rect->height,
+			rect->x, rect->y, rect->x + rect->width - 1.f, rect->y + rect->height - 1.f,
+			nWidth, nHeight);
+	}
+#endif // MAPBASE
 
 	// TODO: should these be inside or outside the stereo eye stuff?
 	g_pClientMode->PostRender();

@@ -97,6 +97,19 @@ enum view_id_t
 };
 view_id_t CurrentViewID();
 
+#ifdef MAPBASE
+enum view_stereo_t
+{
+	STEREO_VRMODE = -1,
+	STEREO_NONE = 0,
+	STEREO_SIDEBYSIDE,
+	STEREO_ANAGLYPH,
+
+	STEREO_LAST = STEREO_ANAGLYPH
+};
+view_stereo_t GetStereoViewMode();
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: Stored pitch drifting variables
 //-----------------------------------------------------------------------------
@@ -521,6 +534,8 @@ private:
 #ifdef MAPBASE
 	CMaterialReference	m_IndexedScreenOverlayMaterials[MAX_SCREEN_OVERLAYS];
 	bool m_bUsingIndexedScreenOverlays;
+
+	CMaterialReference  m_StereoAnaglyphCombine;
 #endif
 	CMaterialReference m_UnderWaterOverlayMaterial;
 
