@@ -206,6 +206,8 @@ BEGIN_ENT_SCRIPTDESC( CBaseCombatCharacter, CBaseFlex, "The base class shared by
 	DEFINE_SCRIPTFUNC( EyeDirection2D, "Get the eyes' 2D direction." )
 	DEFINE_SCRIPTFUNC( EyeDirection3D, "Get the eyes' 3D direction." )
 
+	DEFINE_SCRIPTFUNC( LastHitGroup, "Get the last hitgroup." )
+
 	// 
 	// Hooks
 	// 

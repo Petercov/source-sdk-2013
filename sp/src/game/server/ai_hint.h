@@ -331,6 +331,9 @@ public:
 	void				FixupTargetNode();
 	void				NPCStartedUsing( CAI_BaseNPC *pNPC );
 	void				NPCStoppedUsing( CAI_BaseNPC *pNPC );
+#ifdef MAPBASE
+	void				FireScriptEvent( int nEvent );
+#endif
 
 	HintIgnoreFacing_t	GetIgnoreFacing() const			{ return m_NodeData.fIgnoreFacing; }
 
@@ -392,6 +395,10 @@ private:
 	COutputEHANDLE		m_OnNPCStoppedUsing;	// Triggered when an NPC has finished using this node.
 	float				m_nodeFOV;
 	Vector				m_vecForward;
+
+#ifdef MAPBASE
+	COutputEvent m_OnScriptEvent[8];
+#endif
 
 	// The next hint in list of all hints
 	friend class CAI_HintManager;
