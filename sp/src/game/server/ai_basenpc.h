@@ -354,7 +354,6 @@ struct UnreachableEnt_t
 #ifdef MAPBASE
 #define SCNPC_FLAG_MAPBASE_ADDITION				( 1 << 8 )
 #define SCNPC_FLAG_TEST_END_POSITION			( 1 << 9 )
-#define SCNPC_FLAG_USE_RECV_ANIMS				( 1 << 10 )
 #endif
 
 // -----------------------------------------
@@ -439,9 +438,6 @@ struct ScriptedNPCInteraction_t
 		{
 			sPhases[i].iszSequence = NULL_STRING;
 			sPhases[i].iActivity = ACT_INVALID;
-#ifdef MAPBASE
-			iszRecvPhases[i] = NULL_STRING;
-#endif // MAPBASE
 		}
 	}
 
@@ -461,9 +457,6 @@ struct ScriptedNPCInteraction_t
 	string_t	iszMyWeapon;				// Classname of the weapon I'm holding, if any
 	string_t	iszTheirWeapon;				// Classname of the weapon my interaction partner is holding, if any
 	ScriptedNPCInteraction_Phases_t sPhases[SNPCINT_NUM_PHASES];
-#ifdef MAPBASE
-	string_t	iszRecvPhases[SNPCINT_NUM_PHASES];
-#endif // MAPBASE
 
 	// These will be filled out for you in AddScriptedNPCInteraction
 	VMatrix		matDesiredLocalToWorld;		// Desired relative position / angles of the other NPC
