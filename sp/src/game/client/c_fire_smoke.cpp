@@ -485,8 +485,9 @@ void C_FireSmoke::Start( void )
 	if (cl_fire_glow_effect.GetBool() /*&& m_nFlags & bitsFIRESMOKE_GLOW*/)
 	{
 		//Create the fire overlay
-		if (m_pFireOverlay = new CFireOverlay(this))
+		if (true)
 		{
+			m_pFireOverlay = new CFireOverlay(this);
 			m_pFireOverlay->m_vPos = GetAbsOrigin();
 			m_pFireOverlay->m_nSprites = 1;
 
