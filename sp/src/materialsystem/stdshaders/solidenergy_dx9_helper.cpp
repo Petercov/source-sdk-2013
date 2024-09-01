@@ -178,8 +178,8 @@ void DrawSolidEnergy(  CBaseVSShader *pShader, IMaterialVar** params, IShaderDyn
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW( FRESNELOPACITY, bFresnel );
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW( FLOWMAP, bHasFlowmap );
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW( MODELFORMAT, bModel );
-				SET_STATIC_VERTEX_SHADER_COMBO_NEW(DOPIXELFOG, g_pHardwareConfig->SupportsPixelShaders_2_b());
-				SET_STATIC_VERTEX_SHADER_COMBO_NEW(HARDWAREFOGBLEND, !g_pHardwareConfig->SupportsPixelShaders_2_b());
+				//SET_STATIC_VERTEX_SHADER_COMBO_NEW(DOPIXELFOG, g_pHardwareConfig->SupportsPixelShaders_2_b());
+				//SET_STATIC_VERTEX_SHADER_COMBO_NEW(HARDWAREFOGBLEND, !g_pHardwareConfig->SupportsPixelShaders_2_b());
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW(REFRACT, bDoRefract);
 				SET_STATIC_VERTEX_SHADER_NEW( solidenergy_vs20 );
 			}
@@ -195,8 +195,8 @@ void DrawSolidEnergy(  CBaseVSShader *pShader, IMaterialVar** params, IShaderDyn
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW( FRESNELOPACITY, bFresnel );
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW( FLOWMAP, bHasFlowmap );
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW( MODELFORMAT, bModel );
-				SET_STATIC_VERTEX_SHADER_COMBO_NEW(DOPIXELFOG, 1);
-				SET_STATIC_VERTEX_SHADER_COMBO_NEW(HARDWAREFOGBLEND, 0);
+				//SET_STATIC_VERTEX_SHADER_COMBO_NEW(DOPIXELFOG, 1);
+				//SET_STATIC_VERTEX_SHADER_COMBO_NEW(HARDWAREFOGBLEND, 0);
 				SET_STATIC_VERTEX_SHADER_COMBO_NEW(REFRACT, bDoRefract);
 				SET_STATIC_VERTEX_SHADER_NEW( solidenergy_vs30 );
 			}
@@ -470,7 +470,7 @@ void DrawSolidEnergy(  CBaseVSShader *pShader, IMaterialVar** params, IShaderDyn
 			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW( SKINNING,  pShaderAPI->GetCurrentNumBones() > 0 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW( VORTEX1, bVortex1 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW( VORTEX2, bVortex2 );
-			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(DOWATERFOG, pShaderAPI->GetPixelFogCombo());
+			//SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(DOWATERFOG, pShaderAPI->GetPixelFogCombo());
 			SET_DYNAMIC_VERTEX_SHADER_CMD_NEW(DynamicCmdsOut, solidenergy_vs20 );
 		}
 #if !defined( _GAMECONSOLE )
@@ -481,7 +481,7 @@ void DrawSolidEnergy(  CBaseVSShader *pShader, IMaterialVar** params, IShaderDyn
 			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW( SKINNING,  pShaderAPI->GetCurrentNumBones() > 0 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW( VORTEX1, bVortex1 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW( VORTEX2, bVortex2 );
-			SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(DOWATERFOG, pShaderAPI->GetPixelFogCombo());
+			//SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(DOWATERFOG, pShaderAPI->GetPixelFogCombo());
 			SET_DYNAMIC_VERTEX_SHADER_CMD_NEW(DynamicCmdsOut, solidenergy_vs30 );
 		}
 #endif
@@ -541,7 +541,7 @@ void DrawSolidEnergy(  CBaseVSShader *pShader, IMaterialVar** params, IShaderDyn
 			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( POWERUP, bPowerup );
 			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( VORTEX1, bVortex1 );
 			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( VORTEX2, bVortex2 );
-			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
+			//SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
 			SET_DYNAMIC_PIXEL_SHADER_CMD_NEW(DynamicCmdsOut, solidenergy_ps20b );
 		}
 #if !defined( _GAMECONSOLE )
@@ -552,7 +552,7 @@ void DrawSolidEnergy(  CBaseVSShader *pShader, IMaterialVar** params, IShaderDyn
 			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( POWERUP, bPowerup );
 			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( VORTEX1, bVortex1 );
 			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( VORTEX2, bVortex2 );
-			SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
+			//SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
 			SET_DYNAMIC_PIXEL_SHADER_CMD_NEW(DynamicCmdsOut, solidenergy_ps30 );
 		}
 #endif

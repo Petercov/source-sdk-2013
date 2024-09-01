@@ -379,7 +379,7 @@ static void DrawLightmappedPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVa
 		pShaderAPI->BindStandardTexture(SHADER_SAMPLER11, TEXTURE_LIGHTMAP);
 
 		//ITexture *pCascadedDepthTexture = (ITexture *)pShaderAPI->GetIntRenderingParameter( INT_RENDERPARM_CASCADED_DEPTHTEXTURE );
-		bool bUseCSM = false;// pCascadedDepthTexture != NULL;
+		//bool bUseCSM = false;// pCascadedDepthTexture != NULL;
 
 		if (!g_pConfig->m_bFastNoBump)
 		{
@@ -477,8 +477,8 @@ static void DrawLightmappedPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVa
 		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( FLASHLIGHTSHADOWS, bFlashlightShadows );
 		//SET_DYNAMIC_PIXEL_SHADER_COMBO( CUBEMAPCORRECTED, isEnvmapCorrected /*&& mat_cubemapparallax.GetBool()*/);
 		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( LIGHT_PREVIEW, pShaderAPI->GetIntRenderingParameter( INT_RENDERPARM_ENABLE_FIXED_LIGHTING ) );
-		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( CSM, bUseCSM && !bHasFlashlight );
-		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(CSM_PERF, 0);// MAX(0, MIN(r_csm_performance.GetInt(), 2)) ); // i just dont know anymore
+		//SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( CSM, bUseCSM && !bHasFlashlight );
+		//SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(CSM_PERF, 0);// MAX(0, MIN(r_csm_performance.GetInt(), 2)) ); // i just dont know anymore
 		SET_DYNAMIC_PIXEL_SHADER_NEW(lightmappedPBR_ps30);
 
 		if (bSeamlessMapping)

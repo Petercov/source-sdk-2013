@@ -462,7 +462,7 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 		}
 
 		//ITexture *pCascadedDepthTexture = (ITexture *)pShaderAPI->GetIntRenderingParameter( INT_RENDERPARM_CASCADED_DEPTHTEXTURE );
-		bool bUseCSM = false; // pCascadedDepthTexture != NULL;
+		//bool bUseCSM = false; // pCascadedDepthTexture != NULL;
 
 		const bool bFastVertexTextures = g_pHardwareConfig->HasFastVertexTextures();
 
@@ -489,8 +489,8 @@ static void DrawVertexLitPBR_DX9_Internal( CBaseVSShader *pShader, IMaterialVar*
 		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( LIGHTMAP, bHasLightmap && !bHasFlashlight);
 		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(LIGHT_PREVIEW,
 			pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING));
-		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( CSM, bUseCSM && !bHasFlashlight );
-		SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(CSM_PERF, 0);// MAX(0, MIN(r_csm_performance.GetInt(), 2)) ); // i just dont know anymore
+		//SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW( CSM, bUseCSM && !bHasFlashlight );
+		//SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(CSM_PERF, 0);// MAX(0, MIN(r_csm_performance.GetInt(), 2)) ); // i just dont know anymore
 		SET_DYNAMIC_PIXEL_SHADER_NEW(VertexlitPBR_ps30);
 
 		if (bFastVertexTextures)
