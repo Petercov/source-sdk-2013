@@ -2465,6 +2465,14 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 				viewFramebufferY = 0;
 			}
 		}
+#ifdef MAPBASE
+		else if (GetStereoViewMode() == STEREO_SIDEBYSIDE)
+		{
+			viewFramebufferX = view.m_eStereoEye == STEREO_EYE_RIGHT ? viewWidth : 0;
+			viewFramebufferY = 0;
+			viewWidth *= 2;
+		}
+#endif // MAPBASE
 
 		// Get the render context out of materials to avoid some debug stuff.
 		// WARNING THIS REQUIRES THE .SafeRelease below or it'll never release the ref
@@ -2485,7 +2493,11 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		}
 
 		// let vgui know where to render stuff for the forced-to-framebuffer panels
-		if( UseVR() )
+#ifndef MAPBASE
+		if (UseVR())
+#else
+		if (GetStereoViewMode() != STEREO_NONE)
+#endif // !MAPBASE
 		{
 			g_pMatSystemSurface->SetFullscreenViewportAndRenderTarget( viewFramebufferX, viewFramebufferY, viewFramebufferWidth, viewFramebufferHeight, saveRenderTarget );
 		}
