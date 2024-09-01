@@ -1136,6 +1136,11 @@ void CViewRender::Render( vrect_t *rect )
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
 	vrect_t vr = *rect;
+#ifdef MAPBASE
+	Rect_t anaglyphRect;
+	V_memcpy(&anaglyphRect, rect, sizeof(Rect_t));
+	COMPILE_TIME_ASSERT(sizeof(Rect_t) <= sizeof(vrect_t));
+#endif // MAPBASE
 
 	// Stub out the material system if necessary.
 	CMatStubHandler matStub;
@@ -1262,12 +1267,17 @@ void CViewRender::Render( vrect_t *rect )
 					break;
 				case STEREO_SIDEBYSIDE:
 				{
-					view.x = vr.x * flViewportScale;
-					view.y = vr.y * flViewportScale;
-					view.width = vr.width * flViewportScale * .5;
-					view.height = vr.height * flViewportScale;
+					view.x = vr.x;
+					view.y = vr.y;
+					view.width = vr.width * .5;
+					view.height = vr.height;
 					if (eEye == STEREO_EYE_RIGHT)
 						view.x += view.width;
+
+					view.m_nUnscaledWidth = view.width;
+					view.m_nUnscaledHeight = view.height;
+					view.m_nUnscaledX = view.x;
+					view.m_nUnscaledY = view.y;
 
 					float engineAspectRatio = engine->GetScreenAspectRatio();
 					view.m_flAspectRatio = (engineAspectRatio > 0.0f) ? engineAspectRatio : ((float)vr.width / (float)vr.height);
@@ -1393,7 +1403,7 @@ void CViewRender::Render( vrect_t *rect )
 #ifdef MAPBASE
 		else if (GetStereoViewMode() == STEREO_ANAGLYPH)
 		{
-			UpdateScreenEffectTexture((int)eEye + 1, view.x, view.y, view.width, view.height);
+			UpdateScreenEffectTexture((int)eEye + 1, view.x, view.y, view.width, view.height, false, (eEye == STEREO_EYE_RIGHT) ? &anaglyphRect : nullptr);
 		}
 #endif // MAPBASE
     }
@@ -1405,8 +1415,8 @@ void CViewRender::Render( vrect_t *rect )
 		const int nHeight = m_StereoAnaglyphCombine->GetMappingHeight();
 
 		CMatRenderContextPtr pRenderContext(materials);
-		pRenderContext->DrawScreenSpaceRectangle(m_StereoAnaglyphCombine, rect->x, rect->y, rect->width, rect->height,
-			rect->x, rect->y, rect->x + rect->width - 1.f, rect->y + rect->height - 1.f,
+		pRenderContext->DrawScreenSpaceRectangle(m_StereoAnaglyphCombine, vr.x, vr.y, vr.width, vr.height,
+			anaglyphRect.x, anaglyphRect.y, anaglyphRect.x + anaglyphRect.width - 1.f, anaglyphRect.y + anaglyphRect.height - 1.f,
 			nWidth, nHeight);
 	}
 #endif // MAPBASE
