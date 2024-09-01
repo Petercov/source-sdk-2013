@@ -373,6 +373,9 @@ BEGIN_VS_SHADER(PBR, "PBR shader")
 		bool bIsModel = IS_FLAG_SET(MATERIAL_VAR_MODEL);
 		bool bBrush = !bIsModel; // If its not a model, its a brush... or a displacement
 
+		// I'd rather check this once per shader instance than multiple times per shader instance...
+        bool bSupportsSM30 = g_pHardwareConfig->SupportsShaderModel_3_0();
+
 		bool bLightmappedModel = params[info.LightmapTexture]->IsTexture() && bIsModel;
 		bool bHasBaseTexture = params[info.BaseTexture]->IsTexture();
 		bool bIsWVT = params[info.BaseTexture2]->IsTexture();
@@ -386,6 +389,10 @@ BEGIN_VS_SHADER(PBR, "PBR shader")
 		bool bHasHSV = (info.HSV != -1) && params[info.HSV]->IsDefined();
 		bool bBlendHSV = bHasHSV && IsBoolSet(info.HSV_blend, params);
 		bool bHasParallaxCorrection = params[info.EnvmapParallax]->GetIntValue() != 0;
+
+        // Petercov: This combo doesn't compile on ps2b
+        if ((!bSupportsSM30 || mat_pbr_force_20b.GetBool()) && bHasHSV)
+            bIsWVT = false;
 
 		// WRD: Don't bother checking for Texture2's if you aren't on WVT, waste of effort
 		if (bIsWVT)
@@ -406,9 +413,6 @@ BEGIN_VS_SHADER(PBR, "PBR shader")
 		bool bHasFlashlight = UsingFlashlight(params);
 		bool bHasEmissionScale = params[info.EmissionScale]->IsDefined();
 		bool bHasParallax = params[info.UseParallax]->GetIntValue() != 0;
-
-		// I'd rather check this once per shader instance than multiple times per shader instance...
-		bool bSupportsSM30 = g_pHardwareConfig->SupportsShaderModel_3_0();
 
         // Determining whether we're dealing with a fully opaque material
         BlendType_t nBlendType = EvaluateBlendRequirements(info.BaseTexture, true);
