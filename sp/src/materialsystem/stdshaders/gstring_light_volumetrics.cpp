@@ -52,12 +52,12 @@ BEGIN_VS_SHADER( gstring_light_volumetrics, "" )
 			pShaderShadow->VertexShaderVertexFormat( flags, nTexCoordCount, NULL, userDataSize );
 
 			// Vertex Shader
-			DECLARE_STATIC_VERTEX_SHADER( gstring_light_volumetrics_vs20 );
-			SET_STATIC_VERTEX_SHADER( gstring_light_volumetrics_vs20 );
+			DECLARE_STATIC_VERTEX_SHADER_NEW( gstring_light_volumetrics_vs20 );
+			SET_STATIC_VERTEX_SHADER_NEW( gstring_light_volumetrics_vs20 );
 
-			DECLARE_STATIC_PIXEL_SHADER( gstring_light_volumetrics_ps20b );
-			SET_STATIC_PIXEL_SHADER_COMBO( FLASHLIGHTDEPTHFILTERMODE, g_pHardwareConfig->GetShadowFilterMode() );
-			SET_STATIC_PIXEL_SHADER( gstring_light_volumetrics_ps20b );
+			DECLARE_STATIC_PIXEL_SHADER_NEW( gstring_light_volumetrics_ps20b );
+			SET_STATIC_PIXEL_SHADER_COMBO_NEW( FLASHLIGHTDEPTHFILTERMODE, g_pHardwareConfig->GetShadowFilterMode() );
+			SET_STATIC_PIXEL_SHADER_NEW( gstring_light_volumetrics_ps20b );
 		}
 		DYNAMIC_STATE
 		{
@@ -65,11 +65,11 @@ BEGIN_VS_SHADER( gstring_light_volumetrics, "" )
 			pShaderAPI->SetDefaultState();
 
 			// Set Vertex Shader Combos
-			DECLARE_DYNAMIC_VERTEX_SHADER( gstring_light_volumetrics_vs20 );
-			SET_DYNAMIC_VERTEX_SHADER( gstring_light_volumetrics_vs20 );
+			DECLARE_DYNAMIC_VERTEX_SHADER_NEW( gstring_light_volumetrics_vs20 );
+			SET_DYNAMIC_VERTEX_SHADER_NEW( gstring_light_volumetrics_vs20 );
 
-			DECLARE_DYNAMIC_PIXEL_SHADER( gstring_light_volumetrics_ps20b );
-			SET_DYNAMIC_PIXEL_SHADER( gstring_light_volumetrics_ps20b );
+			DECLARE_DYNAMIC_PIXEL_SHADER_NEW( gstring_light_volumetrics_ps20b );
+			SET_DYNAMIC_PIXEL_SHADER_NEW( gstring_light_volumetrics_ps20b );
 
 			VMatrix worldToTexture;
 			ITexture *pFlashlightDepthTexture;

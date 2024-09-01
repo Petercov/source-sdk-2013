@@ -10,5 +10,7 @@ SDK_eye_refract_vs20.fxc-----SDK_eye_refract_vs20
 object_motion_blur_vs20.fxc-----object_motion_blur_vs20
 object_motion_blur_ps2x.fxc-----object_motion_blur_ps20
 object_motion_blur_ps2x.fxc-----object_motion_blur_ps20b
+pbr_ps20b.fxc-----pbr_ps20b
+pbr_vs20.fxc-----pbr_vs20
 anaglyph_combine_ps2x.fxc-----anaglyph_combine_ps20
 anaglyph_combine_ps2x.fxc-----anaglyph_combine_ps20b

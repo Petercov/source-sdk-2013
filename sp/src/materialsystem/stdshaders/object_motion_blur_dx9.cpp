@@ -46,11 +46,11 @@ BEGIN_VS_SHADER_FLAGS( ObjectMotionBlur, "Object Motion Blur", SHADER_NOT_EDITAB
 			pShaderShadow->EnableTexture( SHADER_SAMPLER1, true );
 			pShaderShadow->EnableSRGBRead( SHADER_SAMPLER1, false );
 
-			DECLARE_STATIC_VERTEX_SHADER( object_motion_blur_vs20 );
-			SET_STATIC_VERTEX_SHADER( object_motion_blur_vs20 );
+			DECLARE_STATIC_VERTEX_SHADER_NEW( object_motion_blur_vs20 );
+			SET_STATIC_VERTEX_SHADER_NEW( object_motion_blur_vs20 );
 
-			DECLARE_STATIC_PIXEL_SHADER( object_motion_blur_ps20b );
-			SET_STATIC_PIXEL_SHADER( object_motion_blur_ps20b );
+			DECLARE_STATIC_PIXEL_SHADER_NEW( object_motion_blur_ps20b );
+			SET_STATIC_PIXEL_SHADER_NEW( object_motion_blur_ps20b );
 
 			pShaderShadow->EnableDepthWrites( false );
 			pShaderShadow->EnableAlphaWrites( false );
@@ -63,12 +63,12 @@ BEGIN_VS_SHADER_FLAGS( ObjectMotionBlur, "Object Motion Blur", SHADER_NOT_EDITAB
 			BindTexture( SHADER_SAMPLER0, FB_TEXTURE );
 			BindTexture( SHADER_SAMPLER1, VELOCITY_TEXTURE );
 
-			DECLARE_DYNAMIC_VERTEX_SHADER( object_motion_blur_vs20 );
-			SET_DYNAMIC_VERTEX_SHADER( object_motion_blur_vs20 );
+			DECLARE_DYNAMIC_VERTEX_SHADER_NEW( object_motion_blur_vs20 );
+			SET_DYNAMIC_VERTEX_SHADER_NEW( object_motion_blur_vs20 );
 
 			Assert( g_pHardwareConfig->SupportsPixelShaders_2_b() );
-			DECLARE_DYNAMIC_PIXEL_SHADER( object_motion_blur_ps20b );
-			SET_DYNAMIC_PIXEL_SHADER( object_motion_blur_ps20b );
+			DECLARE_DYNAMIC_PIXEL_SHADER_NEW( object_motion_blur_ps20b );
+			SET_DYNAMIC_PIXEL_SHADER_NEW( object_motion_blur_ps20b );
 		}
 
 		Draw();

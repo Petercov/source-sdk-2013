@@ -340,29 +340,29 @@ BEGIN_VS_SHADER( SDK_Water_DX90,
 				}
 				pShaderShadow->VertexShaderVertexFormat(fmt, numTexCoords, 0, 0);
 
-				DECLARE_STATIC_VERTEX_SHADER(flowmapped_water_vs20);
-				SET_STATIC_VERTEX_SHADER_COMBO(BASETEXTURE, bHasBaseTexture);
-				SET_STATIC_VERTEX_SHADER_COMBO(FLASHLIGHT, hasFlashlight);
-				SET_STATIC_VERTEX_SHADER_COMBO(LIGHTMAPWATERFOG, bLightmapWaterFog);
-				SET_STATIC_VERTEX_SHADER(flowmapped_water_vs20);
+				DECLARE_STATIC_VERTEX_SHADER_NEW(flowmapped_water_vs20);
+				SET_STATIC_VERTEX_SHADER_COMBO_NEW(BASETEXTURE, bHasBaseTexture);
+				SET_STATIC_VERTEX_SHADER_COMBO_NEW(FLASHLIGHT, hasFlashlight);
+				SET_STATIC_VERTEX_SHADER_COMBO_NEW(LIGHTMAPWATERFOG, bLightmapWaterFog);
+				SET_STATIC_VERTEX_SHADER_NEW(flowmapped_water_vs20);
 
 				// "REFLECT" "0..1"
 				// "REFRACT" "0..1"
 
 				//if (g_pHardwareConfig->SupportsPixelShaders_2_b())
 				{
-					DECLARE_STATIC_PIXEL_SHADER(flowmapped_water_ps20b);
-					SET_STATIC_PIXEL_SHADER_COMBO(ENVMAP, !bReflection);
-					SET_STATIC_PIXEL_SHADER_COMBO(REFRACT, bRefraction);
-					SET_STATIC_PIXEL_SHADER_COMBO(ABOVEWATER, params[ABOVEWATER]->GetIntValue());
+					DECLARE_STATIC_PIXEL_SHADER_NEW(flowmapped_water_ps20b);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(ENVMAP, !bReflection);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(REFRACT, bRefraction);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(ABOVEWATER, params[ABOVEWATER]->GetIntValue());
 					//SET_STATIC_PIXEL_SHADER_COMBO(MULTITEXTURE, bHasMultiTexture);
-					SET_STATIC_PIXEL_SHADER_COMBO(BASETEXTURE, bHasBaseTexture);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(BASETEXTURE, bHasBaseTexture);
 					//SET_STATIC_PIXEL_SHADER_COMBO(FLOWMAP, bHasFlowmap);
-					SET_STATIC_PIXEL_SHADER_COMBO(FLOW_DEBUG, clamp(params[FLOW_DEBUG]->GetIntValue(), 0, 2));
-					SET_STATIC_PIXEL_SHADER_COMBO(FLASHLIGHT, hasFlashlight);
-					SET_STATIC_PIXEL_SHADER_COMBO(LIGHTMAPWATERFOG, bLightmapWaterFog);
-					SET_STATIC_PIXEL_SHADER_COMBO(FORCEFRESNEL, bForceFresnel);
-					SET_STATIC_PIXEL_SHADER(flowmapped_water_ps20b);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(FLOW_DEBUG, clamp(params[FLOW_DEBUG]->GetIntValue(), 0, 2));
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHT, hasFlashlight);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(LIGHTMAPWATERFOG, bLightmapWaterFog);
+					SET_STATIC_PIXEL_SHADER_COMBO_NEW(FORCEFRESNEL, bForceFresnel);
+					SET_STATIC_PIXEL_SHADER_NEW(flowmapped_water_ps20b);
 				}
 
 				if (hasFlashlight)
@@ -553,8 +553,8 @@ BEGIN_VS_SHADER( SDK_Water_DX90,
 					SetPixelShaderConstant(9, FLOWMAPSCROLLRATE);
 				}
 
-				DECLARE_DYNAMIC_VERTEX_SHADER(flowmapped_water_vs20);
-				SET_DYNAMIC_VERTEX_SHADER(flowmapped_water_vs20);
+				DECLARE_DYNAMIC_VERTEX_SHADER_NEW(flowmapped_water_vs20);
+				SET_DYNAMIC_VERTEX_SHADER_NEW(flowmapped_water_vs20);
 
 				bool bFlashlightShadows = false;
 				if (hasFlashlight)
@@ -639,11 +639,11 @@ BEGIN_VS_SHADER( SDK_Water_DX90,
 
 				//if (g_pHardwareConfig->SupportsPixelShaders_2_b())
 				{
-					DECLARE_DYNAMIC_PIXEL_SHADER(flowmapped_water_ps20b);
-					SET_DYNAMIC_PIXEL_SHADER_COMBO(FLASHLIGHTSHADOWS, bFlashlightShadows);
-					SET_DYNAMIC_PIXEL_SHADER_COMBO(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
-					SET_DYNAMIC_PIXEL_SHADER_COMBO(WRITE_DEPTH_TO_DESTALPHA, pShaderAPI->ShouldWriteDepthToDestAlpha());
-					SET_DYNAMIC_PIXEL_SHADER(flowmapped_water_ps20b);
+					DECLARE_DYNAMIC_PIXEL_SHADER_NEW(flowmapped_water_ps20b);
+					SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHTSHADOWS, bFlashlightShadows);
+					SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
+					SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(WRITE_DEPTH_TO_DESTALPHA, pShaderAPI->ShouldWriteDepthToDestAlpha());
+					SET_DYNAMIC_PIXEL_SHADER_NEW(flowmapped_water_ps20b);
 				}
 			}
 		}

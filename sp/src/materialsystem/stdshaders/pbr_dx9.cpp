@@ -13,7 +13,7 @@
 #include "pbr_ps30.inc"
 
 // Includes for PS20b
-#include "pbr_vs20b.inc"
+#include "pbr_vs20.inc"
 #include "pbr_ps20b.inc"
 
 // Defining samplers
@@ -530,40 +530,40 @@ BEGIN_VS_SHADER(PBR, "PBR shader")
 			if (!bSupportsSM30 || mat_pbr_force_20b.GetBool())
             {
                 // Setting up static vertex shader
-                DECLARE_STATIC_VERTEX_SHADER(pbr_vs20b);
-                SET_STATIC_VERTEX_SHADER_COMBO(WVT, bIsWVT);
-                SET_STATIC_VERTEX_SHADER(pbr_vs20b);
+                DECLARE_STATIC_VERTEX_SHADER_NEW(pbr_vs20);
+                SET_STATIC_VERTEX_SHADER_COMBO_NEW(WVT, bIsWVT);
+                SET_STATIC_VERTEX_SHADER_NEW(pbr_vs20);
 
                 // Setting up static pixel shader
-                DECLARE_STATIC_PIXEL_SHADER(pbr_ps20b);
-                SET_STATIC_PIXEL_SHADER_COMBO(FLASHLIGHT, bHasFlashlight);
-                SET_STATIC_PIXEL_SHADER_COMBO(FLASHLIGHTDEPTHFILTERMODE, nShadowFilterMode);
-                SET_STATIC_PIXEL_SHADER_COMBO(LIGHTMAPPED, bBrush);
-                SET_STATIC_PIXEL_SHADER_COMBO(EMISSIVE, bHasEmissionTexture);
-                SET_STATIC_PIXEL_SHADER_COMBO(WVT, bIsWVT);
-				SET_STATIC_PIXEL_SHADER_COMBO(HSV, bHasHSV);
-				SET_STATIC_PIXEL_SHADER_COMBO(HSV_BLEND, bBlendHSV);
-                SET_STATIC_PIXEL_SHADER(pbr_ps20b);
+                DECLARE_STATIC_PIXEL_SHADER_NEW(pbr_ps20b);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHT, bHasFlashlight);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHTDEPTHFILTERMODE, nShadowFilterMode);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(LIGHTMAPPED, bBrush);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(EMISSIVE, bHasEmissionTexture);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(WVT, bIsWVT);
+				SET_STATIC_PIXEL_SHADER_COMBO_NEW(HSV, bHasHSV);
+				SET_STATIC_PIXEL_SHADER_COMBO_NEW(HSV_BLEND, bBlendHSV);
+                SET_STATIC_PIXEL_SHADER_NEW(pbr_ps20b);
             }
             else
             {
                 // Setting up static vertex shader
-                DECLARE_STATIC_VERTEX_SHADER(pbr_vs30);
-                SET_STATIC_VERTEX_SHADER_COMBO(WVT, bIsWVT);
-                SET_STATIC_VERTEX_SHADER(pbr_vs30);
+                DECLARE_STATIC_VERTEX_SHADER_NEW(pbr_vs30);
+                SET_STATIC_VERTEX_SHADER_COMBO_NEW(WVT, bIsWVT);
+                SET_STATIC_VERTEX_SHADER_NEW(pbr_vs30);
 
                 // Setting up static pixel shader
-                DECLARE_STATIC_PIXEL_SHADER(pbr_ps30);
-                SET_STATIC_PIXEL_SHADER_COMBO(FLASHLIGHT, bHasFlashlight);
-                SET_STATIC_PIXEL_SHADER_COMBO(FLASHLIGHTDEPTHFILTERMODE, nShadowFilterMode);
-                SET_STATIC_PIXEL_SHADER_COMBO(LIGHTMAPPED, bBrush);
-                SET_STATIC_PIXEL_SHADER_COMBO(EMISSIVE, bHasEmissionTexture);
-				SET_STATIC_PIXEL_SHADER_COMBO(PARALLAXOCCLUSION, bHasParallax);
-                SET_STATIC_PIXEL_SHADER_COMBO(WVT, bIsWVT);
-				SET_STATIC_PIXEL_SHADER_COMBO(PCC, bHasParallaxCorrection);
-				SET_STATIC_PIXEL_SHADER_COMBO(HSV, bHasHSV);
-				SET_STATIC_PIXEL_SHADER_COMBO(HSV_BLEND, bBlendHSV);
-                SET_STATIC_PIXEL_SHADER(pbr_ps30);
+                DECLARE_STATIC_PIXEL_SHADER_NEW(pbr_ps30);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHT, bHasFlashlight);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHTDEPTHFILTERMODE, nShadowFilterMode);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(LIGHTMAPPED, bBrush);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(EMISSIVE, bHasEmissionTexture);
+				SET_STATIC_PIXEL_SHADER_COMBO_NEW(PARALLAXOCCLUSION, bHasParallax);
+                SET_STATIC_PIXEL_SHADER_COMBO_NEW(WVT, bIsWVT);
+				SET_STATIC_PIXEL_SHADER_COMBO_NEW(PCC, bHasParallaxCorrection);
+				SET_STATIC_PIXEL_SHADER_COMBO_NEW(HSV, bHasHSV);
+				SET_STATIC_PIXEL_SHADER_COMBO_NEW(HSV_BLEND, bBlendHSV);
+                SET_STATIC_PIXEL_SHADER_NEW(pbr_ps30);
             }
 
             // HACK HACK HACK - enable alpha writes all the time so that we have them for underwater stuff
@@ -768,45 +768,45 @@ BEGIN_VS_SHADER(PBR, "PBR shader")
             if (!bSupportsSM30 || mat_pbr_force_20b.GetBool())
             {
                 // Setting up dynamic vertex shader
-                DECLARE_DYNAMIC_VERTEX_SHADER(pbr_vs20b);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(DOWATERFOG, fogIndex);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(SKINNING, numBones > 0);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(LIGHTING_PREVIEW, pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING) != 0);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(COMPRESSED_VERTS, (int)vertexCompression);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(NUM_LIGHTS, lightState.m_nNumLights);
-                SET_DYNAMIC_VERTEX_SHADER(pbr_vs20b);
+                DECLARE_DYNAMIC_VERTEX_SHADER_NEW(pbr_vs20);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(DOWATERFOG, fogIndex);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(SKINNING, numBones > 0);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(LIGHTING_PREVIEW, pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING) != 0);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(COMPRESSED_VERTS, (int)vertexCompression);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(NUM_LIGHTS, lightState.m_nNumLights);
+                SET_DYNAMIC_VERTEX_SHADER_NEW(pbr_vs20);
 
                 // Setting up dynamic pixel shader
-                DECLARE_DYNAMIC_PIXEL_SHADER(pbr_ps20b);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(NUM_LIGHTS, lightState.m_nNumLights);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(WRITEWATERFOGTODESTALPHA, bWriteWaterFogToAlpha);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(WRITE_DEPTH_TO_DESTALPHA, bWriteDepthToAlpha);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(FLASHLIGHTSHADOWS, bFlashlightShadows);
-                SET_DYNAMIC_PIXEL_SHADER(pbr_ps20b);
+                DECLARE_DYNAMIC_PIXEL_SHADER_NEW(pbr_ps20b);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(NUM_LIGHTS, lightState.m_nNumLights);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(WRITEWATERFOGTODESTALPHA, bWriteWaterFogToAlpha);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(WRITE_DEPTH_TO_DESTALPHA, bWriteDepthToAlpha);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHTSHADOWS, bFlashlightShadows);
+                SET_DYNAMIC_PIXEL_SHADER_NEW(pbr_ps20b);
             }
             else
             {
                 // Setting up dynamic vertex shader
-                DECLARE_DYNAMIC_VERTEX_SHADER(pbr_vs30);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(DOWATERFOG, fogIndex);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(SKINNING, numBones > 0);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(LIGHTING_PREVIEW, pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING) != 0);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(COMPRESSED_VERTS, (int)vertexCompression);
-                SET_DYNAMIC_VERTEX_SHADER_COMBO(NUM_LIGHTS, lightState.m_nNumLights);
-                SET_DYNAMIC_VERTEX_SHADER(pbr_vs30);
+                DECLARE_DYNAMIC_VERTEX_SHADER_NEW(pbr_vs30);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(DOWATERFOG, fogIndex);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(SKINNING, numBones > 0);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(LIGHTING_PREVIEW, pShaderAPI->GetIntRenderingParameter(INT_RENDERPARM_ENABLE_FIXED_LIGHTING) != 0);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(COMPRESSED_VERTS, (int)vertexCompression);
+                SET_DYNAMIC_VERTEX_SHADER_COMBO_NEW(NUM_LIGHTS, lightState.m_nNumLights);
+                SET_DYNAMIC_VERTEX_SHADER_NEW(pbr_vs30);
 
                 // Setting up dynamic pixel shader
-                DECLARE_DYNAMIC_PIXEL_SHADER(pbr_ps30);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(NUM_LIGHTS, lightState.m_nNumLights);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(WRITEWATERFOGTODESTALPHA, bWriteWaterFogToAlpha);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(WRITE_DEPTH_TO_DESTALPHA, bWriteDepthToAlpha);
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
-                SET_DYNAMIC_PIXEL_SHADER_COMBO(FLASHLIGHTSHADOWS, bFlashlightShadows);
+                DECLARE_DYNAMIC_PIXEL_SHADER_NEW(pbr_ps30);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(NUM_LIGHTS, lightState.m_nNumLights);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(WRITEWATERFOGTODESTALPHA, bWriteWaterFogToAlpha);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(WRITE_DEPTH_TO_DESTALPHA, bWriteDepthToAlpha);
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo());
+                SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(FLASHLIGHTSHADOWS, bFlashlightShadows);
 				// WRD: This **HAS TO BE** a dynamic combo. Doesn't matter much for SP, but on MP lightmapping would NOT work if it was a static.
 				//		It doesn't hurt to be one in either case.
-				SET_DYNAMIC_PIXEL_SHADER_COMBO(LIGHTMAPPED_MODEL, bLightmappedModel);
-                SET_DYNAMIC_PIXEL_SHADER(pbr_ps30);
+				SET_DYNAMIC_PIXEL_SHADER_COMBO_NEW(LIGHTMAPPED_MODEL, bLightmappedModel);
+                SET_DYNAMIC_PIXEL_SHADER_NEW(pbr_ps30);
             }
 
             // Setting up base texture transform
