@@ -26,6 +26,8 @@
 // SKIP: ( $FLASHLIGHT == 0 ) && ( $FLASHLIGHTDEPTHFILTERMODE != 0 )
 
 // SKIP: !$HSV && $HSV_BLEND
+// SKIP: $WVT && !$LIGHTMAPPED
+// SKIP: $WVT && $HSV
 
 #include "common_ps_fxc.h"
 #include "common_flashlight_fxc.h"

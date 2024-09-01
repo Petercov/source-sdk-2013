@@ -86,24 +86,66 @@ public:
 #endif
 	}
 private:
-	int m_nSPECULAR;
+	int m_nWVT;
 #ifdef _DEBUG
-	bool m_bSPECULAR;
+	bool m_bWVT;
 #endif
 public:
-	void SetSPECULAR( int i )
+	void SetWVT( int i )
 	{
 		Assert( i >= 0 && i <= 1 );
-		m_nSPECULAR = i;
+		m_nWVT = i;
 #ifdef _DEBUG
-		m_bSPECULAR = true;
+		m_bWVT = true;
 #endif
 	}
-	void SetSPECULAR( bool i )
+	void SetWVT( bool i )
 	{
-		m_nSPECULAR = i ? 1 : 0;
+		m_nWVT = i ? 1 : 0;
 #ifdef _DEBUG
-		m_bSPECULAR = true;
+		m_bWVT = true;
+#endif
+	}
+private:
+	int m_nHSV;
+#ifdef _DEBUG
+	bool m_bHSV;
+#endif
+public:
+	void SetHSV( int i )
+	{
+		Assert( i >= 0 && i <= 1 );
+		m_nHSV = i;
+#ifdef _DEBUG
+		m_bHSV = true;
+#endif
+	}
+	void SetHSV( bool i )
+	{
+		m_nHSV = i ? 1 : 0;
+#ifdef _DEBUG
+		m_bHSV = true;
+#endif
+	}
+private:
+	int m_nHSV_BLEND;
+#ifdef _DEBUG
+	bool m_bHSV_BLEND;
+#endif
+public:
+	void SetHSV_BLEND( int i )
+	{
+		Assert( i >= 0 && i <= 1 );
+		m_nHSV_BLEND = i;
+#ifdef _DEBUG
+		m_bHSV_BLEND = true;
+#endif
+	}
+	void SetHSV_BLEND( bool i )
+	{
+		m_nHSV_BLEND = i ? 1 : 0;
+#ifdef _DEBUG
+		m_bHSV_BLEND = true;
 #endif
 	}
 public:
@@ -126,22 +168,30 @@ public:
 #endif // _DEBUG
 		m_nEMISSIVE = 0;
 #ifdef _DEBUG
-		m_bSPECULAR = false;
+		m_bWVT = false;
 #endif // _DEBUG
-		m_nSPECULAR = 0;
+		m_nWVT = 0;
+#ifdef _DEBUG
+		m_bHSV = false;
+#endif // _DEBUG
+		m_nHSV = 0;
+#ifdef _DEBUG
+		m_bHSV_BLEND = false;
+#endif // _DEBUG
+		m_nHSV_BLEND = 0;
 	}
 	int GetIndex()
 	{
 		// Asserts to make sure that we aren't using any skipped combinations.
 		// Asserts to make sure that we are setting all of the combination vars.
 #ifdef _DEBUG
-		bool bAllStaticVarsDefined = m_bFLASHLIGHT && m_bFLASHLIGHTDEPTHFILTERMODE && m_bLIGHTMAPPED && m_bEMISSIVE && m_bSPECULAR;
+		bool bAllStaticVarsDefined = m_bFLASHLIGHT && m_bFLASHLIGHTDEPTHFILTERMODE && m_bLIGHTMAPPED && m_bEMISSIVE && m_bWVT && m_bHSV && m_bHSV_BLEND;
 		Assert( bAllStaticVarsDefined );
 #endif // _DEBUG
-		return ( 80 * m_nFLASHLIGHT ) + ( 160 * m_nFLASHLIGHTDEPTHFILTERMODE ) + ( 480 * m_nLIGHTMAPPED ) + ( 960 * m_nEMISSIVE ) + ( 1920 * m_nSPECULAR ) + 0;
+		return ( 80 * m_nFLASHLIGHT ) + ( 160 * m_nFLASHLIGHTDEPTHFILTERMODE ) + ( 480 * m_nLIGHTMAPPED ) + ( 960 * m_nEMISSIVE ) + ( 1920 * m_nWVT ) + ( 3840 * m_nHSV ) + ( 7680 * m_nHSV_BLEND ) + 0;
 	}
 };
-#define shaderStaticTest_pbr_ps20b psh_forgot_to_set_static_FLASHLIGHT + psh_forgot_to_set_static_FLASHLIGHTDEPTHFILTERMODE + psh_forgot_to_set_static_LIGHTMAPPED + psh_forgot_to_set_static_EMISSIVE + psh_forgot_to_set_static_SPECULAR + 0
+#define shaderStaticTest_pbr_ps20b psh_forgot_to_set_static_FLASHLIGHT + psh_forgot_to_set_static_FLASHLIGHTDEPTHFILTERMODE + psh_forgot_to_set_static_LIGHTMAPPED + psh_forgot_to_set_static_EMISSIVE + psh_forgot_to_set_static_WVT + psh_forgot_to_set_static_HSV + psh_forgot_to_set_static_HSV_BLEND + 0
 class pbr_ps20b_Dynamic_Index
 {
 private:
