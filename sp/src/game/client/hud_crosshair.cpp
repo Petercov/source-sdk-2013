@@ -26,6 +26,10 @@
 #include "c_portal_player.h"
 #endif // PORTAL
 
+#ifdef MAPBASE
+#include "viewrender.h"
+#endif // MAPBASE
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -170,7 +174,11 @@ void CHudCrosshair::GetDrawPosition ( float *pX, float *pY, bool *pbBehindCamera
 		Vector vecStart;
 		Vector vecEnd;
 
-		if ( UseVR() )
+#ifndef MAPBASE
+		if (UseVR())
+#else
+		if (GetStereoViewMode() != STEREO_NONE)
+#endif // !MAPBASE
 		{
 			// These are the correct values to use, but they lag the high-speed view data...
 			vecStart = pPlayer->Weapon_ShootPosition();
