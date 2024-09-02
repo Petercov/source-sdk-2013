@@ -177,6 +177,7 @@ static void CalcDemoViewOverride( Vector &origin, QAngle &angles )
 #ifdef MAPBASE
 ConVar cl_stereo_view("cl_stereo_3d_mode", "0", FCVAR_ARCHIVE, "", true, 0.f, true, (float)STEREO_LAST);
 ConVar cl_stereo_distance("cl_stereo_3d_eye_dist", ".9", FCVAR_ARCHIVE, "Half-distance between the eyes.", true, 0.f, true, 5.f);
+ConVar cl_stereo_flip("cl_stereo_3d_eye_swap", "0", FCVAR_ARCHIVE, "Swap the left and right eyes in stereo 3d mode.");
 
 view_stereo_t GetStereoViewMode()
 {
@@ -1271,7 +1272,7 @@ void CViewRender::Render( vrect_t *rect )
 					view.y = vr.y;
 					view.width = vr.width * .5;
 					view.height = vr.height;
-					if (eEye == STEREO_EYE_RIGHT)
+					if ((eEye == STEREO_EYE_RIGHT) != cl_stereo_flip.GetBool())
 						view.x += view.width;
 
 					view.m_nUnscaledWidth = view.width;
@@ -1403,7 +1404,9 @@ void CViewRender::Render( vrect_t *rect )
 #ifdef MAPBASE
 		else if (GetStereoViewMode() == STEREO_ANAGLYPH)
 		{
-			UpdateScreenEffectTexture((int)eEye + 1, view.x, view.y, view.width, view.height, false, (eEye == STEREO_EYE_RIGHT) ? &anaglyphRect : nullptr);
+			const bool bLeftEye = (eEye == STEREO_EYE_LEFT);
+			const bool bRedFilter = (bLeftEye != cl_stereo_flip.GetBool());
+			UpdateScreenEffectTexture(bRedFilter ? 2 : 3, view.x, view.y, view.width, view.height, false, (eEye == STEREO_EYE_RIGHT) ? &anaglyphRect : nullptr);
 		}
 #endif // MAPBASE
     }
