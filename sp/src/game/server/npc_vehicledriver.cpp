@@ -1036,6 +1036,14 @@ void CNPC_VehicleDriver::CheckForTeleport( void )
 	}
 }
 
+#ifdef MAPBASE
+const Vector& CNPC_VehicleDriver::GetNavOrigin(void) const
+{
+	return GetAbsOrigin();
+}
+#endif // MAPBASE
+
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

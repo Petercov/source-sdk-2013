@@ -80,7 +80,11 @@ inline CAI_Motor *CAI_PlaneSolver::GetMotor()
 
 inline const Vector &CAI_PlaneSolver::GetLocalOrigin()
 {
+#ifndef MAPBASE
 	return m_pNpc->GetLocalOrigin();
+#else
+	return m_pNpc->GetNavOrigin();
+#endif // !MAPBASE
 }
 
 //-----------------------------------------------------------------------------

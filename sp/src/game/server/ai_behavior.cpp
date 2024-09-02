@@ -452,6 +452,13 @@ bool CAI_BehaviorBase::OverrideMoveFacing(const AILocalMoveGoal_t& move, float f
 
 	return m_pBackBridge->BackBridge_OverrideMoveFacing(move, flInterval);
 }
+
+const Vector& CAI_BehaviorBase::GetNavOrigin(void) const
+{
+	Assert(m_pBackBridge != NULL);
+
+	return m_pBackBridge->BackBridge_GetNavOrigin();
+}
 #endif
 
 //-------------------------------------

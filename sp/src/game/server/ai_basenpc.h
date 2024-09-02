@@ -1531,6 +1531,11 @@ public:
 
 	//---------------------------------
 
+#ifdef MAPBASE
+	// The origin to use for navigation queries
+	virtual const Vector& GetNavOrigin(void) const { return GetLocalOrigin(); }
+#endif // MAPBASE
+
 	virtual bool		IsNavigationUrgent();
 	virtual bool		ShouldFailNav( bool bMovementFailed );
 	virtual bool		ShouldBruteForceFailedNav()	{ return false; }
@@ -3455,6 +3460,17 @@ inline edict_t *CAI_Component::GetEdict()
 inline float CAI_Component::GetLastThink( const char *szContext )
 {
 	return GetOuter()->GetLastThink( szContext );
+}
+
+//-----------------------------------------------------------------------------
+
+inline const Vector& CAI_Component::GetNavOrigin() const
+{
+#ifdef MAPBASE
+	return GetOuter()->GetNavOrigin();
+#else
+	return GetOuter()->GetLocalOrigin();
+#endif // MAPBASE
 }
 
 // ============================================================================

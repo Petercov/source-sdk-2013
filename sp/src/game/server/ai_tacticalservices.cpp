@@ -126,7 +126,7 @@ bool CAI_TacticalServices::FindBackAwayPos( const Vector &vecThreat, Vector *pRe
 
 bool CAI_TacticalServices::FindCoverPos( const Vector &vThreatPos, const Vector &vThreatEyePos, float flMinDist, float flMaxDist, Vector *pResult )
 {
-	return FindCoverPos( GetLocalOrigin(), vThreatPos, vThreatEyePos, flMinDist, flMaxDist, pResult );
+	return FindCoverPos(GetNavOrigin(), vThreatPos, vThreatEyePos, flMinDist, flMaxDist, pResult );
 }
 
 //-------------------------------------
@@ -160,7 +160,7 @@ bool CAI_TacticalServices::TestLateralCover( const Vector &vecCheckStart, const 
 			if ( GetOuter()->IsValidCover ( vecCheckEnd, NULL ) )
 			{
 				AIMoveTrace_t moveTrace;
-				GetOuter()->GetMoveProbe()->MoveLimit( NAV_GROUND, GetLocalOrigin(), vecCheckEnd, MASK_NPCSOLID, NULL, &moveTrace );
+				GetOuter()->GetMoveProbe()->MoveLimit( NAV_GROUND, GetNavOrigin(), vecCheckEnd, MASK_NPCSOLID, NULL, &moveTrace );
 				if (moveTrace.fStatus == AIMR_OK)
 				{
 					DebugFindCover( NO_NODE, vecCheckEnd + GetOuter()->GetViewOffset(), vecCheckStart, 0, 255, 0 );
@@ -208,7 +208,7 @@ bool CAI_TacticalServices::FindLateralCover( const Vector &vNearPos, const Vecto
 
 	if ( TestLateralCover( vecThreat, vNearPos, flMinDist ) )
 	{
-		*pResult = GetLocalOrigin();
+		*pResult = GetNavOrigin();
 		return true;
 	}
 
@@ -288,7 +288,7 @@ int CAI_TacticalServices::FindBackAwayNode(const Vector &vecThreat )
 
 	// A vector pointing to the threat.
 	Vector vecToThreat;
-	vecToThreat = vecThreat - GetLocalOrigin();
+	vecToThreat = vecThreat - GetNavOrigin();
 
 	// Get my current distance from the threat
 	float flCurDist = VectorNormalize( vecToThreat );
@@ -309,7 +309,7 @@ int CAI_TacticalServices::FindBackAwayNode(const Vector &vecThreat )
 		{
 			// Make sure this node doesn't take me past the enemy's position.
 			Vector vecToNode;
-			vecToNode = GetNetwork()->GetNode(destID)->GetPosition(GetHullType()) - GetLocalOrigin();
+			vecToNode = GetNetwork()->GetNode(destID)->GetPosition(GetHullType()) - GetNavOrigin();
 			VectorNormalize( vecToNode );
 		
 			if( DotProduct( vecToNode, vecToThreat ) < 0.0 )
@@ -333,7 +333,7 @@ int CAI_TacticalServices::FindBackAwayNode(const Vector &vecThreat )
 
 int CAI_TacticalServices::FindCoverNode(const Vector &vThreatPos, const Vector &vThreatEyePos, float flMinDist, float flMaxDist )
 {
-	return FindCoverNode(GetLocalOrigin(), vThreatPos, vThreatEyePos, flMinDist, flMaxDist );
+	return FindCoverNode(GetNavOrigin(), vThreatPos, vThreatEyePos, flMinDist, flMaxDist );
 }
 
 //-------------------------------------
@@ -671,7 +671,7 @@ int CAI_TacticalServices::FindLosNode(const Vector &vThreatPos, const Vector &vT
 			// If not already visited, add to the list
 			if (!wasVisited.IsBitSet(newID))
 			{
-				float dist = (GetLocalOrigin() - GetNetwork()->GetNode(newID)->GetPosition(GetHullType())).LengthSqr();
+				float dist = (GetNavOrigin() - GetNetwork()->GetNode(newID)->GetPosition(GetHullType())).LengthSqr();
 				list.Insert( AI_NearNode_t(newID, dist) );
 				wasVisited.Set( newID );
 			}
@@ -698,7 +698,7 @@ bool CAI_TacticalServices::TestLateralLos( const Vector &vecCheckStart, const Ve
 				if (GetOuter()->TestShootPosition(vecCheckEnd,vecCheckStart))
 				{
 					AIMoveTrace_t moveTrace;
-					GetOuter()->GetMoveProbe()->MoveLimit( NAV_GROUND, GetLocalOrigin(), vecCheckEnd, MASK_NPCSOLID, NULL, &moveTrace );
+					GetOuter()->GetMoveProbe()->MoveLimit( NAV_GROUND, GetNavOrigin(), vecCheckEnd, MASK_NPCSOLID, NULL, &moveTrace );
 					if (moveTrace.fStatus == AIMR_OK)
 					{
 						return true;
@@ -735,9 +735,9 @@ bool CAI_TacticalServices::FindLateralLos( const Vector &vecThreat, Vector *pRes
 		 GetOuter()->GetTimeScheduleStarted() == gpGlobals->curtime ) // Conditions get nuked before tasks run, assume should try
 	{
 		// My current position might already be valid.
-		if ( TestLateralLos(vecThreat, GetLocalOrigin()) )
+		if ( TestLateralLos(vecThreat, GetNavOrigin()) )
 		{
-			*pResult = GetLocalOrigin();
+			*pResult = GetNavOrigin();
 			return true;
 		}
 	}
@@ -765,7 +765,7 @@ bool CAI_TacticalServices::FindLateralLos( const Vector &vecThreat, Vector *pRes
 	vecStepRight = right * iDelta;
 	vecStepRight.z = 0;
 
-	vecLeftTest = vecRightTest = GetLocalOrigin();
+	vecLeftTest = vecRightTest = GetNavOrigin();
  	vecCheckStart = vecThreat;
 
 	for ( i = 0 ; i < iChecks; i++ )

@@ -137,6 +137,7 @@ public:
 
 	bool BridgeOverrideMove(float flInterval);
 	bool BridgeOverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
+	const Vector& BridgeGetNavOrigin(void) const;
 #endif
 
 	virtual void GatherConditions();
@@ -230,6 +231,7 @@ protected:
 
 	virtual bool OverrideMove(float flInterval);				// Override to take total control of movement (return true if done so)
 	virtual	bool OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
+	virtual const Vector& GetNavOrigin(void) const;
 #endif
 
 	virtual bool ShouldAlwaysThink();
@@ -386,6 +388,7 @@ public:
 
 	virtual bool		 BackBridge_OverrideMove(float flInterval) = 0;
 	virtual	bool		 BackBridge_OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval) = 0;
+	virtual const Vector& BackBridge_GetNavOrigin(void) const = 0;
 #endif
 
 //-------------------------------------
@@ -491,6 +494,7 @@ public:
 
 	bool			OverrideMove(float flInterval);				// Override to take total control of movement (return true if done so)
 	bool			OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
+	const Vector&	GetNavOrigin(void) const;
 #endif
 	
 	bool			ShouldAlwaysThink();
@@ -561,6 +565,7 @@ private:
 
 	bool			 BackBridge_OverrideMove(float flInterval);
 	bool			 BackBridge_OverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval);
+	const Vector&	 BackBridge_GetNavOrigin(void) const;
 #endif
 
 	CAI_BehaviorBase **AccessBehaviors();
@@ -963,6 +968,11 @@ inline bool CAI_BehaviorBase::BridgeOverrideMove(float flInterval)
 inline bool CAI_BehaviorBase::BridgeOverrideMoveFacing(const AILocalMoveGoal_t& move, float flInterval)
 {
 	return OverrideMoveFacing(move, flInterval);
+}
+
+inline const Vector& CAI_BehaviorBase::BridgeGetNavOrigin(void) const
+{
+	return GetNavOrigin();
 }
 #endif
 
@@ -1577,6 +1587,12 @@ inline bool CAI_BehaviorHost<BASE_NPC>::BackBridge_OverrideMoveFacing(const AILo
 {
 	return BaseClass::OverrideMoveFacing(move, flInterval);
 }
+
+template<class BASE_NPC>
+inline const Vector& CAI_BehaviorHost<BASE_NPC>::BackBridge_GetNavOrigin(void) const
+{
+	return BaseClass::GetNavOrigin();
+}
 #endif
 
 //-------------------------------------
@@ -2032,6 +2048,15 @@ inline bool CAI_BehaviorHost<BASE_NPC>::OverrideMoveFacing(const AILocalMoveGoal
 		return m_pCurBehavior->BridgeOverrideMoveFacing(move, flInterval);
 
 	return BaseClass::OverrideMoveFacing(move, flInterval);
+}
+
+template<class BASE_NPC>
+inline const Vector& CAI_BehaviorHost<BASE_NPC>::GetNavOrigin(void) const
+{
+	if (m_pCurBehavior)
+		return m_pCurBehavior->BridgeGetNavOrigin();
+
+	return BaseClass::GetNavOrigin();
 }
 #endif
 

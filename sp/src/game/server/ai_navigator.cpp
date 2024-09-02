@@ -549,7 +549,7 @@ bool CAI_Navigator::SetRadialGoal( const Vector &destination, const Vector &cent
 	OnNewGoal();
 	GetPath()->SetGoalType(GOALTYPE_LOCATION);
 
-	GetPath()->SetWaypoints( GetPathfinder()->BuildRadialRoute( GetLocalOrigin(), center, destination, radius, arc, stepDist, bClockwise, GetPath()->GetGoalTolerance(), bAirRoute ), true);			
+	GetPath()->SetWaypoints( GetPathfinder()->BuildRadialRoute(GetNavOrigin(), center, destination, radius, arc, stepDist, bClockwise, GetPath()->GetGoalTolerance(), bAirRoute ), true);
 	GetPath()->SetGoalTolerance( GetOuter()->GetDefaultNavGoalTolerance() );
 
 	return IsGoalActive();
@@ -674,7 +674,7 @@ bool CAI_Navigator::SetVectorGoal( const Vector &dir, float targetDist, float mi
 bool CAI_Navigator::SetVectorGoalFromTarget( const Vector &goalPos, float minDist, bool fShouldDeflect )
 {
 	Vector vDir = goalPos;
-	float dist = ComputePathDirection( GetNavType(), GetLocalOrigin(), goalPos, &vDir );
+	float dist = ComputePathDirection( GetNavType(), GetNavOrigin(), goalPos, &vDir );
 	return SetVectorGoal( vDir, dist, minDist, fShouldDeflect );
 }
 
@@ -687,8 +687,8 @@ bool CAI_Navigator::FindVectorGoal( Vector *pResult, const Vector &dir, float ta
 	
 	MARK_TASK_EXPENSIVE();
 
-	Vector testLoc = GetLocalOrigin() + ( dir * targetDist );
-	GetMoveProbe()->MoveLimit( GetNavType(), GetLocalOrigin(), testLoc, MASK_NPCSOLID, NULL, &moveTrace );
+	Vector testLoc = GetNavOrigin() + ( dir * targetDist );
+	GetMoveProbe()->MoveLimit( GetNavType(), GetNavOrigin(), testLoc, MASK_NPCSOLID, NULL, &moveTrace );
 	
 	if ( moveTrace.fStatus != AIMR_OK )
 	{
@@ -722,7 +722,7 @@ bool CAI_Navigator::FindVectorGoal( Vector *pResult, const Vector &dir, float ta
 
 bool CAI_Navigator::SetRandomGoal( float minPathLength, const Vector &dir )
 {
-	return SetRandomGoal( GetLocalOrigin(), minPathLength, dir );
+	return SetRandomGoal(GetNavOrigin(), minPathLength, dir );
 }
 
 //-----------------------------------------------------------------------------
@@ -744,19 +744,19 @@ bool CAI_Navigator::PrependLocalAvoidance( float distObstacle, const AIMoveTrace
 
 	AI_Waypoint_t *pAvoidanceRoute = NULL;
 
-	Vector vStart = GetLocalOrigin();
+	Vector vStart = GetNavOrigin();
 
 	if ( distObstacle < GetHullWidth() * 0.5 )
 	{
 		AIMoveTrace_t backawayTrace;
-		Vector vTestBackaway = GetCurWaypointPos() - GetLocalOrigin();
+		Vector vTestBackaway = GetCurWaypointPos() - GetNavOrigin();
 		VectorNormalize( vTestBackaway );
 		vTestBackaway *= -GetHullWidth();
-		vTestBackaway += GetLocalOrigin();
+		vTestBackaway += GetNavOrigin();
 
 		int flags = ( GetNavType() == NAV_GROUND ) ? AIMLF_2D : AIMLF_DEFAULT;
 
-		if ( GetMoveProbe()->MoveLimit( GetNavType(), GetLocalOrigin(), vTestBackaway, 
+		if ( GetMoveProbe()->MoveLimit( GetNavType(), GetNavOrigin(), vTestBackaway,
 													 MASK_NPCSOLID, GetNavTargetEntity(), 
 													 100.0, 
 													 flags, &backawayTrace ) )
@@ -790,13 +790,13 @@ bool CAI_Navigator::PrependLocalAvoidance( float distObstacle, const AIMoveTrace
 	// @TODO (toml 02-04-04): it would be better to do this on each triangulation test to
 	// improve the odds of success. however, difficult in current structure
 	float moveThisInterval = GetMotor()->CalcIntervalMove();
-	Vector dir = pAvoidanceRoute->GetPos() - GetLocalOrigin();
+	Vector dir = pAvoidanceRoute->GetPos() - GetNavOrigin();
 	float dist = VectorNormalize( dir );
 	Vector testPos;
 	if ( dist > moveThisInterval )
 	{
 		dist = moveThisInterval;
-		testPos = GetLocalOrigin() + dir * dist;
+		testPos = GetNavOrigin() + dir * dist;
 	}
 	else
 	{
@@ -805,7 +805,7 @@ bool CAI_Navigator::PrependLocalAvoidance( float distObstacle, const AIMoveTrace
 
 	int flags = ( GetNavType() == NAV_GROUND ) ? AIMLF_2D : AIMLF_DEFAULT;
 
-	if ( !GetMoveProbe()->MoveLimit( GetNavType(), GetLocalOrigin(), testPos, 
+	if ( !GetMoveProbe()->MoveLimit( GetNavType(), GetNavOrigin(), testPos,
 												 MASK_NPCSOLID, GetNavTargetEntity(), 
 												 100.0, 
 												 flags ) )
@@ -1179,7 +1179,7 @@ bool CAI_Navigator::GetPointAlongPath( Vector *pResult, float distance, bool fRe
 	AI_Waypoint_t *pEndPoint 	 = pCurWaypoint;
 	float 		   distRemaining = distance;
 	float 		   distToNext;
-	Vector		   vPosPrev		 = GetLocalOrigin();
+	Vector		   vPosPrev		 = GetNavOrigin();
 
 	while ( pEndPoint->GetNext() )
 	{
@@ -1288,7 +1288,7 @@ void CAI_Navigator::OnNavFailed( bool bMovement )
 #ifdef DEBUG
 	if ( CurWaypointIsGoal() )
 	{
-		float flWaypointDist = ComputePathDistance( GetNavType(), GetLocalOrigin(), GetPath()->ActualGoalPosition() );
+		float flWaypointDist = ComputePathDistance( GetNavType(), GetNavOrigin(), GetPath()->ActualGoalPosition() );
 		if ( flWaypointDist < GetGoalTolerance() + 0.1 )
 		{
 			DevMsg( "Nav failed but NPC was within goal tolerance?\n" );
@@ -1464,7 +1464,7 @@ AIMoveResult_t CAI_Navigator::MoveClimb()
 	//  CLIMB START
 	// --------------------------------------------------
 	const Vector &climbDest = GetPath()->CurWaypointPos();
-	Vector climbDir = climbDest - GetLocalOrigin();
+	Vector climbDir = climbDest - GetNavOrigin();
 	float climbDist = VectorNormalize( climbDir );
 
 	if ( GetNavType() != NAV_CLIMB )
@@ -1478,7 +1478,7 @@ AIMoveResult_t CAI_Navigator::MoveClimb()
 	// Look for a block by another NPC, and attempt to recover
 	AIMoveTrace_t moveTrace;
 	if ( climbDist > 0.01 &&
-		 !GetMoveProbe()->MoveLimit( NAV_CLIMB, GetLocalOrigin(), GetLocalOrigin() + ( climbDir * MIN(0.1,climbDist - 0.005) ), MASK_NPCSOLID, GetNavTargetEntity(), &moveTrace ) )
+		 !GetMoveProbe()->MoveLimit( NAV_CLIMB, GetNavOrigin(), GetNavOrigin() + ( climbDir * MIN(0.1,climbDist - 0.005) ), MASK_NPCSOLID, GetNavTargetEntity(), &moveTrace ) )
 	{
 		CAI_BaseNPC *pOther = ( moveTrace.pObstruction ) ? moveTrace.pObstruction->MyNPCPointer() : NULL;
 		if ( pOther )
@@ -1570,7 +1570,7 @@ AIMoveResult_t CAI_Navigator::MoveJump()
 		//  Now check if I can actually jump this distance?
 		// --------------------------------------------------
 		AIMoveTrace_t moveTrace;
-		GetMoveProbe()->MoveLimit( NAV_JUMP, GetLocalOrigin(), GetPath()->CurWaypointPos(), 
+		GetMoveProbe()->MoveLimit( NAV_JUMP, GetNavOrigin(), GetPath()->CurWaypointPos(),
 			MASK_NPCSOLID, GetNavTargetEntity(), &moveTrace );
 		if ( IsMoveBlocked( moveTrace ) )
 		{
@@ -1635,7 +1635,7 @@ void CAI_Navigator::MoveCalcBaseGoal( AILocalMoveGoal_t *pMoveGoal )
 
 	pMoveGoal->navType			= GetNavType();
 	pMoveGoal->target			= GetPath()->CurWaypointPos();
-	pMoveGoal->maxDist			= ComputePathDirection( GetNavType(), GetLocalOrigin(), pMoveGoal->target, &pMoveGoal->dir );
+	pMoveGoal->maxDist			= ComputePathDirection( GetNavType(), GetNavOrigin(), pMoveGoal->target, &pMoveGoal->dir );
 	pMoveGoal->facing			= pMoveGoal->dir;
 	pMoveGoal->speed			= GetMotor()->GetSequenceGroundSpeed( GetMovementSequence() );
 	pMoveGoal->curExpectedDist	= pMoveGoal->speed * GetMotor()->GetMoveInterval();
@@ -1854,12 +1854,12 @@ bool CAI_Navigator::OnInsufficientStopDist( AILocalMoveGoal_t *pMoveGoal, float 
 
 			AIMoveTrace_t moveTrace;
 			Vector vDeflection;
-			CalculateDeflection( GetLocalOrigin(), pMoveGoal->dir, pMoveGoal->directTrace.vHitNormal, &vDeflection );
+			CalculateDeflection(GetNavOrigin(), pMoveGoal->dir, pMoveGoal->directTrace.vHitNormal, &vDeflection );
 
 			for ( int i = 1; i > -2; i -= 2 )
 			{
-				Vector testLoc = GetLocalOrigin() + ( vDeflection * GetHullWidth() * 2.0) * i;
-				GetMoveProbe()->MoveLimit( GetNavType(), GetLocalOrigin(), testLoc, MASK_NPCSOLID, NULL, &moveTrace );
+				Vector testLoc = GetNavOrigin() + ( vDeflection * GetHullWidth() * 2.0) * i;
+				GetMoveProbe()->MoveLimit( GetNavType(), GetNavOrigin(), testLoc, MASK_NPCSOLID, NULL, &moveTrace );
 				if ( moveTrace.fStatus == AIMR_OK )
 				{
 					Vector vNewWaypoint = moveTrace.vEndPosition;
@@ -1957,12 +1957,12 @@ bool CAI_Navigator::OnFailedSteer( AILocalMoveGoal_t *pMoveGoal, float distClear
 	{
 		AIMoveTrace_t moveTrace;
 		Vector vDeflection;
-		CalculateDeflection( GetLocalOrigin(), pMoveGoal->dir, pMoveGoal->directTrace.vHitNormal, &vDeflection );
+		CalculateDeflection(GetNavOrigin(), pMoveGoal->dir, pMoveGoal->directTrace.vHitNormal, &vDeflection );
 
 		if ( pMoveGoal->dir.AsVector2D().Dot( vDeflection.AsVector2D() ) > 0.7 )
 		{
-			Vector testLoc = GetLocalOrigin() + ( vDeflection * pMoveGoal->curExpectedDist );
-			GetMoveProbe()->MoveLimit( GetNavType(), GetLocalOrigin(), testLoc, MASK_NPCSOLID, NULL, &moveTrace );
+			Vector testLoc = GetNavOrigin() + ( vDeflection * pMoveGoal->curExpectedDist );
+			GetMoveProbe()->MoveLimit( GetNavType(), GetNavOrigin(), testLoc, MASK_NPCSOLID, NULL, &moveTrace );
 			if ( moveTrace.fStatus == AIMR_OK )
 			{
 				pMoveGoal->dir = vDeflection;
@@ -2087,7 +2087,7 @@ bool CAI_Navigator::MoveUpdateWaypoint( AIMoveResult_t *pResult )
 	// Note that goal & waypoint tolerances are handled in progress blockage cases (e.g., OnObstructionPreSteer)
 
 	AI_Waypoint_t *pCurWaypoint = GetPath()->GetCurWaypoint();
-	float 		   waypointDist = ComputePathDistance( GetNavType(), GetLocalOrigin(), pCurWaypoint->GetPos() );
+	float 		   waypointDist = ComputePathDistance( GetNavType(), GetNavOrigin(), pCurWaypoint->GetPos() );
 	bool		   bIsGoal		= CurWaypointIsGoal();
 	float		   tolerance	= ( npc_vphysics.GetBool() ) ? 0.25 : 0.0625;
 
@@ -2213,7 +2213,7 @@ bool CAI_Navigator::OnMoveBlocked( AIMoveResult_t *pResult )
 
 	if ( !GetPath()->CurWaypointIsGoal() && GetPath()->GetCurWaypoint()->IsReducible() )
 	{
-		flWaypointDist = ComputePathDistance( GetNavType(), GetLocalOrigin(), GetCurWaypointPos() );
+		flWaypointDist = ComputePathDistance( GetNavType(), GetNavOrigin(), GetCurWaypointPos() );
 		if ( flWaypointDist < GetHullWidth() )
 		{
 			AdvancePath();
@@ -2225,7 +2225,7 @@ bool CAI_Navigator::OnMoveBlocked( AIMoveResult_t *pResult )
 
 	const float EPS = 0.1;
 	
-	flWaypointDist = ComputePathDistance( GetNavType(), GetLocalOrigin(), GetPath()->ActualGoalPosition() );
+	flWaypointDist = ComputePathDistance( GetNavType(), GetNavOrigin(), GetPath()->ActualGoalPosition() );
 
 	if ( flWaypointDist < GetGoalTolerance() + EPS )
 	{
@@ -2675,7 +2675,7 @@ float CAI_Navigator::CalcYawSpeed( void )
 			// -----------------------------------------------------------------
 			// Get the projection of npc's heading direction on the waypoint dir
 			// -----------------------------------------------------------------
-			float waypointDist = (GetPath()->CurWaypointPos() - GetLocalOrigin()).Length();
+			float waypointDist = (GetPath()->CurWaypointPos() - GetNavOrigin()).Length();
 
 			// If waypoint is close, aim for the waypoint
 			if (waypointDist < 100)
@@ -2781,11 +2781,11 @@ bool CAI_Navigator::ShouldAttemptSimplifyTo( const Vector &pos )
 	if ( m_bForcedSimplify )
 		return true;
 		
-	Vector vecToPos = ( pos - GetLocalOrigin() );
+	Vector vecToPos = ( pos - GetNavOrigin() );
 	vecToPos.z = 0;
 	VectorNormalize( vecToPos );
 
-	Vector vecCurrentDirectionOfMovement = ( GetCurWaypointPos() - GetLocalOrigin() );
+	Vector vecCurrentDirectionOfMovement = ( GetCurWaypointPos() - GetNavOrigin() );
 	vecCurrentDirectionOfMovement.z = 0;
 	VectorNormalize( vecCurrentDirectionOfMovement );
 	
@@ -2807,7 +2807,7 @@ bool CAI_Navigator::ShouldSimplifyTo( bool passedDetour, const Vector &pos )
 
 	AIMoveTrace_t moveTrace;
 	GetMoveProbe()->MoveLimit( GetNavType(), 
-		GetLocalOrigin(), pos, MASK_NPCSOLID, 
+		GetNavOrigin(), pos, MASK_NPCSOLID,
 		GetPath()->GetTarget(), 100, flags, &moveTrace );
 
 	return !IsMoveBlocked(moveTrace);
@@ -2880,7 +2880,7 @@ bool CAI_Navigator::SimplifyPathForwardScan( const CAI_Navigator::SimplifyForwar
 				pRecursionWaypoint = pCurWaypoint;
 			}
 			
-			bool skipTestNext = ( ComputePathDistance( GetNavType(), GetLocalOrigin(), nextPoint ) > params.radius + 0.1 );
+			bool skipTestNext = ( ComputePathDistance( GetNavType(), GetNavOrigin(), nextPoint ) > params.radius + 0.1 );
 
 			if ( SimplifyPathForwardScan( params, pRecursionWaypoint, nextPoint, distRemaining, skipTestNext, passedDetour, pTestCount ) )
 				return true;
@@ -2952,7 +2952,7 @@ bool CAI_Navigator::SimplifyPathForward( float maxDist )
 		return true;
 
 	if ( ShouldAttemptSimplifyTo( pNextWaypoint->GetPos() ) && 
-		 ComputePathDistance( GetNavType(), GetLocalOrigin(), pNextWaypoint->GetPos() ) < scanParams.scanDist && 
+		 ComputePathDistance( GetNavType(), GetNavOrigin(), pNextWaypoint->GetPos() ) < scanParams.scanDist &&
 		 ShouldSimplifyTo( ( ( pCurWaypoint->Flags() & bits_WP_TO_DETOUR ) != 0 ), pNextWaypoint->GetPos() ) ) // @TODO (toml 04-25-03): need to handle this better. this is here because forward scan may look out so far that a close obvious solution is skipped (due to test limiting)
 	{
 		delete pCurWaypoint;
@@ -2984,7 +2984,7 @@ bool CAI_Navigator::SimplifyPathBacktrack()
 		(pCurWaypoint->Flags() & bits_WP_TO_NODE) )	
 	{
 
-		Vector firstToMe	= (GetLocalOrigin()			   - pCurWaypoint->GetPos());
+		Vector firstToMe	= (GetNavOrigin()			   - pCurWaypoint->GetPos());
 		Vector firstToNext	= pNextWaypoint->GetPos() - pCurWaypoint->GetPos();
 		VectorNormalize(firstToNext);
 		firstToMe.z			= 0;
@@ -3004,7 +3004,7 @@ bool CAI_Navigator::SimplifyPathBacktrack()
 				buildFlags |= bits_BUILD_JUMP;
 
 			// Make sure I can get to the new point
-			AI_Waypoint_t *route1 = GetPathfinder()->BuildLocalRoute(GetLocalOrigin(), targetPos, GetPath()->GetTarget(), bits_WP_TO_DETOUR, NO_NODE, buildFlags, goalTolerance);
+			AI_Waypoint_t *route1 = GetPathfinder()->BuildLocalRoute(GetNavOrigin(), targetPos, GetPath()->GetTarget(), bits_WP_TO_DETOUR, NO_NODE, buildFlags, goalTolerance);
 			if (!route1) 
 				return false;
 
@@ -3156,7 +3156,7 @@ AI_NavPathProgress_t CAI_Navigator::ProgressFlyPath( const AI_ProgressFlyPathPar
 {
 	if ( IsGoalActive() )
 	{
-		float waypointDist = ( GetCurWaypointPos() - GetLocalOrigin() ).Length();
+		float waypointDist = ( GetCurWaypointPos() - GetNavOrigin() ).Length();
 
 		if ( CurWaypointIsGoal() )
 		{
@@ -3220,7 +3220,7 @@ bool CAI_Navigator::SimplifyFlyPath(  const AI_ProgressFlyPathParams_t &params )
 	// don't shorten path_corners
 	bool bIsStrictWaypoint = ( !params.bTrySimplify || ( (GetPath()->CurWaypointFlags() & (bits_WP_TO_PATHCORNER|bits_WP_DONT_SIMPLIFY) ) != 0 ) );
 
-	Vector dir = GetCurWaypointPos() - GetLocalOrigin();
+	Vector dir = GetCurWaypointPos() - GetNavOrigin();
 	float length = VectorNormalize( dir );
 	
 	if ( !bIsStrictWaypoint || length < params.strictPointTolerance )
@@ -3231,7 +3231,7 @@ bool CAI_Navigator::SimplifyFlyPath(  const AI_ProgressFlyPathParams_t &params )
 			return false;
 
 		AIMoveTrace_t moveTrace;
-		GetMoveProbe()->MoveLimit( NAV_FLY, GetLocalOrigin(), GetPath()->NextWaypointPos(),
+		GetMoveProbe()->MoveLimit( NAV_FLY, GetNavOrigin(), GetPath()->NextWaypointPos(),
 			params.collisionMask, params.pTarget, &moveTrace);
 		
 		if ( moveTrace.flDistObstructed - params.blockTolerance < 0.01 || 
@@ -3357,7 +3357,7 @@ bool CAI_Navigator::CanFitAtPosition( const Vector &vStartPos, unsigned int coll
 float CAI_Navigator::GetPathDistToCurWaypoint() const
 {
 	return ( GetPath()->GetCurWaypoint() ) ? 
-				ComputePathDistance( GetNavType(), GetLocalOrigin(), GetPath()->CurWaypointPos() ) :
+				ComputePathDistance( GetNavType(), GetNavOrigin(), GetPath()->CurWaypointPos() ) :
 				0;
 }
 
@@ -3585,7 +3585,7 @@ bool CAI_Navigator::DoFindPathToPos(void)
 		m_pClippedWaypoints->RemoveAll();
 
 	if ( m_pClippedWaypoints->IsEmpty() )
-		origin = GetLocalOrigin();
+		origin = GetNavOrigin();
 	else
 	{
 		AI_Waypoint_t *pLastClipped = m_pClippedWaypoints->GetLast();
@@ -3934,7 +3934,7 @@ bool CAI_Navigator::GetStoppingPath( CAI_WaypointList *	pClippedWaypoints )
 
 		if ( bMustCompleteCurrent )
 		{
-			float distToCurrent = ComputePathDistance( pCurWaypoint->NavType(), GetLocalOrigin(), pCurWaypoint->GetPos() );
+			float distToCurrent = ComputePathDistance( pCurWaypoint->NavType(), GetNavOrigin(), pCurWaypoint->GetPos() );
 			if ( pCurWaypoint->NavType() == NAV_CLIMB )
 			{
 				if ( pCurWaypoint->GetNext() && pCurWaypoint->GetNext()->NavType() == NAV_CLIMB )
@@ -3948,7 +3948,7 @@ bool CAI_Navigator::GetStoppingPath( CAI_WaypointList *	pClippedWaypoints )
 
 		if ( bMustCompleteCurrent || distRemaining > 0.1 )
 		{
-			Vector		   vPosPrev		 = GetLocalOrigin();
+			Vector		   vPosPrev		 = GetNavOrigin();
 			AI_Waypoint_t *pNextPoint 	 = pCurWaypoint;
 			AI_Waypoint_t *pSavedWaypoints = NULL;
 			AI_Waypoint_t *pLastSavedWaypoint = NULL;
@@ -4182,7 +4182,7 @@ void CAI_Navigator::DrawDebugRouteOverlay(void)
 	if (waypoint)
 	{
 		Vector RGB = GetRouteColor(waypoint->NavType(), waypoint->Flags());
-		NDebugOverlay::Line(GetLocalOrigin(), waypoint->GetPos(), RGB[0],RGB[1],RGB[2], true,0);
+		NDebugOverlay::Line(GetNavOrigin(), waypoint->GetPos(), RGB[0],RGB[1],RGB[2], true,0);
 	}
 
 	while (waypoint) 

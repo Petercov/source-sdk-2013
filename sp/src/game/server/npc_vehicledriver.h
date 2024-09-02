@@ -149,6 +149,11 @@ public:
 	void			ClearWaypoints( void );
 	void			CheckForTeleport( void );
 
+#ifdef MAPBASE
+	// The origin to use for navigation queries
+	virtual const Vector& GetNavOrigin(void) const;
+#endif // MAPBASE
+
 	int				BloodColor( void ) { return DONT_BLEED; }
 
 #ifdef MAPBASE

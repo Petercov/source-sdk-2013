@@ -131,8 +131,8 @@ bool CAI_LocalNavigator::MoveCalcDirect( AILocalMoveGoal_t *pMoveGoal, bool bOnl
 
 		if ( !bExpectingArrival )
 		{
-			testPos = GetLocalOrigin() + pMoveGoal->dir * moveThisInterval;
-			bTraceClear = GetMoveProbe()->MoveLimit( pMoveGoal->navType, GetLocalOrigin(), testPos, 
+			testPos = GetNavOrigin() + pMoveGoal->dir * moveThisInterval;
+			bTraceClear = GetMoveProbe()->MoveLimit( pMoveGoal->navType, GetNavOrigin(), testPos,
 													 MASK_NPCSOLID, pMoveGoal->pMoveTarget, 
 													 100.0, 
 													 ( pMoveGoal->navType == NAV_GROUND ) ? AIMLF_2D : AIMLF_DEFAULT, 
@@ -169,12 +169,12 @@ bool CAI_LocalNavigator::MoveCalcDirect( AILocalMoveGoal_t *pMoveGoal, bool bOnl
 		{
 			if ( m_FullDirectTimer.Expired() )
 			{
-				testPos = GetLocalOrigin() + pMoveGoal->dir * checkDist;
+				testPos = GetNavOrigin() + pMoveGoal->dir * checkDist;
 				float checkStepPct = (checkStepDist / checkDist) * 100.0;
 				if ( checkStepPct > 100.0 )
 					checkStepPct = 100.0;
 				
-				bTraceClear = GetMoveProbe()->MoveLimit( pMoveGoal->navType, GetLocalOrigin(), testPos, 
+				bTraceClear = GetMoveProbe()->MoveLimit( pMoveGoal->navType, GetNavOrigin(), testPos,
 														 MASK_NPCSOLID, pMoveGoal->pMoveTarget, 
 														 checkStepPct, 
 														 ( pMoveGoal->navType == NAV_GROUND ) ? AIMLF_2D : AIMLF_DEFAULT, 

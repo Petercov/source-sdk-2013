@@ -116,6 +116,8 @@ protected:
 
 	float				GetLastThink( const char *szContext = NULL );
 
+	const Vector&		GetNavOrigin(void) const;
+
 public:
 #if defined(new)
 #error
