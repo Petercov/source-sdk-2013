@@ -544,7 +544,7 @@ inline bool CVarBitVecBase<BITCOUNTTYPE>::Detach( uint32 **ppBits, int *pNumBits
 	{
 		*ppBits = (uint32 *)malloc( sizeof(uint32) );
 		**ppBits = m_iBitStringStorage;
-		free( m_pInt );
+		m_pInt = NULL;
 	}
 
 	memset( this, 0, sizeof( *this ) );
