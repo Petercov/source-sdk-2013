@@ -1325,3 +1325,25 @@ const char* UTIL_GetActiveHolidayString()
 	return NULL;
 #endif
 }
+
+#ifdef MAPBASE
+CVarBitVecPVS::CVarBitVecPVS(IVEngineServer* pEngine) : CVarBitVecPVS(pEngine->GetClusterCount())
+{
+}
+
+CVarBitVecPVS::CVarBitVecPVS(IVEngineServer* pEngine, int nCluster) : CVarBitVecPVS(pEngine->GetClusterCount())
+{
+	pEngine->GetPVSForCluster(nCluster, Size(), reinterpret_cast<unsigned char*> (Base()));
+}
+
+CVarBitVecPVS::CVarBitVecPVS(IVEngineServer* pEngine, const CBitVec<MAX_MAP_CLUSTERS>& other) : CVarBitVecPVS(pEngine->GetClusterCount(), other)
+{
+}
+
+CVarBitVecPVS::CVarBitVecPVS(int nClusterCount, const CBitVec<MAX_MAP_CLUSTERS>& other) : CVarBitVecPVS(nClusterCount)
+{
+	Assert(nClusterCount <= MAX_MAP_CLUSTERS);
+	
+	memcpy(Base(), other.Base(), GetNumDWords() * sizeof(uint32));
+}
+#endif // MAPBASE

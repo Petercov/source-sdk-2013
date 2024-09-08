@@ -627,5 +627,35 @@ bool				UTIL_IsHolidayActive( /*EHoliday*/ int eHoliday );
 // holidays overlapping, the list order will act as priority.
 const char		   *UTIL_GetActiveHolidayString();
 
+#ifdef MAPBASE
+// A bitvec for storing PVS bits
+// Has implicit cast to unsigned char*
+class CBitVecPVS : public CBitVec<MAX_MAP_CLUSTERS>
+{
+public:
+	operator unsigned char* () { return reinterpret_cast<unsigned char*> (Base()); }
+	operator const unsigned char* () const { return reinterpret_cast<const unsigned char*> (Base()); }
+};
+COMPILE_TIME_ASSERT(sizeof(CBitVecPVS) == (MAX_MAP_CLUSTERS / 8));
+
+class IVEngineServer;
+class CVarBitVecPVS : public CVarBitVec
+{
+public:
+	operator unsigned char* () { return reinterpret_cast<unsigned char*> (Base()); }
+	operator const unsigned char* () const { return reinterpret_cast<const unsigned char*> (Base()); }
+	// Size in bytes of allocated integers.
+	const size_t Size() const { return sizeof(uint32) * GetNumDWords(); }
+
+	CVarBitVecPVS(int nClusterCount) : CVarBitVec(nClusterCount)
+	{
+	}
+
+	CVarBitVecPVS(int nClusterCount, const CBitVec<MAX_MAP_CLUSTERS>& other);
+	CVarBitVecPVS(IVEngineServer* pEngine);
+	CVarBitVecPVS(IVEngineServer* pEngine, int nCluster);
+	CVarBitVecPVS(IVEngineServer* pEngine, const CBitVec<MAX_MAP_CLUSTERS>& other);
+};
+#endif // MAPBASE
 
 #endif // UTIL_SHARED_H
