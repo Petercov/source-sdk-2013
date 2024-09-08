@@ -14,6 +14,12 @@
 #include "tier0/dbg.h"
 #include "tier0/basetypes.h"
 
+#ifdef MAPBASE
+#if defined(X64BITS) || defined(__SSE2__) || (defined(_MSC_VER) && _M_IX86_FP >= 2)
+#include "mathlib/ssemath.h"
+#define _BITVEC_SSE2_COMPILER
+#endif
+#endif // MAPBASE
 
 class CBitVecAccessor
 {
@@ -710,10 +716,15 @@ inline void CBitVecT<BASE_OPS>::And(const CBitVecT &addStr, CBitVecT *out) const
 	const uint32 *pOperand1	= this->Base();
 	const uint32 *pOperand2	= addStr.Base();
 
-	for (int i = this->GetNumDWords() - 1; i >= 0 ; --i) 
+#ifndef _BITVEC_SSE2_COMPILER
+	for (int i = this->GetNumDWords() - 1; i >= 0; --i)
 	{
 		pDest[i] = pOperand1[i] & pOperand2[i];
 	}
+#else
+	for (const uint32* pEnd = pDest + this->GetNumDWords(); pDest < pEnd; pDest++, pOperand1++, pOperand2++)
+		*pDest = *pOperand1 & *pOperand2;
+#endif // !_BITVEC_SSE2_COMPILER
 }
 
 //-----------------------------------------------------------------------------
@@ -731,10 +742,15 @@ inline void CBitVecT<BASE_OPS>::Or(const CBitVecT &orStr, CBitVecT *out) const
 	const uint32 *pOperand1	= this->Base();
 	const uint32 *pOperand2	= orStr.Base();
 
-	for (int i = this->GetNumDWords() - 1; i >= 0; --i) 
+#ifndef _BITVEC_SSE2_COMPILER
+	for (int i = this->GetNumDWords() - 1; i >= 0; --i)
 	{
 		pDest[i] = pOperand1[i] | pOperand2[i];
 	}
+#else
+	for (const uint32* pEnd = pDest + this->GetNumDWords(); pDest < pEnd; pDest++, pOperand1++, pOperand2++)
+		*pDest = *pOperand1 | *pOperand2;
+#endif // !_BITVEC_SSE2_COMPILER
 }
 
 //-----------------------------------------------------------------------------
@@ -749,10 +765,15 @@ inline void CBitVecT<BASE_OPS>::Xor(const CBitVecT &xorStr, CBitVecT *out) const
 	const uint32 *pOperand1	= this->Base();
 	const uint32 *pOperand2	= xorStr.Base();
 
-	for (int i = this->GetNumDWords() - 1; i >= 0; --i) 
+#ifndef _BITVEC_SSE2_COMPILER
+	for (int i = this->GetNumDWords() - 1; i >= 0; --i)
 	{
 		pDest[i] = pOperand1[i] ^ pOperand2[i];
 	}
+#else
+	for (const uint32* pEnd = pDest + this->GetNumDWords(); pDest < pEnd; pDest++, pOperand1++, pOperand2++)
+		*pDest = *pOperand1 ^ *pOperand2;
+#endif // !_BITVEC_SSE2_COMPILER
 }
 
 //-----------------------------------------------------------------------------
@@ -768,10 +789,15 @@ inline void CBitVecT<BASE_OPS>::Not(CBitVecT *out) const
 	uint32 *	   pDest	= out->Base();
 	const uint32 *pOperand	= this->Base();
 
-	for (int i = this->GetNumDWords() - 1; i >= 0; --i) 
+#ifndef _BITVEC_SSE2_COMPILER
+	for (int i = this->GetNumDWords() - 1; i >= 0; --i)
 	{
 		pDest[i] = ~(pOperand[i]);
 	}
+#else
+	for (const uint32* pEnd = pDest + this->GetNumDWords(); pDest < pEnd; pDest++, pOperand++)
+		*pDest = ~(*pOperand);
+#endif // !_BITVEC_SSE2_COMPILER
 }
 
 //-----------------------------------------------------------------------------
@@ -803,7 +829,7 @@ inline bool CBitVecT<BASE_OPS>::IsAllClear(void) const
 	// before testing for zero
 	(const_cast<CBitVecT *>(this))->Base()[this->GetNumDWords()-1] &= CBitVecT<BASE_OPS>::GetEndMask(); // external semantics of const retained
 
-	for (int i = this->GetNumDWords() - 1; i >= 0; --i) 
+	for (int i = this->GetNumDWords() - 1; i >= 0; --i)
 	{
 		if ( this->Base()[i] !=0 ) 
 		{
@@ -1090,6 +1116,7 @@ FORCEINLINE_TEMPLATE void CBitVecT< CFixedBitVecBase<256> >::And(const CBitVecT 
 	const uint32 *pOperand1	= Base();
 	const uint32 *pOperand2	= addStr.Base();
 
+#ifndef _BITVEC_SSE2_COMPILER
 	pDest[0] = pOperand1[0] & pOperand2[0];
 	pDest[1] = pOperand1[1] & pOperand2[1];
 	pDest[2] = pOperand1[2] & pOperand2[2];
@@ -1098,6 +1125,14 @@ FORCEINLINE_TEMPLATE void CBitVecT< CFixedBitVecBase<256> >::And(const CBitVecT 
 	pDest[5] = pOperand1[5] & pOperand2[5];
 	pDest[6] = pOperand1[6] & pOperand2[6];
 	pDest[7] = pOperand1[7] & pOperand2[7];
+#else
+	u32x4 a1 = LoadUnalignedIntSIMD(pOperand1), a2 = LoadUnalignedIntSIMD(pOperand1 + 4);
+	u32x4 b1 = LoadUnalignedIntSIMD(pOperand2), b2 = LoadUnalignedIntSIMD(pOperand2 + 4);
+	u32x4 c1 = AndSIMD(a1, b1);
+	u32x4 c2 = AndSIMD(a2, b2);
+	StoreUnalignedIntSIMD((int32*)pDest, c1);
+	StoreUnalignedIntSIMD((int32*)pDest + 4, c2);
+#endif // !_BITVEC_SSE2_COMPILER
 }
 
 template<> 
@@ -1130,10 +1165,17 @@ FORCEINLINE_TEMPLATE  void CBitVecT< CFixedBitVecBase<128> >::And(const CBitVecT
 	const uint32 *pOperand1	= Base();
 	const uint32 *pOperand2	= addStr.Base();
 
+#ifndef _BITVEC_SSE2_COMPILER
 	pDest[0] = pOperand1[0] & pOperand2[0];
 	pDest[1] = pOperand1[1] & pOperand2[1];
 	pDest[2] = pOperand1[2] & pOperand2[2];
 	pDest[3] = pOperand1[3] & pOperand2[3];
+#else
+	u32x4 a = LoadUnalignedIntSIMD(pOperand1);
+	u32x4 b = LoadUnalignedIntSIMD(pOperand2);
+	u32x4 c = AndSIMD(a, b);
+	StoreUnalignedIntSIMD((int32*)pDest, c);
+#endif // !_BITVEC_SSE2_COMPILER
 }
 
 template<> 
@@ -1438,5 +1480,36 @@ inline CBitVecAccessor::operator uint32()
 
 
 //=============================================================================
+
+#ifdef MAPBASE 
+#if !defined(X64BITS) && !defined(__SSE2__) && !(defined(_MSC_VER) && _M_IX86_FP >= 2)
+template<>
+FORCEINLINE_TEMPLATE  void CBitVecT< CVarBitVecBase<unsigned short> >::And(const CBitVecT& addStr, CBitVecT* out) const
+{
+	ValidateOperand(addStr);
+	ValidateOperand(*out);
+
+	uint32* pDest = out->Base();
+	const uint32* pOperand1 = Base();
+	const uint32* pOperand2 = addStr.Base();
+	const uint32* pEnd = pDest + GetNumDWords();
+
+	for (; pDest + 3 < pEnd; pDest += 4, pOperand1 += 4, pOperand2 += 4)
+	{
+		u32x4 a = LoadUnalignedIntSIMD(pOperand1);
+		u32x4 b = LoadUnalignedIntSIMD(pOperand2);
+		u32x4 out = AndSIMD(a, b);
+		StoreUnalignedIntSIMD((int32*)pDest, out);
+	}
+
+	for (; pDest < pEnd; pDest++, pOperand1++, pOperand2++)
+	{
+		*pDest = *pOperand1 & *pOperand2;
+	}
+}
+#endif
+
+#undef _BITVEC_SSE2_COMPILER
+#endif // MAPBASE
 
 #endif // BITVEC_H
