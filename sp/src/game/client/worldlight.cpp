@@ -217,7 +217,7 @@ void CWorldLights::LevelInitPreEntity()
 		m_WorldLightsInCluster[i].lightCount = 0;
 		m_WorldLightsInCluster[i].firstLight = 0;
 	}
-	unsigned char myPVS[16 * 1024];
+	unsigned char myPVS[MAX_MAP_CLUSTERS / 8];
 	CUtlVector<short> clusterIndexList;
 	CUtlVector<short> lightIndexList;
 
