@@ -1078,6 +1078,11 @@ private:
 	friend class CVolumetricLightRenderable;
 #endif // GSTRING_VOLUMETRICS
 
+#ifdef FLASHLIGHT_PVSCHECK
+	CVarBitVecPVS m_ViewPVS;
+	CVarBitVecPVS m_FlashlightPVS;
+#endif // MAPBASE
+
 	friend class CVisibleShadowList;
 	friend class CVisibleShadowFrustumList;
 };
@@ -2265,6 +2270,12 @@ void CClientShadowMgr::LevelInitPreEntity()
 		m_ShadowAllocator.Reset();
 		m_bRenderTargetNeedsClear = true;
 	}
+
+#ifdef FLASHLIGHT_PVSCHECK
+	int nClusters = serverengine->GetClusterCount();
+	m_ViewPVS.Resize(nClusters, true);
+	m_FlashlightPVS.Resize(nClusters, true);
+#endif // MAPBASE
 }
 
 
@@ -4934,6 +4945,10 @@ int CClientShadowMgr::BuildActiveShadowDepthList( const CViewSetup &viewSetup, i
 	Frustum_t viewFrustum;
 	GeneratePerspectiveFrustum( viewSetup.origin, viewSetup.angles, viewSetup.zNear, viewSetup.zFar, viewSetup.fov, viewSetup.m_flAspectRatio, viewFrustum );
 #endif
+#ifdef FLASHLIGHT_PVSCHECK
+	int nviewCluster = serverengine->GetClusterForOrigin(viewSetup.origin);
+	serverengine->GetPVSForCluster(nviewCluster, m_ViewPVS.Size(), m_ViewPVS);
+#endif // MAPBASE
 
 	int nActiveDepthShadowCount = 0;
 	for (ClientShadowHandle_t i = m_Shadows.Head(); i != m_Shadows.InvalidIndex(); i = m_Shadows.Next(i))
@@ -4959,10 +4974,19 @@ int CClientShadowMgr::BuildActiveShadowDepthList( const CViewSetup &viewSetup, i
 		GeneratePerspectiveFrustum(viewSetup.origin, viewSetup.angles, viewSetup.zNear, viewSetup.zFar, viewSetup.fov, viewSetup.m_flAspectRatio, viewFrustum);
 #endif // !ASW_PROJECTED_TEXTURES
 
+#ifdef FLASHLIGHT_PVSCHECK
+		serverengine->GetPVSForCluster(serverengine->GetClusterForOrigin(flashlightState.m_vecLightOrigin), m_FlashlightPVS.Size(), m_FlashlightPVS);
+		m_FlashlightPVS.And(m_ViewPVS, &m_FlashlightPVS);
+#endif // MAPBASE
+
 		// FIXME: Could do other sorts of culling here, such as frustum-frustum test, distance etc.
 		// If it's not in the view frustum, move on
 #ifdef MAPBASE
-		if ( !flashlightState.m_bAlwaysDraw && !flashlightState.m_bOrtho && R_CullBox( vecAbsMins, vecAbsMaxs, viewFrustum ) )
+		if ( !flashlightState.m_bAlwaysDraw && !flashlightState.m_bOrtho && (R_CullBox( vecAbsMins, vecAbsMaxs, viewFrustum ) 
+#ifdef FLASHLIGHT_PVSCHECK
+			|| m_FlashlightPVS.IsAllClear()
+#endif // FLASHLIGHT_PVS
+			) )
 #elif ASW_PROJECTED_TEXTURES
 		if ( !flashlightState.m_bOrtho && R_CullBox( vecAbsMins, vecAbsMaxs, viewFrustum ) )
 #else

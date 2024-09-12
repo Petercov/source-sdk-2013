@@ -647,6 +647,9 @@ public:
 	// Size in bytes of allocated integers.
 	const size_t Size() const { return sizeof(uint32) * GetNumDWords(); }
 
+	CVarBitVecPVS() : CVarBitVec()
+	{}
+
 	CVarBitVecPVS(int nClusterCount) : CVarBitVec(nClusterCount)
 	{
 	}
