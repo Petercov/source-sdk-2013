@@ -35,6 +35,10 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#ifdef MAPBASE
+ConVar sv_ambient_soundscript_override("sv_ambient_generic_script_override", "0", FCVAR_NONE, "Should ambient_generic entities override sound script parameters?");
+#endif // MAPBASE
+
 //-----------------------------------------------------------------------------
 // Purpose: Compute a suitable attenuation value given an audible radius
 // Input  : radius - 
@@ -48,6 +52,9 @@
 #ifdef HL1_DLL
 ConVar hl1_ref_db_distance( "hl1_ref_db_distance", "18.0" );
 #define	REFERENCE_dB_DISTANCE	hl1_ref_db_distance.GetFloat()
+#elif defined(MAPBASE)
+ConVar ref_db_distance("ref_db_distance", "36.0");
+#define	REFERENCE_dB_DISTANCE	ref_db_distance.GetFloat()
 #else
 #define REFERENCE_dB_DISTANCE	36.0
 #endif//HL1_DLL
@@ -940,6 +947,15 @@ void CAmbientGeneric::SendSound( SoundFlags_t flags)
 	int iFlags = flags != SND_STOP ? ((int)flags | m_iSoundFlags) : flags;
 	char *szSoundFile = (char *)STRING( m_iszSound );
 	CBaseEntity* pSoundSource = m_hSoundSource;
+
+	bool needsCC = false;
+	CSoundParameters params;
+	if (sv_ambient_soundscript_override.GetBool() && GetParametersForSound(szSoundFile, params, NULL))
+	{
+		needsCC = !(iFlags & (SND_STOP | SND_CHANGE_VOL | SND_CHANGE_PITCH));
+		szSoundFile = params.soundname;
+	}
+
 	if ( pSoundSource )
 	{
 		if ( iFlags & SND_STOP )
@@ -958,6 +974,16 @@ void CAmbientGeneric::SendSound( SoundFlags_t flags)
 				(m_dpv.vol * 0.01), m_iSoundLevel, iFlags, m_dpv.pitch, 0.0f, &duration);
 
 			SetContextThink( &CAmbientGeneric::SoundEnd, gpGlobals->curtime + duration, g_SoundEndContext );
+
+			if (needsCC)
+			{
+				CRecipientFilter filter;
+				filter.AddAllPlayers();
+				filter.MakeReliable();
+
+				CUtlVector< Vector > dummy;
+				EmitCloseCaption(filter, pSoundSource->GetSoundSourceIndex(), STRING(m_iszSound), dummy, duration, false);
+			}
 
 			// Only mark active if this is a looping sound.  If not looping, each
 			// trigger will cause the sound to play.  If the sound is still
