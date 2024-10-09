@@ -3234,8 +3234,10 @@ public:
 
 	void AddBlockHandler( ISaveRestoreBlockHandler *pHandler )
 	{
+#ifndef MAPBASE
 		// Grody, but... while this class is still isolated in saverestore.cpp, this seems like a fine time to assert:
-		AssertMsg( pHandler == &g_EntitySaveRestoreBlockHandler || (m_Handlers.Count() >= 1 && m_Handlers[0] == &g_EntitySaveRestoreBlockHandler), "Expected entity save load to always be first" );
+		AssertMsg(pHandler == &g_EntitySaveRestoreBlockHandler || (m_Handlers.Count() >= 1 && m_Handlers[0] == &g_EntitySaveRestoreBlockHandler), "Expected entity save load to always be first");
+#endif // !MAPBASE
 
 		Assert( pHandler != this );
 		m_Handlers.AddToTail( pHandler );

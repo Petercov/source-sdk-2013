@@ -2805,7 +2805,7 @@ void CScriptConvarAccessor::RegisterConvar( const char *name, const char *pDefau
 			return;
 		}
 
-		CScriptConVar *p = new CScriptConVar( name, pDefaultValue, helpString, flags );
+		CScriptConVar *p = new CScriptConVar( name, pDefaultValue, helpString, flags & ~FCVAR_GAME_SAVE );
 		g_ScriptConVars.Insert( hash, p );
 	}
 	else

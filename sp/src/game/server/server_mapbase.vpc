@@ -36,6 +36,8 @@ $Project
 		$File	"ai_expresserfollowup.cpp" [$NEW_RESPONSE_SYSTEM]
 		$File	"ai_speechqueue.cpp" [$NEW_RESPONSE_SYSTEM]
 		$File	"ai_speechqueue.h" [$NEW_RESPONSE_SYSTEM]
+		$File	"$SRCDIR\game\shared\convar_saverestore.cpp"
+		$File	"$SRCDIR\game\shared\convar_saverestore.h"
 
 		$Folder	"Mapbase"
 		{

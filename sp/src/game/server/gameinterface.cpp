@@ -91,6 +91,7 @@
 #include "querycache.h"
 #ifdef MAPBASE
 #include "world.h"
+#include "convar_saverestore.h"
 #endif
 
 #include "vscript/ivscript.h"
@@ -716,6 +717,9 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 
 	sv_maxreplay = g_pCVar->FindVar( "sv_maxreplay" );
 
+#ifdef MAPBASE
+	g_pGameSaveRestoreBlockSet->AddBlockHandler(GetConvarSaveRestoreBlockHandler());
+#endif // MAPBASE
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetEntitySaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetPhysSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetAISaveRestoreBlockHandler() );
@@ -812,6 +816,9 @@ void CServerGameDLL::DLLShutdown( void )
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetAISaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetPhysSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetEntitySaveRestoreBlockHandler() );
+#ifdef MAPBASE
+	g_pGameSaveRestoreBlockSet->RemoveBlockHandler(GetConvarSaveRestoreBlockHandler());
+#endif // MAPBASE
 
 	char *pFilename = g_TextStatsMgr.GetStatsFilename();
 	if ( !pFilename || !pFilename[0] )

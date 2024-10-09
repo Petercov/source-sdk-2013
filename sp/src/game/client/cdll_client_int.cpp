@@ -151,6 +151,10 @@
 #include "vscript_client.h"
 #endif
 
+#ifdef MAPBASE
+#include "convar_saverestore.h"
+#endif // MAPBASE
+
 #ifdef MAPBASE_SCENECACHE
 #include "scenefilecache/INewSceneCache.h"
 #endif // MAPBASE_SCENECACHE
@@ -1232,6 +1236,9 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	if ( !PhysicsDLLInit( physicsFactory ) )
 		return false;
 
+#ifdef MAPBASE
+	g_pGameSaveRestoreBlockSet->AddBlockHandler(GetConvarSaveRestoreBlockHandler());
+#endif // MAPBASE
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetEntitySaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetPhysSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->AddBlockHandler( GetViewEffectsRestoreBlockHandler() );
@@ -1389,6 +1396,9 @@ void CHLClient::Shutdown( void )
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetViewEffectsRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetPhysSaveRestoreBlockHandler() );
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetEntitySaveRestoreBlockHandler() );
+#ifdef MAPBASE
+	g_pGameSaveRestoreBlockSet->RemoveBlockHandler(GetConvarSaveRestoreBlockHandler());
+#endif // MAPBASE
 #ifdef MAPBASE_VSCRIPT
 	g_pGameSaveRestoreBlockSet->RemoveBlockHandler( GetVScriptSaveRestoreBlockHandler() );
 #endif
