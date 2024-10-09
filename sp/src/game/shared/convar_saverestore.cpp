@@ -106,7 +106,7 @@ public:
 				{
 					short nValueLen = pRestore->ReadShort();
 					strValue.SetLength(nValueLen);
-					pRestore->ReadString(strValue.Get(), nValueLen, 0);
+					pRestore->ReadString(strValue.Get(), nValueLen > 0 ? nValueLen + 1 : 0, 0);
 					var.SetValue(strValue);
 				}
 			}
