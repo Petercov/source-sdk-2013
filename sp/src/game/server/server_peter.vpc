@@ -29,6 +29,7 @@ $Project
 				$File	"hl2\weapon_irifle.cpp"
 				$File	"hl2\weapon_smg2.cpp"
 				$File	"hl2\weapon_sniperrifle.cpp"
+				$File	"$SRCDIR\game\shared\hl2mp\weapon_physgun.cpp"
 			}
 
 			$File	"hl2\extinguisherjet.cpp"

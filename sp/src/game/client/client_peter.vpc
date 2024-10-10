@@ -21,6 +21,7 @@ $Project
 		{
 			$Folder "Weapons"
 			{
+				$File	"$SRCDIR\game\shared\hl2mp\weapon_physgun.cpp"
 				$File	"peter\c_weapon_irifle.cpp"
 			}
 			$File	"hl2\c_extinguisher.cpp"
