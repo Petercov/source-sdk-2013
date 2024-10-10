@@ -791,7 +791,7 @@ BEGIN_VS_SHADER(PBR, "PBR shader")
             pShaderShadow->EnableTexture(SAMPLER_EMISSIVE, true);       // Emission texture
             pShaderShadow->EnableSRGBRead(SAMPLER_EMISSIVE, true);      // Emission is sRGB
             pShaderShadow->EnableTexture(SAMPLER_LIGHTMAP, true);       // Lightmap texture
-            pShaderShadow->EnableSRGBRead(SAMPLER_LIGHTMAP, false);     // Lightmaps aren't sRGB
+            pShaderShadow->EnableSRGBRead(SAMPLER_LIGHTMAP, g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE);     // Lightmaps aren't sRGB
             pShaderShadow->EnableTexture(SAMPLER_MRAO, true);           // MRAO texture
             pShaderShadow->EnableSRGBRead(SAMPLER_MRAO, false);         // MRAO isn't sRGB
             pShaderShadow->EnableTexture(SAMPLER_NORMAL, true);         // Normal texture

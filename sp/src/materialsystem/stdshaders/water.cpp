@@ -304,7 +304,7 @@ BEGIN_VS_SHADER( SDK_Water_DX90,
 				if (bUsingLightmap)
 				{
 					pShaderShadow->EnableTexture(SHADER_SAMPLER3, true);
-					pShaderShadow->EnableSRGBRead(SHADER_SAMPLER3, false);
+					pShaderShadow->EnableSRGBRead(SHADER_SAMPLER3, g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE);
 				}
 
 				// flowmap
