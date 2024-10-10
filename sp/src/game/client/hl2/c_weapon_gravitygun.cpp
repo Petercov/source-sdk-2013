@@ -28,13 +28,6 @@ public:
 	// IClientRenderable
 	virtual const Vector&			GetRenderOrigin( void ) { return m_worldPosition; }
 	virtual const QAngle&			GetRenderAngles( void ) { return vec3_angle; }
-	virtual const matrix3x4_t& RenderableToWorldTransform()
-	{
-		static matrix3x4_t mat;
-		SetIdentityMatrix(mat);
-		PositionMatrix(GetRenderOrigin(), mat);
-		return mat;
-	}
 	virtual bool					ShouldDraw( void ) { return true; }
 	virtual bool					IsTransparent( void ) { return true; }
 	virtual bool					ShouldReceiveProjectedTextures( int flags ) { return false; }
@@ -165,9 +158,8 @@ int	C_BeamQuadratic::DrawModel( int )
 		color.Init(1,1,1);
 	}
 
-	CMatRenderContextPtr pRenderContext(materials);
 	float scrollOffset = gpGlobals->curtime - (int)gpGlobals->curtime;
-	pRenderContext->Bind( pMat );
+	materials->Bind( pMat );
 	DrawBeamQuadratic( points[0], points[1], points[2], 13, color, scrollOffset );
 	return 1;
 }

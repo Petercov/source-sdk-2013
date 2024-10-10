@@ -19,8 +19,10 @@ $Project
 	{
 		$Folder "HL2 Beta"
 		{
-			$File	"peter\c_weapon_irifle.cpp"
-			$File	"hl2\c_weapon_gravitygun.cpp"
+			$Folder "Weapons"
+			{
+				$File	"peter\c_weapon_irifle.cpp"
+			}
 			$File	"hl2\c_extinguisher.cpp"
 		}
 
